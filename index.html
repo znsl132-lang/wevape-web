@@ -103,6 +103,13 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .mini.ok:hover{border-color:var(--ok);color:var(--ok)}
 .mini.no:hover{border-color:var(--err);color:var(--err)}
 .empty{padding:44px;text-align:center;color:var(--dim2);font-size:13px}
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);cursor:pointer;user-select:none}
+.chk input{width:15px;height:15px;accent-color:var(--ac);cursor:pointer;margin:0}
+.row .chk{flex:none;padding-top:2px}
+.selinfo{font-size:11.5px;color:var(--ac2)}
+.mini[disabled]{opacity:.35;cursor:not-allowed}
+.mini[disabled]:hover{border-color:var(--line);color:var(--dim)}
+.row.sel{background:#191d2c}
 
 /* ---------- 검수 카드 ---------- */
 .rv{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
@@ -186,8 +193,15 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
           <div class="card"><h4>지점</h4><div class="v" id="k-st">—</div><div class="bar"><i class="g" style="width:100%"></i></div></div>
         </div>
         <div class="sec">
-          <div class="sec-h"><h3>게시물</h3><div class="spacer"></div>
-            <button class="mini" onclick="publishNow()">지금 발행</button></div>
+          <div class="sec-h">
+            <label class="chk"><input type="checkbox" id="all" onchange="selAll(this.checked)"><span>전체</span></label>
+            <h3>게시물</h3>
+            <span id="selinfo" class="selinfo"></span>
+            <div class="spacer"></div>
+            <button class="mini no" id="btn-delsel" onclick="delSelected()" disabled>선택 삭제</button>
+            <button class="mini no" onclick="delAll()">전체 삭제</button>
+            <button class="mini" onclick="publishNow()">지금 발행</button>
+          </div>
           <div id="list"></div>
         </div>
       </section>
@@ -196,7 +210,8 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
       <section class="page" id="p-review">
         <div class="sec">
           <div class="sec-h"><h3>AI가 만든 글 검수</h3><div class="spacer"></div>
-            <button class="mini ok" onclick="approveAll()">전체 승인</button></div>
+            <button class="mini ok" onclick="approveAll()">전체 승인</button>
+            <button class="mini no" onclick="rvDelAll()">전체 삭제</button></div>
           <div class="sec-b" style="padding-bottom:6px;color:var(--dim);font-size:12.5px">
             금지어 검사를 통과한 글만 여기 올라옵니다. 문구는 고쳐서 승인할 수 있습니다.
           </div>
@@ -271,7 +286,7 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 
 <script>
 var API = "https://script.google.com/macros/s/AKfycby79BDH9Z6HXAPLS9t4_Te4kqIucJicsMtmNzx_9MGx0D4NgRMBXxT4MbuN109IC9hE/exec";
-var CODE = "", S = null, RV = [], FILTER = "전체", IMG = "";
+var CODE = "", S = null, RV = [], FILTER = "전체", IMG = "", AUTO = {}, SEL = {};
 
 /* ---------- 통신 ---------- */
 function busy(on){ document.getElementById('busy').style.width = on ? '70%' : '0'; }
@@ -378,12 +393,13 @@ function paintStores(){
   });
   el.innerHTML = h;
   Array.prototype.forEach.call(el.querySelectorAll('.store'), function(d){
-    d.onclick = function(){ FILTER = d.dataset.s; paintStores(); paintList(); };
+    d.onclick = function(){ FILTER = d.dataset.s; SEL = {}; paintStores(); paintList(); };
   });
 }
 
 function paintCards(j){
-  var a = (j.auto || {});
+  if (j && j.auto) AUTO = j.auto;
+  var a = AUTO || {};
   var q = a.queueDays !== undefined ? a.queueDays : null;
   document.getElementById('k-q').innerHTML = (q === null ? '—' : q) + '<small>일치</small>';
   document.getElementById('b-q').style.width = Math.min(100, (q || 0) / 14 * 100) + '%';
@@ -421,7 +437,10 @@ function paintList(){
 
   var h = '';
   rows.forEach(function(r){
-    h += '<div class="row"><div class="body">'
+    h += '<div class="row' + (SEL[r.row] ? ' sel' : '') + '" id="row' + r.row + '">'
+      +  '<label class="chk"><input type="checkbox" ' + (SEL[r.row] ? 'checked' : '')
+      +  ' onchange="selOne(' + r.row + ',this.checked)"></label>'
+      +  '<div class="body">'
       +  '<div class="meta"><span class="tag d">' + esc(r.date) + '</span>'
       +  '<span class="tag">' + esc(r.store) + '</span>' + chanTag(r.channel)
       +  '<span class="tag d">' + esc(r.category) + '</span>' + stTag(r.status)
@@ -437,13 +456,112 @@ function paintList(){
       +  '</div></div>';
   });
   el.innerHTML = h;
+  syncSel();
 }
 
-function toggleOk(row, on){ get('approve', { row: row, on: on }).then(function(){ toast(on ? '승인했습니다' : '승인을 해제했습니다', 'ok'); loadAll(); }, err); }
-function markPosted(row){ get('posted', { row: row }).then(function(){ toast('게시 완료로 표시했습니다', 'ok'); loadAll(); }, err); }
-function del(row){ if (!confirm('이 게시물을 삭제할까요?')) return; get('delete', { row: row }).then(function(){ toast('삭제했습니다', 'ok'); loadAll(); }, err); }
-function publishNow(){ if (!confirm('예약 시간이 지난 승인 건을 지금 발행합니다.')) return; get('publish').then(function(){ toast('발행을 실행했습니다', 'ok'); loadAll(); }, err); }
-function setMode(m){ get('mode', { mode: m }).then(function(){ toast('실행 모드를 ' + m + '으로 바꿨습니다', 'ok'); loadAll(); }, err); }
+/* ---------- 선택 ---------- */
+function visibleRows(){
+  return (S.rows || []).filter(function(r){ return FILTER === '전체' || r.store === FILTER; });
+}
+function selOne(row, on){
+  if (on) SEL[row] = true; else delete SEL[row];
+  var el = document.getElementById('row' + row);
+  if (el) el.className = 'row' + (on ? ' sel' : '');
+  syncSel();
+}
+function selAll(on){
+  SEL = {};
+  if (on) visibleRows().forEach(function(r){ SEL[r.row] = true; });
+  paintList();
+}
+function selCount(){ return Object.keys(SEL).length; }
+function syncSel(){
+  var n = selCount();
+  document.getElementById('selinfo').textContent = n ? (n + '건 선택') : '';
+  document.getElementById('btn-delsel').disabled = !n;
+  var vis = visibleRows().length;
+  var all = document.getElementById('all');
+  if (all) all.checked = vis > 0 && n >= vis;
+}
+
+function removeRows(rows){
+  var keep = {}, saved = [];
+  rows.forEach(function(x){ keep[x] = true; });
+  S.rows = (S.rows || []).filter(function(r){
+    if (keep[r.row]) { saved.push(r); return false; }
+    return true;
+  });
+  SEL = {};
+  paintList(); paintStores();
+  return saved;
+}
+
+function delSelected(){
+  var rows = Object.keys(SEL).map(Number);
+  if (!rows.length) return;
+  if (!confirm(rows.length + '건을 삭제할까요?')) return;
+  var saved = removeRows(rows);
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+  }, function(e){ S.rows = S.rows.concat(saved); paintList(); paintStores(); err(e); });
+}
+
+function delAll(){
+  var rows = visibleRows().map(function(r){ return r.row; });
+  if (!rows.length){ toast('삭제할 게시물이 없습니다'); return; }
+  var where = FILTER === '전체' ? '전체' : FILTER;
+  if (!confirm(where + ' ' + rows.length + '건을 모두 삭제할까요?\n되돌릴 수 없습니다.')) return;
+  if (!confirm('정말 삭제합니다. 계속할까요?')) return;
+  var saved = removeRows(rows);
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+  }, function(e){ S.rows = S.rows.concat(saved); paintList(); paintStores(); err(e); });
+}
+
+/* 화면을 먼저 바꾸고 서버는 뒤에서 처리합니다. 실패하면 되돌립니다. */
+function findRow(row){ return (S.rows || []).filter(function(r){ return r.row === row; })[0]; }
+
+function toggleOk(row, on){
+  var r = findRow(row);
+  if (r){ r.approved = on; paintList(); }
+  get('approve', { row: row, on: on }).then(function(){
+    toast(on ? '승인했습니다' : '승인을 해제했습니다', 'ok');
+  }, function(e){ if (r){ r.approved = !on; paintList(); } err(e); });
+}
+
+function markPosted(row){
+  var r = findRow(row), old = r ? r.status : '';
+  if (r){ r.status = '수동게시완료'; paintList(); }
+  get('posted', { row: row }).then(function(){
+    toast('게시 완료로 표시했습니다', 'ok');
+  }, function(e){ if (r){ r.status = old; paintList(); } err(e); });
+}
+
+function del(row){
+  if (!confirm('이 게시물을 삭제할까요?')) return;
+  var idx = -1, saved = null;
+  (S.rows || []).forEach(function(r, i){ if (r.row === row){ idx = i; saved = r; } });
+  if (idx >= 0){ S.rows.splice(idx, 1); paintList(); paintStores(); }
+  get('delete', { row: row }).then(function(){
+    toast('삭제했습니다', 'ok');
+  }, function(e){
+    if (saved){ S.rows.splice(idx, 0, saved); paintList(); paintStores(); }
+    err(e);
+  });
+}
+
+function publishNow(){
+  if (!confirm('예약 시간이 지난 승인 건을 지금 발행합니다.')) return;
+  toast('발행을 실행합니다…');
+  get('publish').then(function(){ toast('발행을 실행했습니다', 'ok'); loadAll(); }, err);
+}
+
+function setMode(m){
+  if (S){ S.mode = m; paintHead(); }
+  get('mode', { mode: m }).then(function(){
+    toast('실행 모드를 ' + m + '으로 바꿨습니다', 'ok');
+  }, function(e){ err(e); loadAll(); });
+}
 function err(e){ toast(e.message, 'err'); }
 
 /* ---------- 검수 ---------- */
@@ -476,6 +594,7 @@ function paintReview(){
       +  '<div class="rv-f">'
       +  '<button class="btn p" onclick="rvOk(' + r.row + ')">승인</button>'
       +  '<button class="btn g" onclick="rvNo(' + r.row + ')">거절</button>'
+      +  '<button class="mini no" onclick="rvDel(' + r.row + ')">삭제</button>'
       +  (need ? '<span class="warn-l">사진이 필요한 채널인데 비어 있습니다</span>' : '')
       +  '<span class="cnt" id="c' + r.row + '">' + r.len + '자</span>'
       +  '</div></div>';
@@ -493,27 +612,78 @@ function cnt(row){
   c.className = 'cnt' + (n > lim ? ' over' : '');
 }
 
+/* 카드를 즉시 걷어내고 서버는 뒤에서 처리합니다 */
+function dropCard(row){
+  var el = document.getElementById('rv' + row);
+  if (el){ el.style.opacity = '.35'; el.style.pointerEvents = 'none'; }
+  var i = -1, saved = null;
+  RV.forEach(function(r, k){ if (r.row === row){ i = k; saved = r; } });
+  if (i >= 0) RV.splice(i, 1);
+  var b = document.getElementById('n-rv');
+  b.textContent = RV.length; b.className = RV.length ? '' : 'zero';
+  setTimeout(function(){ if (el) el.remove(); if (!RV.length) paintReview(); }, 180);
+  return { i: i, saved: saved };
+}
+function restoreCard(u){
+  if (!u || u.i < 0) return;
+  RV.splice(u.i, 0, u.saved);
+  var b = document.getElementById('n-rv');
+  b.textContent = RV.length; b.className = RV.length ? '' : 'zero';
+  paintReview();
+}
+
 function rvOk(row){
   var t = document.getElementById('t' + row);
-  post('review', { row: row, ok: true, text: t ? t.value : '' }).then(function(){
-    toast('승인했습니다', 'ok'); loadReview(); loadAll();
-  }, err);
+  var body = t ? t.value : '';
+  var u = dropCard(row);
+  post('review', { row: row, ok: true, text: body }).then(function(){
+    toast('승인했습니다', 'ok');
+  }, function(e){ restoreCard(u); err(e); });
 }
+
 function rvNo(row){
   var why = prompt('거절 사유를 적어주세요. (다음 생성에 참고합니다)');
   if (why === null) return;
   if (!why.trim()){ toast('사유를 적어야 거절할 수 있습니다', 'err'); return; }
+  var u = dropCard(row);
   post('review', { row: row, ok: false, reason: why }).then(function(){
-    toast('거절했습니다', 'ok'); loadReview(); loadAll();
-  }, err);
+    toast('거절했습니다', 'ok');
+  }, function(e){ restoreCard(u); err(e); });
 }
+
+function rvDel(row){
+  if (!confirm('이 글을 삭제할까요?')) return;
+  var u = dropCard(row);
+  post('deletemany', { rows: String(row) }).then(function(){
+    toast('삭제했습니다', 'ok'); loadAll();
+  }, function(e){ restoreCard(u); err(e); });
+}
+
+function rvDelAll(){
+  if (!RV.length){ toast('삭제할 글이 없습니다'); return; }
+  var rows = RV.map(function(r){ return r.row; });
+  if (!confirm('검수 대기 ' + rows.length + '건을 모두 삭제할까요?\n되돌릴 수 없습니다.')) return;
+  RV = [];
+  document.getElementById('rvlist').innerHTML = '<div class="empty">삭제 중…</div>';
+  var b = document.getElementById('n-rv'); b.textContent = '0'; b.className = 'zero';
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+    paintReview(); loadAll();
+  }, function(e){ err(e); loadReview(); });
+}
+
 function approveAll(){
   if (!RV.length) return;
-  if (!confirm(RV.length + '건을 모두 승인할까요?')) return;
+  var n = RV.length;
+  if (!confirm(n + '건을 모두 승인할까요?')) return;
+  RV = [];
+  document.getElementById('rvlist').innerHTML = '<div class="empty">승인 처리 중…</div>';
+  var b = document.getElementById('n-rv');
+  b.textContent = '0'; b.className = 'zero';
   post('reviewall', {}).then(function(j){
     toast('승인 ' + j.data.approved + '건, 건너뜀 ' + j.data.skipped + '건', 'ok');
-    loadReview(); loadAll();
-  }, err);
+    loadReview();
+  }, function(e){ err(e); loadReview(); });
 }
 
 /* ---------- 예약 등록 ---------- */
