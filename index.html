@@ -46,7 +46,15 @@ button.gh{background:#1b1f2f;border:1px solid #2a3048;color:#c3c9d8}
 <div id="app" style="display:none"></div>
 <script>
 var API="https://script.google.com/macros/s/AKfycbwqwXXyB4aB9YC5NWoip1cPxAi76vGaNE7Dnjv0wGXne-WmTHU/exec";var CODE="";var S=null;
-function q(p){return fetch(API+"?"+p+"&code="+encodeURIComponent(CODE)).then(function(r){return r.json()})}
+var _n=0;
+function q(p){return new Promise(function(res,rej){
+  var cb="__wv"+(++_n);var s=document.createElement("script");var done=false;
+  window[cb]=function(d){done=true;res(d);try{delete window[cb]}catch(e){}s.remove()};
+  s.onerror=function(){if(!done){rej(new Error("서버에 연결하지 못했습니다."));try{delete window[cb]}catch(e){}s.remove()}};
+  s.src=API+"?"+p+"&code="+encodeURIComponent(CODE)+"&callback="+cb;
+  document.body.appendChild(s);
+  setTimeout(function(){if(!done)rej(new Error("응답이 없습니다. 잠시 후 다시 시도하세요."))},20000);
+})}
 function go(){var v=document.getElementById("c").value;if(!v)return;CODE=v;
   q("path=state").then(function(j){if(!j.ok){document.getElementById("ge").textContent=j.error||"코드가 맞지 않습니다.";return}
   try{localStorage.setItem("wv",v)}catch(e){}document.getElementById("gate").style.display="none";
