@@ -255,8 +255,19 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
               금지어에 걸린 글은 여기서 버려지고 검수 탭에 올라오지 않습니다.
             </p>
             <div class="rv-f">
-              <button class="btn p" onclick="aiGen(1)">1주치 생성</button>
-              <button class="btn g" onclick="aiGen(2)">2주치 생성</button>
+              <button class="btn p" id="btn-g1" onclick="aiGen(1)">1주치 생성</button>
+              <button class="btn g" id="btn-g2" onclick="aiGen(2)">2주치 생성</button>
+            </div>
+
+            <div id="gen-box" style="display:none;margin-top:18px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span id="gen-label" style="font-size:12.5px">준비 중…</span>
+                <span class="spacer"></span>
+                <span id="gen-eta" style="font-size:11.5px;color:var(--dim2)"></span>
+                <button class="mini no" id="gen-stop" onclick="genStop()">중지</button>
+              </div>
+              <div class="bar" style="height:6px"><i id="gen-bar" style="width:0"></i></div>
+              <div id="gen-log" style="margin-top:10px;font-size:11.5px;line-height:1.9;max-height:180px;overflow:auto"></div>
             </div>
           </div>
         </div>
@@ -756,14 +767,101 @@ function up(f){
 function clrImg(){ IMG = ''; document.getElementById('thumb').innerHTML = ''; file.value = ''; }
 
 /* ---------- 도구 ---------- */
+var GEN_STOP = false, GEN_RUN = false;
+
+function genStop(){
+  GEN_STOP = true;
+  document.getElementById('gen-stop').textContent = '중지하는 중…';
+  toast('진행 중인 1건이 끝나면 멈춥니다.');
+}
+
+function fmtSec(s){
+  if (s < 60) return s + '초';
+  return Math.floor(s / 60) + '분 ' + (s % 60) + '초';
+}
+
+function genLog(cls, msg){
+  var el = document.getElementById('gen-log');
+  el.innerHTML = '<div style="color:var(--' + cls + ')">' + msg + '</div>' + el.innerHTML;
+}
+
 function aiGen(w){
-  if (!confirm(w + '주치 문구를 AI로 만듭니다. 1~2분 걸릴 수 있습니다.')) return;
-  toast('생성 중입니다. 창을 닫지 마세요.');
-  post('aigen', { weeks: w }).then(function(j){
-    var d = j.data;
-    toast('생성 ' + d.made + '건 · 버림 ' + d.blocked + '건', 'ok');
-    loadReview(); loadAll();
-  }, err);
+  if (GEN_RUN){ toast('이미 생성 중입니다.'); return; }
+  if (!confirm(w + '주치 문구를 AI로 만듭니다.')) return;
+
+  GEN_STOP = false; GEN_RUN = true;
+  document.getElementById('btn-g1').disabled = true;
+  document.getElementById('btn-g2').disabled = true;
+
+  var box = document.getElementById('gen-box');
+  var bar = document.getElementById('gen-bar');
+  var lab = document.getElementById('gen-label');
+  var eta = document.getElementById('gen-eta');
+  document.getElementById('gen-log').innerHTML = '';
+  document.getElementById('gen-stop').textContent = '중지';
+  box.style.display = 'block';
+  bar.style.width = '0'; bar.className = '';
+  lab.textContent = '만들 목록 계산 중…';
+  eta.textContent = '';
+
+  post('aiplan', { weeks: w }).then(function(plan){
+    var jobs = (plan.data && plan.data.jobs) || [];
+    if (!jobs.length){
+      lab.textContent = '새로 만들 게시물이 없습니다.';
+      eta.textContent = '';
+      genDone();
+      return;
+    }
+    lab.textContent = '0 / ' + jobs.length + ' 시작';
+    runJobs(jobs, 0, Date.now(), 0, 0, (plan.data.gapMs || 7000) + 3000);
+  }, function(e){ box.style.display = 'none'; genDone(); err(e); });
+}
+
+function runJobs(jobs, i, t0, made, blocked, per){
+  var bar = document.getElementById('gen-bar');
+  var lab = document.getElementById('gen-label');
+  var eta = document.getElementById('gen-eta');
+
+  if (GEN_STOP || i >= jobs.length){
+    bar.className = GEN_STOP ? 'w' : 'g';
+    bar.style.width = Math.round(i / jobs.length * 100) + '%';
+    lab.textContent = (GEN_STOP ? '중지했습니다 — ' : '완료 — ') + '생성 ' + made + '건, 버림 ' + blocked + '건';
+    eta.textContent = '';
+    toast('생성 ' + made + '건 · 버림 ' + blocked + '건', 'ok');
+    genDone(); loadReview(); loadAll();
+    return;
+  }
+
+  var j = jobs[i];
+  lab.textContent = (i + 1) + ' / ' + jobs.length + ' · ' + j.store + ' · ' + j.chan;
+  eta.textContent = '남은 시간 약 ' + fmtSec(Math.round(per * (jobs.length - i) / 1000));
+
+  post('aione', { d: j.d, store: j.store, chan: j.chan, cat: j.cat }).then(function(r){
+    if (r.data && r.data.made){
+      made++;
+      genLog('ok', '&#10003; ' + esc(j.chan) + ' — ' + esc(r.data.text));
+    } else {
+      blocked++;
+      genLog('warn', '&#183; 버림 (' + esc(j.chan) + ') — ' + esc(r.data ? r.data.reason : '알 수 없음'));
+    }
+    next();
+  }, function(e){
+    blocked++;
+    genLog('err', '&#215; ' + esc(e.message));
+    next();
+  });
+
+  function next(){
+    var p2 = (Date.now() - t0) / (i + 1);
+    document.getElementById('gen-bar').style.width = Math.round((i + 1) / jobs.length * 100) + '%';
+    runJobs(jobs, i + 1, t0, made, blocked, p2);
+  }
+}
+
+function genDone(){
+  GEN_RUN = false;
+  document.getElementById('btn-g1').disabled = false;
+  document.getElementById('btn-g2').disabled = false;
 }
 function loadHealth(){
   get('health').then(function(j){
