@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>We Vape SNS 발행 관리</title>
+<style>
+:root{
+  --bg:#0b0d13; --panel:#12151f; --panel2:#171b28; --line:#242938;
+  --tx:#e8eaf0; --dim:#868da3; --dim2:#5c6479;
+  --ac:#7c6cf5; --ac2:#9d8dff; --ok:#3ecf8e; --warn:#f0a83c; --err:#f26d6d;
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.6 -apple-system,"Pretendard","Malgun Gothic",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--ac2);text-decoration:none}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#252b3b;border-radius:4px}
+
+/* ---------- 게이트 ---------- */
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100}
+.gate-box{width:320px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:26px}
+.gate-box h1{font-size:15px;margin-bottom:6px}
+.gate-box p{color:var(--dim);font-size:12.5px;margin-bottom:18px}
+.gate-box input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:11px 13px;outline:none}
+.gate-box input:focus{border-color:var(--ac)}
+.gate-box button{width:100%;margin-top:10px;background:var(--ac);border-radius:8px;padding:11px;font-weight:600}
+.gate-box button:hover{background:var(--ac2)}
+.gate-err{color:var(--err);font-size:12.5px;margin-top:9px;min-height:17px}
+
+/* ---------- 레이아웃 ---------- */
+#app{display:none;min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:14.5px}
+.logo i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-style:normal;font-size:12px;color:#fff}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--dim)}
+.chip b{color:var(--tx);font-weight:600}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--dim2)}
+.dot.on{background:var(--ok)}
+.dot.off{background:var(--warn)}
+.spacer{flex:1}
+.ghost{border:1px solid var(--line);border-radius:8px;padding:6px 13px;font-size:12.5px;color:var(--dim)}
+.ghost:hover{border-color:var(--ac);color:var(--tx)}
+
+.wrap{display:flex;min-height:calc(100vh - 56px)}
+aside{width:190px;flex:none;border-right:1px solid var(--line);padding:16px 0;background:var(--panel)}
+.side-h{font-size:10.5px;letter-spacing:1.2px;color:var(--dim2);padding:0 18px 9px;text-transform:uppercase}
+.store{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;font-size:13px;color:var(--dim);cursor:pointer;border-left:2px solid transparent}
+.store:hover{background:var(--panel2);color:var(--tx)}
+.store.sel{background:var(--panel2);color:var(--tx);border-left-color:var(--ac)}
+.store span:last-child{font-size:11px;color:var(--dim2)}
+main{flex:1;min-width:0;padding:22px 26px 60px}
+
+/* ---------- 탭 ---------- */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.tab{padding:9px 15px;font-size:13px;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--tx)}
+.tab.sel{color:var(--tx);border-bottom-color:var(--ac);font-weight:600}
+.tab em{font-style:normal;display:inline-block;min-width:17px;padding:0 5px;margin-left:6px;border-radius:999px;background:var(--ac);color:#fff;font-size:10.5px;line-height:16px;text-align:center}
+.tab em.zero{display:none}
+.page{display:none}
+.page.on{display:block}
+
+/* ---------- 카드 ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px}
+.card h4{font-size:11.5px;color:var(--dim);font-weight:500;margin-bottom:7px}
+.card .v{font-size:25px;font-weight:700;letter-spacing:-.5px}
+.card .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:3px}
+.bar{height:3px;border-radius:2px;background:var(--line);margin-top:11px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px;background:var(--ac)}
+.bar i.g{background:var(--ok)} .bar i.w{background:var(--warn)} .bar i.r{background:var(--err)}
+
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.sec-h{display:flex;align-items:center;gap:10px;padding:13px 17px;border-bottom:1px solid var(--line)}
+.sec-h h3{font-size:13px;font-weight:600}
+.sec-b{padding:17px}
+
+/* ---------- 목록 ---------- */
+.row{display:flex;align-items:flex-start;gap:12px;padding:13px 17px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--panel2)}
+.row .meta{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:6px}
+.row .body{flex:1;min-width:0}
+.row .txt{font-size:13px;color:var(--tx);white-space:pre-wrap;word-break:break-word}
+.tag{font-size:10.5px;padding:2.5px 8px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+.tag.t{color:#b6aaff;border-color:#3b3470}
+.tag.i{color:#ff9ec4;border-color:#6e2f4a}
+.tag.f{color:#8fb6ff;border-color:#2f4a76}
+.tag.x{color:var(--tx);border-color:#3a3a3a}
+.tag.d{color:var(--dim2)}
+.st{font-size:10.5px;padding:2.5px 9px;border-radius:999px;border:1px solid}
+.st-wait{color:var(--dim);border-color:var(--line)}
+.st-ready{color:var(--ac2);border-color:#3b3470}
+.st-review{color:var(--warn);border-color:#5c4520}
+.st-done{color:var(--ok);border-color:#1f5741}
+.st-err{color:var(--err);border-color:#6b2a2a}
+.acts{display:flex;gap:6px;flex:none}
+.mini{border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-size:11.5px;color:var(--dim)}
+.mini:hover{border-color:var(--ac);color:var(--tx)}
+.mini.ok:hover{border-color:var(--ok);color:var(--ok)}
+.mini.no:hover{border-color:var(--err);color:var(--err)}
+.empty{padding:44px;text-align:center;color:var(--dim2);font-size:13px}
+.chk{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);cursor:pointer;user-select:none}
+.chk input{width:15px;height:15px;accent-color:var(--ac);cursor:pointer;margin:0}
+.row .chk{flex:none;padding-top:2px}
+.selinfo{font-size:11.5px;color:var(--ac2)}
+.mini[disabled]{opacity:.35;cursor:not-allowed}
+.mini[disabled]:hover{border-color:var(--line);color:var(--dim)}
+.row.sel{background:#191d2c}
+
+/* ---------- 검수 카드 ---------- */
+.rv{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.rv.need{border-color:#5c4520}
+.rv textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px;min-height:96px;resize:vertical;outline:none;line-height:1.7}
+.rv textarea:focus{border-color:var(--ac)}
+.rv-f{display:flex;align-items:center;gap:9px;margin-top:11px;flex-wrap:wrap}
+.cnt{font-size:11.5px;color:var(--dim2);margin-left:auto}
+.cnt.over{color:var(--err)}
+.btn{border-radius:8px;padding:8px 15px;font-size:12.5px;font-weight:600}
+.btn.p{background:var(--ac);color:#fff}
+.btn.p:hover{background:var(--ac2)}
+.btn.g{border:1px solid var(--line);color:var(--dim)}
+.btn.g:hover{border-color:var(--err);color:var(--err)}
+.warn-l{font-size:11.5px;color:var(--warn);display:flex;align-items:center;gap:5px}
+
+/* ---------- 폼 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px}
+.f label{display:block;font-size:11.5px;color:var(--dim);margin-bottom:6px}
+.f input,.f select,.f textarea{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--ac)}
+.f textarea{min-height:112px;resize:vertical;line-height:1.7}
+.drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:26px;text-align:center;color:var(--dim2);font-size:12.5px;cursor:pointer;transition:.15s}
+.drop:hover,.drop.over{border-color:var(--ac);color:var(--dim);background:var(--panel2)}
+.thumb{display:flex;align-items:center;gap:12px;margin-top:11px;padding:10px;background:var(--panel2);border:1px solid var(--line);border-radius:9px}
+.thumb img{width:52px;height:52px;object-fit:cover;border-radius:7px}
+.thumb .n{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 토스트 ---------- */
+#toast{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;z-index:200}
+.tst{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--ac);border-radius:9px;padding:11px 15px;font-size:12.5px;max-width:340px;animation:sl .2s}
+.tst.ok{border-left-color:var(--ok)} .tst.err{border-left-color:var(--err)}
+@keyframes sl{from{opacity:0;transform:translateX(14px)}}
+#busy{position:fixed;top:0;left:0;height:2px;background:var(--ac);width:0;transition:width .3s;z-index:300}
+@media(max-width:760px){aside{display:none}main{padding:16px 14px 50px}}
+</style>
+</head>
+<body>
+
+<div id="busy"></div>
+
+<div id="gate">
+  <div class="gate-box">
+    <h1>접속 코드</h1>
+    <p>담당자에게 받은 코드를 입력하세요.</p>
+    <input id="gc" type="password" placeholder="접속 코드" autocomplete="off">
+    <button onclick="enter()">들어가기</button>
+    <div class="gate-err" id="ge"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo"><i>W</i> We Vape SNS</div>
+    <div class="chip" id="c-mode"><span class="dot"></span><span>—</span></div>
+    <div class="chip" id="c-link">—</div>
+    <div class="spacer"></div>
+    <button class="ghost" onclick="loadAll()">새로고침</button>
+  </header>
+
+  <div class="wrap">
+    <aside>
+      <div class="side-h">지점</div>
+      <div id="stores"></div>
+    </aside>
+
+    <main>
+      <div class="tabs">
+        <button class="tab sel" data-p="dash">대시보드</button>
+        <button class="tab" data-p="review">검수 <em id="n-rv" class="zero">0</em></button>
+        <button class="tab" data-p="new">예약 등록</button>
+        <button class="tab" data-p="tools">도구</button>
+      </div>
+
+      <!-- 대시보드 -->
+      <section class="page on" id="p-dash">
+        <div class="cards">
+          <div class="card"><h4>예약 큐</h4><div class="v" id="k-q">—</div><div class="bar"><i id="b-q" style="width:0"></i></div></div>
+          <div class="card"><h4>승인 대기</h4><div class="v" id="k-rv">—</div><div class="bar"><i id="b-rv" class="w" style="width:0"></i></div></div>
+          <div class="card"><h4>등록 게시물</h4><div class="v" id="k-tot">—</div><div class="bar"><i style="width:100%"></i></div></div>
+          <div class="card"><h4>지점</h4><div class="v" id="k-st">—</div><div class="bar"><i class="g" style="width:100%"></i></div></div>
+        </div>
+        <div class="sec">
+          <div class="sec-h">
+            <label class="chk"><input type="checkbox" id="all" onchange="selAll(this.checked)"><span>전체</span></label>
+            <h3>게시물</h3>
+            <span id="selinfo" class="selinfo"></span>
+            <div class="spacer"></div>
+            <button class="mini no" id="btn-delsel" onclick="delSelected()" disabled>선택 삭제</button>
+            <button class="mini no" onclick="delAll()">전체 삭제</button>
+            <button class="mini" onclick="publishNow()">지금 발행</button>
+          </div>
+          <div id="list"></div>
+        </div>
+      </section>
+
+      <!-- 검수 -->
+      <section class="page" id="p-review">
+        <div class="sec">
+          <div class="sec-h"><h3>AI가 만든 글 검수</h3><div class="spacer"></div>
+            <button class="mini ok" onclick="approveAll()">전체 승인</button>
+            <button class="mini no" onclick="rvDelAll()">전체 삭제</button></div>
+          <div class="sec-b" style="padding-bottom:6px;color:var(--dim);font-size:12.5px">
+            금지어 검사를 통과한 글만 여기 올라옵니다. 문구는 고쳐서 승인할 수 있습니다.
+          </div>
+        </div>
+        <div id="rvlist"></div>
+      </section>
+
+      <!-- 예약 등록 -->
+      <section class="page" id="p-new">
+        <div class="sec"><div class="sec-h"><h3>새 게시물 예약</h3></div>
+          <div class="sec-b f">
+            <div class="grid" style="margin-bottom:13px">
+              <div><label>발행일시</label><input id="n-date" type="datetime-local"></div>
+              <div><label>지점</label><select id="n-store"></select></div>
+              <div><label>채널</label><select id="n-chan"></select></div>
+              <div><label>카테고리</label><select id="n-cat"></select></div>
+            </div>
+            <label>문구</label>
+            <textarea id="n-text" placeholder="발행할 문구를 입력하세요"></textarea>
+            <div class="rv-f"><span class="cnt" id="n-cnt">0자</span></div>
+          </div>
+        </div>
+
+        <div class="sec"><div class="sec-h"><h3>사진</h3></div>
+          <div class="sec-b">
+            <div class="drop" id="drop">클릭하거나 사진을 끌어다 놓으세요<br><span style="font-size:11.5px">깃허브에 자동으로 올라갑니다</span></div>
+            <input type="file" id="file" accept="image/*" hidden>
+            <div id="thumb"></div>
+          </div>
+        </div>
+
+        <button class="btn p" style="padding:11px 22px" onclick="addPost()">예약 등록</button>
+      </section>
+
+      <!-- 도구 -->
+      <section class="page" id="p-tools">
+        <div class="sec"><div class="sec-h"><h3>AI 문구 생성</h3></div>
+          <div class="sec-b">
+            <p style="color:var(--dim);font-size:12.5px;margin-bottom:14px">
+              발행규칙에 맞춰 채널별로 각각 문구를 만듭니다. 만들어진 글은 전부 <b>승인대기</b> 상태로 검수 탭에 쌓입니다.
+              금지어에 걸린 글은 여기서 버려지고 검수 탭에 올라오지 않습니다.
+            </p>
+            <div class="rv-f">
+              <button class="btn p" id="btn-g1" onclick="aiGen(1)">1주치 생성</button>
+              <button class="btn g" id="btn-g2" onclick="aiGen(2)">2주치 생성</button>
+            </div>
+
+            <div id="gen-box" style="display:none;margin-top:18px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span id="gen-label" style="font-size:12.5px">준비 중…</span>
+                <span class="spacer"></span>
+                <span id="gen-eta" style="font-size:11.5px;color:var(--dim2)"></span>
+                <button class="mini no" id="gen-stop" onclick="genStop()">중지</button>
+              </div>
+              <div class="bar" style="height:6px"><i id="gen-bar" style="width:0"></i></div>
+              <div id="gen-log" style="margin-top:10px;font-size:11.5px;line-height:1.9;max-height:180px;overflow:auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec"><div class="sec-h"><h3>실행 모드</h3></div>
+          <div class="sec-b">
+            <p style="color:var(--dim);font-size:12.5px;margin-bottom:14px">
+              <b>수동</b>은 승인한 글만 나갑니다. <b>자동</b>은 승인 없이 예약 시간에 나갑니다.
+              AI가 만든 글은 모드와 무관하게 항상 승인을 거칩니다.
+            </p>
+            <div class="rv-f">
+              <button class="btn g" onclick="setMode('수동')">수동으로</button>
+              <button class="btn g" onclick="setMode('자동')">자동으로</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec"><div class="sec-h"><h3>상태 점검</h3></div>
+          <div class="sec-b"><div id="health" style="color:var(--dim);font-size:12.5px">확인 중…</div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var API = "https://script.google.com/macros/s/AKfycby79BDH9Z6HXAPLS9t4_Te4kqIucJicsMtmNzx_9MGx0D4NgRMBXxT4MbuN109IC9hE/exec";
+var CODE = "", S = null, RV = [], FILTER = "전체", IMG = "", AUTO = {}, SEL = {};
+
+/* ---------- 통신 ---------- */
+function busy(on){ document.getElementById('busy').style.width = on ? '70%' : '0'; }
+
+function get(path, p){
+  p = p || {};
+  var q = 'path=' + encodeURIComponent(path) + '&code=' + encodeURIComponent(CODE);
+  for (var k in p) if (p[k] !== undefined && p[k] !== null) q += '&' + k + '=' + encodeURIComponent(p[k]);
+  busy(true);
+  return fetch(API + '?' + q).then(function(r){ return r.text(); }).then(function(t){
+    busy(false);
+    var j; try { j = JSON.parse(t); } catch(e){ throw new Error('응답을 읽지 못했습니다'); }
+    if (!j.ok) throw new Error(j.error || '알 수 없는 오류');
+    return j;
+  }, function(e){ busy(false); throw e; });
+}
+
+/* 서버 doPost 는 평평한 구조를 기대합니다 */
+function flat(path, body){
+  var o = { path: path, code: CODE };
+  for (var k in (body || {})) o[k] = body[k];
+  return o;
+}
+
+/* 큰 데이터는 POST. text/plain 이라 preflight 없이 나갑니다. */
+function post(path, body){
+  busy(true);
+  return fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(flat(path, body))
+  }).then(function(r){ return r.text(); }).then(function(t){
+    busy(false);
+    var j; try { j = JSON.parse(t); } catch(e){ throw new Error('응답을 읽지 못했습니다'); }
+    if (!j.ok) throw new Error(j.error || '알 수 없는 오류');
+    return j;
+  }, function(e){ busy(false); throw e; });
+}
+
+function toast(msg, kind){
+  var d = document.createElement('div');
+  d.className = 'tst ' + (kind || '');
+  d.textContent = msg;
+  document.getElementById('toast').appendChild(d);
+  setTimeout(function(){ d.remove(); }, 4200);
+}
+
+/* ---------- 로그인 ---------- */
+function enter(){
+  var v = document.getElementById('gc').value.trim();
+  if (!v) return;
+  CODE = v;
+  document.getElementById('ge').textContent = '';
+  get('ping').then(function(){
+    try { localStorage.setItem('wv_code', v); } catch(e){}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadAll();
+  }, function(e){
+    document.getElementById('ge').textContent = e.message;
+  });
+}
+document.getElementById('gc').addEventListener('keydown', function(e){ if (e.key === 'Enter') enter(); });
+
+(function(){
+  var saved = '';
+  try { saved = localStorage.getItem('wv_code') || ''; } catch(e){}
+  if (saved){ document.getElementById('gc').value = saved; enter(); }
+})();
+
+/* ---------- 탭 ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){
+  t.onclick = function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(x){ x.classList.remove('sel'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.page'), function(x){ x.classList.remove('on'); });
+    t.classList.add('sel');
+    document.getElementById('p-' + t.dataset.p).classList.add('on');
+    if (t.dataset.p === 'review') loadReview();
+    if (t.dataset.p === 'tools') loadHealth();
+  };
+});
+
+/* ---------- 로딩 ---------- */
+function loadAll(){
+  get('state').then(function(j){
+    S = j.data;
+    paintHead(); paintStores(); paintCards(j); paintList(); paintForm();
+  }, function(e){ toast(e.message, 'err'); });
+  loadReview(true);
+}
+
+function paintHead(){
+  var m = document.getElementById('c-mode');
+  m.innerHTML = '<span class="dot ' + (S.mode === '자동' ? 'on' : 'off') + '"></span><span>실행 <b>' + S.mode + '</b></span>';
+  document.getElementById('c-link').innerHTML = S.linked
+    ? '쓰레드<b>↔</b>인스타 연동' : '채널 개별 발행';
+}
+
+function paintStores(){
+  var el = document.getElementById('stores'), h = '';
+  (S.stores || []).forEach(function(s){
+    var n = (S.rows || []).filter(function(r){ return s === '전체' || r.store === s; }).length;
+    h += '<div class="store' + (s === FILTER ? ' sel' : '') + '" data-s="' + esc(s) + '"><span>' + esc(s) + '</span><span>' + n + '</span></div>';
+  });
+  el.innerHTML = h;
+  Array.prototype.forEach.call(el.querySelectorAll('.store'), function(d){
+    d.onclick = function(){ FILTER = d.dataset.s; SEL = {}; paintStores(); paintList(); };
+  });
+}
+
+function paintCards(j){
+  if (j && j.auto) AUTO = j.auto;
+  var a = AUTO || {};
+  var q = a.queueDays !== undefined ? a.queueDays : null;
+  document.getElementById('k-q').innerHTML = (q === null ? '—' : q) + '<small>일치</small>';
+  document.getElementById('b-q').style.width = Math.min(100, (q || 0) / 14 * 100) + '%';
+  document.getElementById('b-q').className = (q >= 10 ? 'g' : q >= 4 ? 'w' : 'r');
+
+  var nrv = RV.length;
+  document.getElementById('k-rv').innerHTML = nrv + '<small>건</small>';
+  document.getElementById('b-rv').style.width = Math.min(100, nrv * 8) + '%';
+
+  var tot = 0; for (var k in (S.counts || {})) tot += S.counts[k];
+  document.getElementById('k-tot').innerHTML = tot + '<small>건</small>';
+  document.getElementById('k-st').innerHTML = (S.storeCount || 0) + '<small>곳</small>';
+}
+
+/* ---------- 게시물 목록 ---------- */
+function chanTag(c){
+  var k = c.indexOf('인스타') >= 0 && c.indexOf('쓰레드') >= 0 ? 't'
+        : c.indexOf('인스타') >= 0 ? 'i'
+        : c === '페이스북' ? 'f'
+        : c === 'X' ? 'x' : 't';
+  return '<span class="tag ' + k + '">' + esc(c) + '</span>';
+}
+function stTag(s){
+  var k = s === '발행완료' || s === '수동게시완료' ? 'done'
+        : s === '승인대기' ? 'review'
+        : s === '생성됨' ? 'ready'
+        : s === '오류' || s === '금지어차단' || s === '거절' ? 'err' : 'wait';
+  return '<span class="st st-' + k + '">' + esc(s) + '</span>';
+}
+
+function paintList(){
+  var rows = (S.rows || []).filter(function(r){ return FILTER === '전체' || r.store === FILTER; });
+  var el = document.getElementById('list');
+  if (!rows.length){ el.innerHTML = '<div class="empty">게시물이 없습니다.</div>'; return; }
+
+  var h = '';
+  rows.forEach(function(r){
+    h += '<div class="row' + (SEL[r.row] ? ' sel' : '') + '" id="row' + r.row + '">'
+      +  '<label class="chk"><input type="checkbox" ' + (SEL[r.row] ? 'checked' : '')
+      +  ' onchange="selOne(' + r.row + ',this.checked)"></label>'
+      +  '<div class="body">'
+      +  '<div class="meta"><span class="tag d">' + esc(r.date) + '</span>'
+      +  '<span class="tag">' + esc(r.store) + '</span>' + chanTag(r.channel)
+      +  '<span class="tag d">' + esc(r.category) + '</span>' + stTag(r.status)
+      +  (r.image ? '<span class="tag d">📎 ' + esc(r.image) + '</span>' : '') + '</div>'
+      +  '<div class="txt">' + esc(r.text || '(문구 없음)') + '</div>'
+      +  (r.result ? '<div style="font-size:11.5px;color:var(--dim2);margin-top:5px">' + esc(r.result) + '</div>' : '')
+      +  '</div><div class="acts">'
+      +  (r.status === '생성됨' || r.status === '대기'
+          ? '<button class="mini ' + (r.approved ? 'ok' : '') + '" onclick="toggleOk(' + r.row + ',' + (!r.approved) + ')">'
+            + (r.approved ? '승인됨' : '승인') + '</button>' : '')
+      +  (r.status === '게시대기(수동)' ? '<button class="mini ok" onclick="markPosted(' + r.row + ')">게시완료</button>' : '')
+      +  '<button class="mini no" onclick="del(' + r.row + ')">삭제</button>'
+      +  '</div></div>';
+  });
+  el.innerHTML = h;
+  syncSel();
+}
+
+/* ---------- 선택 ---------- */
+function visibleRows(){
+  return (S.rows || []).filter(function(r){ return FILTER === '전체' || r.store === FILTER; });
+}
+function selOne(row, on){
+  if (on) SEL[row] = true; else delete SEL[row];
+  var el = document.getElementById('row' + row);
+  if (el) el.className = 'row' + (on ? ' sel' : '');
+  syncSel();
+}
+function selAll(on){
+  SEL = {};
+  if (on) visibleRows().forEach(function(r){ SEL[r.row] = true; });
+  paintList();
+}
+function selCount(){ return Object.keys(SEL).length; }
+function syncSel(){
+  var n = selCount();
+  document.getElementById('selinfo').textContent = n ? (n + '건 선택') : '';
+  document.getElementById('btn-delsel').disabled = !n;
+  var vis = visibleRows().length;
+  var all = document.getElementById('all');
+  if (all) all.checked = vis > 0 && n >= vis;
+}
+
+function removeRows(rows){
+  var keep = {}, saved = [];
+  rows.forEach(function(x){ keep[x] = true; });
+  S.rows = (S.rows || []).filter(function(r){
+    if (keep[r.row]) { saved.push(r); return false; }
+    return true;
+  });
+  SEL = {};
+  paintList(); paintStores();
+  return saved;
+}
+
+function delSelected(){
+  var rows = Object.keys(SEL).map(Number);
+  if (!rows.length) return;
+  if (!confirm(rows.length + '건을 삭제할까요?')) return;
+  var saved = removeRows(rows);
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+  }, function(e){ S.rows = S.rows.concat(saved); paintList(); paintStores(); err(e); });
+}
+
+function delAll(){
+  var rows = visibleRows().map(function(r){ return r.row; });
+  if (!rows.length){ toast('삭제할 게시물이 없습니다'); return; }
+  var where = FILTER === '전체' ? '전체' : FILTER;
+  if (!confirm(where + ' ' + rows.length + '건을 모두 삭제할까요?\n되돌릴 수 없습니다.')) return;
+  if (!confirm('정말 삭제합니다. 계속할까요?')) return;
+  var saved = removeRows(rows);
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+  }, function(e){ S.rows = S.rows.concat(saved); paintList(); paintStores(); err(e); });
+}
+
+/* 화면을 먼저 바꾸고 서버는 뒤에서 처리합니다. 실패하면 되돌립니다. */
+function findRow(row){ return (S.rows || []).filter(function(r){ return r.row === row; })[0]; }
+
+function toggleOk(row, on){
+  var r = findRow(row);
+  if (r){ r.approved = on; paintList(); }
+  get('approve', { row: row, on: on }).then(function(){
+    toast(on ? '승인했습니다' : '승인을 해제했습니다', 'ok');
+  }, function(e){ if (r){ r.approved = !on; paintList(); } err(e); });
+}
+
+function markPosted(row){
+  var r = findRow(row), old = r ? r.status : '';
+  if (r){ r.status = '수동게시완료'; paintList(); }
+  get('posted', { row: row }).then(function(){
+    toast('게시 완료로 표시했습니다', 'ok');
+  }, function(e){ if (r){ r.status = old; paintList(); } err(e); });
+}
+
+function del(row){
+  if (!confirm('이 게시물을 삭제할까요?')) return;
+  var idx = -1, saved = null;
+  (S.rows || []).forEach(function(r, i){ if (r.row === row){ idx = i; saved = r; } });
+  if (idx >= 0){ S.rows.splice(idx, 1); paintList(); paintStores(); }
+  get('delete', { row: row }).then(function(){
+    toast('삭제했습니다', 'ok');
+  }, function(e){
+    if (saved){ S.rows.splice(idx, 0, saved); paintList(); paintStores(); }
+    err(e);
+  });
+}
+
+function publishNow(){
+  if (!confirm('예약 시간이 지난 승인 건을 지금 발행합니다.')) return;
+  toast('발행을 실행합니다…');
+  get('publish').then(function(){ toast('발행을 실행했습니다', 'ok'); loadAll(); }, err);
+}
+
+function setMode(m){
+  if (S){ S.mode = m; paintHead(); }
+  get('mode', { mode: m }).then(function(){
+    toast('실행 모드를 ' + m + '으로 바꿨습니다', 'ok');
+  }, function(e){ err(e); loadAll(); });
+}
+function err(e){ toast(e.message, 'err'); }
+
+/* ---------- 검수 ---------- */
+function loadReview(silent){
+  get('reviewlist').then(function(j){
+    RV = j.data || [];
+    var b = document.getElementById('n-rv');
+    b.textContent = RV.length;
+    b.className = RV.length ? '' : 'zero';
+    if (S) paintCards({ auto: {} });
+    if (!silent) paintReview();
+    else if (document.getElementById('p-review').classList.contains('on')) paintReview();
+  }, function(e){ if (!silent) toast(e.message, 'err'); });
+}
+
+function paintReview(){
+  var el = document.getElementById('rvlist');
+  if (!RV.length){ el.innerHTML = '<div class="empty">검수할 글이 없습니다.<br><span style="font-size:12px">도구 탭에서 AI 생성을 돌려보세요.</span></div>'; return; }
+
+  var h = '';
+  RV.forEach(function(r, i){
+    var need = r.imageNeeded && !r.image;
+    h += '<div class="rv' + (need ? ' need' : '') + '" id="rv' + r.row + '">'
+      +  '<div class="meta" style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:11px">'
+      +  '<span class="tag d">' + esc(r.date) + '</span><span class="tag">' + esc(r.store) + '</span>'
+      +  chanTag(r.channel) + '<span class="tag d">' + esc(r.category) + '</span>'
+      +  (r.image ? '<span class="tag d">📎 ' + esc(r.image) + '</span>' : '')
+      +  '</div>'
+      +  '<textarea id="t' + r.row + '" oninput="cnt(' + r.row + ')">' + esc(r.text) + '</textarea>'
+      +  '<div class="rv-f">'
+      +  '<button class="btn p" onclick="rvOk(' + r.row + ')">승인</button>'
+      +  '<button class="btn g" onclick="rvNo(' + r.row + ')">거절</button>'
+      +  '<button class="mini no" onclick="rvDel(' + r.row + ')">삭제</button>'
+      +  (need ? '<span class="warn-l">사진이 필요한 채널인데 비어 있습니다</span>' : '')
+      +  '<span class="cnt" id="c' + r.row + '">' + r.len + '자</span>'
+      +  '</div></div>';
+  });
+  el.innerHTML = h;
+  RV.forEach(function(r){ cnt(r.row); });
+}
+
+function cnt(row){
+  var t = document.getElementById('t' + row), c = document.getElementById('c' + row);
+  if (!t || !c) return;
+  var n = t.value.length;
+  var lim = (S && S.max) ? S.max : 500;
+  c.textContent = n + '자';
+  c.className = 'cnt' + (n > lim ? ' over' : '');
+}
+
+/* 카드를 즉시 걷어내고 서버는 뒤에서 처리합니다 */
+function dropCard(row){
+  var el = document.getElementById('rv' + row);
+  if (el){ el.style.opacity = '.35'; el.style.pointerEvents = 'none'; }
+  var i = -1, saved = null;
+  RV.forEach(function(r, k){ if (r.row === row){ i = k; saved = r; } });
+  if (i >= 0) RV.splice(i, 1);
+  var b = document.getElementById('n-rv');
+  b.textContent = RV.length; b.className = RV.length ? '' : 'zero';
+  setTimeout(function(){ if (el) el.remove(); if (!RV.length) paintReview(); }, 180);
+  return { i: i, saved: saved };
+}
+function restoreCard(u){
+  if (!u || u.i < 0) return;
+  RV.splice(u.i, 0, u.saved);
+  var b = document.getElementById('n-rv');
+  b.textContent = RV.length; b.className = RV.length ? '' : 'zero';
+  paintReview();
+}
+
+function rvOk(row){
+  var t = document.getElementById('t' + row);
+  var body = t ? t.value : '';
+  var u = dropCard(row);
+  post('review', { row: row, ok: true, text: body }).then(function(){
+    toast('승인했습니다', 'ok');
+  }, function(e){ restoreCard(u); err(e); });
+}
+
+function rvNo(row){
+  var why = prompt('거절 사유를 적어주세요. (다음 생성에 참고합니다)');
+  if (why === null) return;
+  if (!why.trim()){ toast('사유를 적어야 거절할 수 있습니다', 'err'); return; }
+  var u = dropCard(row);
+  post('review', { row: row, ok: false, reason: why }).then(function(){
+    toast('거절했습니다', 'ok');
+  }, function(e){ restoreCard(u); err(e); });
+}
+
+function rvDel(row){
+  if (!confirm('이 글을 삭제할까요?')) return;
+  var u = dropCard(row);
+  post('deletemany', { rows: String(row) }).then(function(){
+    toast('삭제했습니다', 'ok'); loadAll();
+  }, function(e){ restoreCard(u); err(e); });
+}
+
+function rvDelAll(){
+  if (!RV.length){ toast('삭제할 글이 없습니다'); return; }
+  var rows = RV.map(function(r){ return r.row; });
+  if (!confirm('검수 대기 ' + rows.length + '건을 모두 삭제할까요?\n되돌릴 수 없습니다.')) return;
+  RV = [];
+  document.getElementById('rvlist').innerHTML = '<div class="empty">삭제 중…</div>';
+  var b = document.getElementById('n-rv'); b.textContent = '0'; b.className = 'zero';
+  post('deletemany', { rows: rows.join(',') }).then(function(j){
+    toast(j.data.deleted + '건 삭제했습니다', 'ok');
+    paintReview(); loadAll();
+  }, function(e){ err(e); loadReview(); });
+}
+
+function approveAll(){
+  if (!RV.length) return;
+  var n = RV.length;
+  if (!confirm(n + '건을 모두 승인할까요?')) return;
+  RV = [];
+  document.getElementById('rvlist').innerHTML = '<div class="empty">승인 처리 중…</div>';
+  var b = document.getElementById('n-rv');
+  b.textContent = '0'; b.className = 'zero';
+  post('reviewall', {}).then(function(j){
+    toast('승인 ' + j.data.approved + '건, 건너뜀 ' + j.data.skipped + '건', 'ok');
+    loadReview();
+  }, function(e){ err(e); loadReview(); });
+}
+
+/* ---------- 예약 등록 ---------- */
+function paintForm(){
+  fillSel('n-store', S.stores || []);
+  fillSel('n-chan', (S.channels || []).concat(['페이스북']).filter(uniq));
+  fillSel('n-cat', S.categories || []);
+  var d = new Date(Date.now() + 864e5);
+  d.setMinutes(0, 0, 0);
+  document.getElementById('n-date').value = d.toISOString().slice(0, 16);
+}
+function uniq(v, i, a){ return a.indexOf(v) === i; }
+function fillSel(id, arr){
+  var s = document.getElementById(id);
+  s.innerHTML = arr.map(function(v){ return '<option>' + esc(v) + '</option>'; }).join('');
+}
+document.getElementById('n-text').addEventListener('input', function(){
+  var n = this.value.length, lim = (S && S.max) ? S.max : 500;
+  var c = document.getElementById('n-cnt');
+  c.textContent = n + '자';
+  c.className = 'cnt' + (n > lim ? ' over' : '');
+});
+
+function addPost(){
+  var p = {
+    date: document.getElementById('n-date').value.replace('T', ' '),
+    store: document.getElementById('n-store').value,
+    channel: document.getElementById('n-chan').value,
+    category: document.getElementById('n-cat').value,
+    text: document.getElementById('n-text').value.trim(),
+    image: IMG
+  };
+  if (!p.text){ toast('문구를 입력하세요', 'err'); return; }
+  post('posts', p).then(function(){
+    toast('등록했습니다', 'ok');
+    document.getElementById('n-text').value = '';
+    document.getElementById('n-cnt').textContent = '0자';
+    IMG = ''; document.getElementById('thumb').innerHTML = '';
+    loadAll();
+  }, err);
+}
+
+/* ---------- 이미지 업로드 ---------- */
+var drop = document.getElementById('drop'), file = document.getElementById('file');
+drop.onclick = function(){ file.click(); };
+drop.ondragover = function(e){ e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = function(){ drop.classList.remove('over'); };
+drop.ondrop = function(e){ e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) up(e.dataTransfer.files[0]); };
+file.onchange = function(){ if (file.files[0]) up(file.files[0]); };
+
+function up(f){
+  if (!/^image\//.test(f.type)){ toast('이미지 파일만 올릴 수 있습니다', 'err'); return; }
+  if (f.size > 8 * 1024 * 1024){ toast('8MB 이하만 올려주세요', 'err'); return; }
+  var rd = new FileReader();
+  rd.onload = function(){
+    var b64 = String(rd.result).split(',')[1];
+    document.getElementById('thumb').innerHTML =
+      '<div class="thumb"><img src="' + rd.result + '"><div class="n">' + esc(f.name) + ' — 올리는 중…</div></div>';
+    post('upload', { b64: b64, filename: f.name, store: document.getElementById('n-store').value })
+      .then(function(j){
+        IMG = j.data.name;
+        document.getElementById('thumb').innerHTML =
+          '<div class="thumb"><img src="' + rd.result + '"><div class="n">' + esc(j.data.name) + '</div>'
+          + '<button class="mini no" onclick="clrImg()">제거</button></div>';
+        toast('사진을 올렸습니다', 'ok');
+      }, function(e){ document.getElementById('thumb').innerHTML = ''; err(e); });
+  };
+  rd.readAsDataURL(f);
+}
+function clrImg(){ IMG = ''; document.getElementById('thumb').innerHTML = ''; file.value = ''; }
+
+/* ---------- 도구 ---------- */
+var GEN_STOP = false, GEN_RUN = false;
+
+function genStop(){
+  GEN_STOP = true;
+  document.getElementById('gen-stop').textContent = '중지하는 중…';
+  toast('진행 중인 1건이 끝나면 멈춥니다.');
+}
+
+function fmtSec(s){
+  if (s < 60) return s + '초';
+  return Math.floor(s / 60) + '분 ' + (s % 60) + '초';
+}
+
+function genLog(cls, msg){
+  var el = document.getElementById('gen-log');
+  el.innerHTML = '<div style="color:var(--' + cls + ')">' + msg + '</div>' + el.innerHTML;
+}
+
+function aiGen(w){
+  if (GEN_RUN){ toast('이미 생성 중입니다.'); return; }
+  if (!confirm(w + '주치 문구를 AI로 만듭니다.')) return;
+
+  GEN_STOP = false; GEN_RUN = true;
+  document.getElementById('btn-g1').disabled = true;
+  document.getElementById('btn-g2').disabled = true;
+
+  var box = document.getElementById('gen-box');
+  var bar = document.getElementById('gen-bar');
+  var lab = document.getElementById('gen-label');
+  var eta = document.getElementById('gen-eta');
+  document.getElementById('gen-log').innerHTML = '';
+  document.getElementById('gen-stop').textContent = '중지';
+  box.style.display = 'block';
+  bar.style.width = '0'; bar.className = '';
+  lab.textContent = '만들 목록 계산 중…';
+  eta.textContent = '';
+
+  post('aiplan', { weeks: w }).then(function(plan){
+    var jobs = (plan.data && plan.data.jobs) || [];
+    if (!jobs.length){
+      lab.textContent = '새로 만들 게시물이 없습니다.';
+      eta.textContent = '';
+      genDone();
+      return;
+    }
+    lab.textContent = '0 / ' + jobs.length + ' 시작';
+    runJobs(jobs, 0, Date.now(), 0, 0, (plan.data.gapMs || 7000) + 3000);
+  }, function(e){ box.style.display = 'none'; genDone(); err(e); });
+}
+
+function runJobs(jobs, i, t0, made, blocked, per){
+  var bar = document.getElementById('gen-bar');
+  var lab = document.getElementById('gen-label');
+  var eta = document.getElementById('gen-eta');
+
+  if (GEN_STOP || i >= jobs.length){
+    bar.className = GEN_STOP ? 'w' : 'g';
+    bar.style.width = Math.round(i / jobs.length * 100) + '%';
+    lab.textContent = (GEN_STOP ? '중지했습니다 — ' : '완료 — ') + '생성 ' + made + '건, 버림 ' + blocked + '건';
+    eta.textContent = '';
+    toast('생성 ' + made + '건 · 버림 ' + blocked + '건', 'ok');
+    genDone(); loadReview(); loadAll();
+    return;
+  }
+
+  var j = jobs[i];
+  lab.textContent = (i + 1) + ' / ' + jobs.length + ' · ' + j.store + ' · ' + j.chan;
+  eta.textContent = '남은 시간 약 ' + fmtSec(Math.round(per * (jobs.length - i) / 1000));
+
+  post('aione', { d: j.d, store: j.store, chan: j.chan, cat: j.cat }).then(function(r){
+    if (r.data && r.data.made){
+      made++;
+      genLog('ok', '&#10003; ' + esc(j.chan) + ' — ' + esc(r.data.text));
+    } else {
+      blocked++;
+      genLog('warn', '&#183; 버림 (' + esc(j.chan) + ') — ' + esc(r.data ? r.data.reason : '알 수 없음'));
+    }
+    next();
+  }, function(e){
+    blocked++;
+    genLog('err', '&#215; ' + esc(e.message));
+    next();
+  });
+
+  function next(){
+    var p2 = (Date.now() - t0) / (i + 1);
+    document.getElementById('gen-bar').style.width = Math.round((i + 1) / jobs.length * 100) + '%';
+    runJobs(jobs, i + 1, t0, made, blocked, p2);
+  }
+}
+
+function genDone(){
+  GEN_RUN = false;
+  document.getElementById('btn-g1').disabled = false;
+  document.getElementById('btn-g2').disabled = false;
+}
+function loadHealth(){
+  get('health').then(function(j){
+    var el = document.getElementById('health');
+    if (!j.issues || !j.issues.length){ el.innerHTML = '<span style="color:var(--ok)">이상 없습니다.</span>'; return; }
+    el.innerHTML = j.issues.map(function(x){ return '· ' + esc(x); }).join('<br>');
+  }, function(e){ document.getElementById('health').textContent = e.message; });
+}
+
+function esc(s){
+  return String(s === undefined || s === null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
