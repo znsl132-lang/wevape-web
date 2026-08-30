@@ -191,6 +191,7 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
         <button class="tab" data-p="review">검수 <em id="n-rv" class="zero">0</em></button>
         <button class="tab" data-p="new">예약 등록</button>
         <button class="tab" data-p="tools">도구</button>
+        <button class="tab" data-p="learn">학습</button>
       </div>
 
       <!-- 대시보드 -->
@@ -308,6 +309,15 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
         <div class="sec"><div class="sec-h"><h3>상태 점검</h3></div>
           <div class="sec-b"><div id="health" style="color:var(--dim);font-size:12.5px">확인 중…</div></div>
         </div>
+      </section>
+      <!-- 학습 현황 -->
+      <section class="page" id="p-learn">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <b>무엇을 배웠나</b>
+          <button id="learn-reload" class="btn">새로고침</button>
+          <span id="learn-at" style="color:#888;font-size:12px"></span>
+        </div>
+        <div id="learn-box">탭을 열면 불러옵니다.</div>
       </section>
     </main>
   </div>
@@ -971,6 +981,94 @@ function esc(s){
   return String(s === undefined || s === null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+</script>
+<script>
+/* 학습 현황 탭 — 시트를 열지 않고도 무엇을 배웠는지 보여줍니다 */
+(function () {
+  var API = 'https://script.google.com/macros/s/AKfycby79BDH9Z6HXAPLS9t4_Te4kqIucJicsMtmNzx_9MGx0D4NgRMBXxT4MbuN109IC9hE/exec';
+  var loaded = false;
+
+  function E(s) {
+    return String(s == null ? '' : s).replace(/[&<>]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c];
+    });
+  }
+
+  function tbl(title, rows) {
+    if (!rows.length) return '';
+    var h = '<h3 style="margin:16px 0 6px;font-size:14px">' + E(title) + '</h3><table class="tb"><tbody>';
+    for (var i = 0; i < rows.length; i++) {
+      h += '<tr><th style="width:170px;text-align:left;padding:6px 8px;background:#f6f7f9">' + E(rows[i][0])
+        + '</th><td style="padding:6px 8px">' + E(rows[i][1]) + '</td></tr>';
+    }
+    return h + '</tbody></table>';
+  }
+
+  function render(d) {
+    var box = document.getElementById('learn-box');
+    var at = document.getElementById('learn-at');
+    if (at) at.textContent = '조회 ' + (d.at || '-');
+    var h = '';
+
+    var L1 = d['학습'] || {};
+    h += tbl('성과 학습 — 우리 계정 데이터로 배운 것', [
+      ['최적 시간대', L1['최적시간대']],
+      ['권장 길이', L1['권장길이']],
+      ['최적 형식', L1['최적형식']],
+      ['최적 요일', L1['최적요일']],
+      ['표본 수', L1['표본']],
+      ['갱신일', L1['갱신']],
+      ['발행시각 자동반영', L1['시각반영']]
+    ].filter(function (r) { return r[1] != null; }));
+
+    var T = d['소재'] || {};
+    var cats = T['카테고리별'] || {};
+    var cr = [];
+    for (var k in cats) cr.push([k, cats[k].total + '개 · 미사용 ' + cats[k].unused]);
+    if (T['전체'] != null) cr.unshift(['전체', T['전체'] + '개']);
+    h += tbl('소재 재고 — AI가 스스로 만들어 쌓은 것', cr);
+
+    var R = d['트렌드'] || {};
+    if (R.note) {
+      h += tbl('트렌드', [['상태', R.note]]);
+    } else {
+      var sr = [];
+      var by = R['소스별'] || {};
+      for (var s in by) sr.push([s, by[s] + '건']);
+      if (R['전체'] != null) sr.unshift(['전체', R['전체'] + '건']);
+      var inj = R['프롬프트반영'] || [];
+      for (var n = 0; n < inj.length; n++) sr.push(['반영 ' + (n + 1), inj[n].key]);
+      h += tbl('트렌드 — 밖에서 가져온 것', sr);
+    }
+
+    box.innerHTML = h || '표시할 내용이 없습니다.';
+  }
+
+  function load() {
+    var box = document.getElementById('learn-box');
+    if (!box) return;
+    box.textContent = '불러오는 중...';
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ path: 'insight', code: (typeof CODE !== 'undefined' ? CODE : '') })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.ok) { box.textContent = '조회 실패: ' + (j.error || '알 수 없는 오류'); return; }
+        loaded = true; render(j.data || {});
+      })
+      .catch(function (e) { box.textContent = '조회 실패: ' + (e && e.message ? e.message : e); });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    if (!t) return;
+    if (t.id === 'learn-reload') { load(); return; }
+    var b = t.closest ? t.closest('.tab') : null;
+    if (b && b.getAttribute('data-p') === 'learn' && !loaded) load();
+  });
+})();
 </script>
 </body>
 </html>
