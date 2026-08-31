@@ -1,0 +1,2064 @@
+<title>We Vape 발행 콘솔</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#f4f6f7; --surface:#fff; --surface2:#eef1f3; --surface3:#e6ebed;
+  --ink:#0f1619; --ink2:#46545c; --ink3:#7a8b93;
+  --line:#dde3e6; --line2:#c6d0d5;
+  --accent:#0b6f6a; --accent-ink:#fff; --accent-soft:#dff0ed; --accent-line:#8ec9c3;
+  --ok:#146b49; --ok-soft:#dff0e7;
+  --warn:#8e5c0d; --warn-soft:#faeed6;
+  --err:#a83a35; --err-soft:#fae3e1;
+  --ig:#cc2e66; --fb:#1668d6; --mono:#12181b;
+  --shadow:0 1px 2px rgba(15,22,25,.05),0 8px 24px -12px rgba(15,22,25,.18);
+  --r:10px; --r2:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1214; --surface:#141b1e; --surface2:#1b2429; --surface3:#222d33;
+    --ink:#e4ebed; --ink2:#a3b3b9; --ink3:#798a91;
+    --line:#243036; --line2:#334349;
+    --accent:#4ec4b6; --accent-ink:#06211f; --accent-soft:#11312e; --accent-line:#2c6660;
+    --ok:#54c08b; --ok-soft:#102c21;
+    --warn:#dba748; --warn-soft:#31260f;
+    --err:#e0736d; --err-soft:#331817;
+    --ig:#f07aa4; --fb:#63a6f7; --mono:#e4ebed;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1214; --surface:#141b1e; --surface2:#1b2429; --surface3:#222d33;
+  --ink:#e4ebed; --ink2:#a3b3b9; --ink3:#798a91;
+  --line:#243036; --line2:#334349;
+  --accent:#4ec4b6; --accent-ink:#06211f; --accent-soft:#11312e; --accent-line:#2c6660;
+  --ok:#54c08b; --ok-soft:#102c21;
+  --warn:#dba748; --warn-soft:#31260f;
+  --err:#e0736d; --err-soft:#331817;
+  --ig:#f07aa4; --fb:#63a6f7; --mono:#e4ebed;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans KR","Malgun Gothic",system-ui,sans-serif;
+  font-size:14px; line-height:1.65; -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+h1,h2,h3,h4{margin:0;font-weight:600;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.lbl{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink3)}
+.hint{font-size:11px;color:var(--ink3);line-height:1.5}
+
+/* ---------- 상단바 ---------- */
+.topbar{
+  display:flex;align-items:center;gap:14px;height:54px;padding:0 18px;
+  background:var(--surface);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;
+}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;letter-spacing:-.01em}
+.brand .mk{
+  width:24px;height:24px;border-radius:7px;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+}
+.grow{flex:1}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface2);font-size:11.5px;color:var(--ink2);
+}
+.pill b{color:var(--ink);font-weight:600}
+.pill.act{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ink3);flex:none}
+.dot.ok{background:var(--ok)} .dot.warn{background:var(--warn)} .dot.err{background:var(--err)}
+.ghost{
+  height:30px;padding:0 12px;border:1px solid var(--line);border-radius:8px;
+  font-size:12.5px;color:var(--ink2);background:var(--surface);
+}
+.ghost:hover{border-color:var(--line2);color:var(--ink)}
+
+/* ---------- 셸 ---------- */
+.shell{display:flex;align-items:flex-start;min-height:calc(100vh - 54px)}
+.rail{
+  width:236px;flex:none;padding:18px 14px;border-right:1px solid var(--line);
+  background:var(--surface);position:sticky;top:54px;height:calc(100vh - 54px);overflow:auto;
+}
+.rail-h{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
+.chlist{display:flex;flex-direction:column;gap:6px}
+.ch{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);
+  border:1px solid transparent;background:var(--surface2);text-align:left;width:100%;
+}
+.ch:hover{border-color:var(--line2)}
+.ch.off{opacity:.5}
+.ch .ico{width:22px;height:22px;flex:none;display:grid;place-items:center}
+.ch .nm{flex:1;min-width:0}
+.ch .nm b{display:block;font-size:12.5px;font-weight:600;line-height:1.3}
+.ch .nm span{display:block;font-size:10.5px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+.rail-note{
+  margin-top:14px;padding:11px;border-radius:var(--r);border:1px solid var(--warn);
+  background:var(--warn-soft);color:var(--warn);font-size:11.5px;line-height:1.55;
+}
+.rail-sec{margin-top:22px}
+.stat{display:flex;justify-content:space-between;align-items:baseline;padding:6px 4px;border-bottom:1px dashed var(--line)}
+.stat:last-child{border-bottom:0}
+.stat span{font-size:12px;color:var(--ink2)}
+.stat b{font-size:14px;font-weight:600;font-family:"IBM Plex Mono",monospace}
+
+main{flex:1;min-width:0;padding:0 22px 70px}
+.views{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:22px;position:sticky;top:54px;background:var(--bg);z-index:30;padding-top:14px}
+.vt{padding:9px 14px;font-size:13px;color:var(--ink3);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.vt:hover{color:var(--ink)}
+.vt.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.vt em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:10.5px;margin-left:6px;padding:1px 6px;border-radius:999px;background:var(--surface3);color:var(--ink2)}
+.vt em.zero{display:none}
+#set-n{background:var(--warn);color:#fff}
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- 작성 ---------- */
+.composer{display:grid;grid-template-columns:352px 44px minmax(0,1fr);align-items:start;gap:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.panel-h h2,.panel-h h3{font-size:13px}
+.panel-b{padding:16px;display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field textarea,.field input,.field select{
+  width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;
+  padding:10px 12px;outline:none;color:var(--ink);
+}
+.field textarea{min-height:74px;resize:vertical;line-height:1.6}
+.field textarea:focus,.field input:focus,.field select:focus{border-color:var(--accent);background:var(--surface)}
+
+.drop{
+  border:1.5px dashed var(--line2);border-radius:var(--r);padding:18px;text-align:center;
+  color:var(--ink3);font-size:12.5px;background:var(--surface2);width:100%;
+}
+.drop:hover,.drop.over{border-color:var(--accent);color:var(--ink2);background:var(--accent-soft)}
+.shots{display:flex;gap:8px;margin-top:9px}
+.shot{width:100%;aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background-size:cover;background-position:center;position:relative;overflow:hidden}
+.shot.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.shot small{position:absolute;left:0;right:0;bottom:0;padding:3px 5px;font-size:9.5px;background:rgba(8,14,16,.66);color:#fff;font-family:"IBM Plex Mono",monospace}
+.picked{display:flex;gap:11px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface2);margin-top:9px}
+.picked .px{width:52px;height:52px;border-radius:7px;background-size:cover;background-position:center;flex:none;border:1px solid var(--line)}
+.picked .info{flex:1;min-width:0;font-size:11.5px;color:var(--ink2)}
+
+.chtog{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.tog{
+  display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:9px;
+  border:1px solid var(--line);background:var(--surface2);text-align:left;
+}
+.tog .ico{width:18px;height:18px;flex:none;display:grid;place-items:center}
+.tog span{font-size:12.5px;flex:1}
+.tog .mark{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line2);flex:none;display:grid;place-items:center}
+.tog.on{border-color:var(--accent-line);background:var(--accent-soft)}
+.tog.on .mark{background:var(--accent);border-color:var(--accent)}
+.tog.on .mark::after{content:"";width:7px;height:4px;border-left:1.5px solid var(--accent-ink);border-bottom:1.5px solid var(--accent-ink);transform:rotate(-45deg) translate(1px,-1px)}
+.tog[disabled]{opacity:.4;cursor:not-allowed}
+
+.opt{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--ink2);cursor:pointer;line-height:1.5}
+.opt input{width:15px;height:15px;accent-color:var(--accent);margin:2px 0 0;flex:none}
+.sugg{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;border:1px dashed var(--accent-line);background:var(--accent-soft);color:var(--accent);font-size:11px}
+.sugg:hover{border-style:solid}
+
+.btn{border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.p{background:var(--accent);color:var(--accent-ink)}
+.btn.p:hover{filter:brightness(1.08)}
+.btn.p[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.btn.o{border:1px solid var(--line2);color:var(--ink2);background:var(--surface)}
+.btn.o:hover{border-color:var(--accent);color:var(--accent)}
+.btn.full{width:100%}
+
+/* 분기 그래픽 */
+.splitter{position:sticky;top:118px;height:430px;align-self:start}
+.splitter svg{position:absolute;inset:0;width:100%;height:100%}
+.splitter path{fill:none;stroke:var(--line2);stroke-width:1.25;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset .7s ease,stroke .3s}
+.splitter.live path{stroke-dashoffset:0;stroke:var(--accent-line)}
+
+/* 미리보기 카드 */
+.fan{display:flex;flex-direction:column;gap:14px}
+.fan-h{display:flex;align-items:center;gap:10px;padding:0 2px}
+.grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:14px}
+.pv{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.pv.dim{opacity:.4;filter:saturate(.4)}
+.pv-h{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface2)}
+.pv-h .ico{width:18px;height:18px;flex:none;display:grid;place-items:center}
+.pv-h b{font-size:12.5px;font-weight:600;flex:1}
+.tone{font-size:10px;padding:2px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2);font-family:"IBM Plex Mono",monospace}
+.tone.casual{border-color:var(--accent-line);color:var(--accent);background:var(--accent-soft)}
+.pv-b{padding:12px;flex:1;display:flex;flex-direction:column;gap:10px}
+.tonerule{font-size:11px;line-height:1.5;color:var(--ink3);padding-left:9px;border-left:2px solid var(--line2)}
+
+/* 플랫폼 모사 */
+.mock{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.mock-top{display:flex;align-items:center;gap:8px;padding:9px 10px}
+.av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:10px;font-weight:600;flex:none;font-family:"IBM Plex Mono",monospace}
+.mock-top .who{font-size:11.5px;font-weight:600;line-height:1.3}
+.mock-top .who small{display:block;font-weight:400;color:var(--ink3);font-size:10px;font-family:"IBM Plex Mono",monospace}
+.mock-img{width:100%;background-size:cover;background-position:center;background-color:var(--surface3)}
+.mock-img.sq{aspect-ratio:1}
+.mock-img.wide{aspect-ratio:16/10;border-radius:9px;margin:0 10px 2px;width:calc(100% - 20px)}
+.mock-txt{padding:9px 10px;font-size:12.5px;line-height:1.62;white-space:pre-wrap;word-break:break-word}
+.mock-txt.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mock-more{padding:0 10px 9px;font-size:11.5px;color:var(--ink3)}
+.mock-bar{display:flex;gap:14px;padding:8px 10px;border-top:1px solid var(--line);color:var(--ink3)}
+.mock-bar svg{width:15px;height:15px}
+.mock.empty{padding:34px 14px;text-align:center;color:var(--ink3);font-size:12px;border-style:dashed}
+.mock-cmt{margin:0 10px 10px;padding:8px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--line);font-size:11.5px;color:var(--ink2);white-space:pre-wrap;word-break:break-all;line-height:1.55}
+.mock-cmt b{display:block;font-size:10px;color:var(--ink3);font-family:"IBM Plex Mono",monospace;letter-spacing:.03em;margin-bottom:4px}
+
+.edit{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px;min-height:120px;resize:vertical;line-height:1.62;font-size:12.5px;outline:none}
+.edit:focus{border-color:var(--accent);background:var(--surface)}
+.pv-f{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface2);flex-wrap:wrap}
+.mini{border:1px solid var(--line2);border-radius:7px;padding:4px 9px;font-size:11px;color:var(--ink2);background:var(--surface)}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.cnt{margin-left:auto;font-size:11px;color:var(--ink3);font-family:"IBM Plex Mono",monospace}
+.cnt.over{color:var(--err);font-weight:600}
+.flags{display:flex;flex-direction:column;gap:5px}
+.flag{display:flex;gap:7px;align-items:flex-start;font-size:11.5px;padding:7px 9px;border-radius:8px;line-height:1.5}
+.flag.err{background:var(--err-soft);color:var(--err)}
+.flag.warn{background:var(--warn-soft);color:var(--warn)}
+.flag.ok{background:var(--ok-soft);color:var(--ok)}
+.flag.tip{background:var(--accent-soft);color:var(--accent)}
+.way{font-size:10px;padding:2px 7px;border-radius:999px;font-family:"IBM Plex Mono",monospace;border:1px solid}
+.way.auto{color:var(--ok);border-color:var(--ok)}
+.way.soon{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.way.manual{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.copybar{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:9px;background:var(--warn-soft);color:var(--warn);font-size:11.5px;line-height:1.5}
+.copybar button{border:1px solid currentColor;border-radius:7px;padding:4px 10px;font-size:11px;color:inherit;flex:none}
+.flag b{font-weight:600}
+
+.sendbar{
+  position:sticky;bottom:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px 16px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r2);box-shadow:var(--shadow);
+}
+.sendbar .sum{font-size:12.5px;color:var(--ink2);flex:1;min-width:180px}
+.sendbar .sum b{color:var(--ink)}
+
+/* ---------- 설정 ---------- */
+.setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(348px,1fr));gap:16px;align-items:start}
+.span2{grid-column:1/-1}
+.conn{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line)}
+.conn:last-child{border-bottom:0}
+.conn.alert{background:var(--warn-soft)}
+.conn .ico{width:26px;height:26px;flex:none;display:grid;place-items:center}
+.conn .cn{flex:1;min-width:0}
+.conn .cn b{font-size:13px;display:block;line-height:1.4}
+.conn .cn span{font-size:11px;color:var(--ink3);font-family:"IBM Plex Mono",monospace}
+.dl{font-size:11.5px;text-align:right;line-height:1.45;font-family:"IBM Plex Mono",monospace;flex:none}
+.dl b{display:block;font-size:13px;font-weight:600}
+.dl b.warn{color:var(--warn)} .dl b.ok{color:var(--ok)}
+.tagbox{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);min-height:46px}
+.tg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:3px 8px;border-radius:6px;border:1px solid var(--line2);background:var(--surface)}
+.tg button{color:var(--ink3);font-size:14px;line-height:1;padding:0 1px}
+.tg button:hover{color:var(--err)}
+.tg.bad{border-color:var(--err);color:var(--err)}
+.tg.mid{border-color:var(--warn);color:var(--warn)}
+.addrow{display:flex;gap:7px;margin-top:9px}
+.addrow input{flex:1}
+.rulerow{display:flex;flex-direction:column;gap:7px;padding:13px 0;border-bottom:1px solid var(--line)}
+.rulerow:last-child{border-bottom:0}
+.rulerow .rh{display:flex;align-items:center;gap:8px}
+.rulerow .rh .ico{width:17px;height:17px;flex:none;display:grid;place-items:center}
+.rulerow .rh b{font-size:12.5px;flex:1}
+.rulerow textarea{min-height:60px;font-size:12.5px}
+.slot{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.slot:last-of-type{border-bottom:0}
+.slot select,.slot input{width:auto;flex:none}
+.slot .grow{flex:1}
+.setnote{font-size:11.5px;color:var(--ink3);line-height:1.6}
+.failbox{padding:13px 16px;border:1px solid var(--err);background:var(--err-soft);border-radius:var(--r2);font-size:12.5px;line-height:1.6;color:var(--err)}
+.failbox b{display:block;margin-bottom:6px}
+.failrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:5px 0;word-break:break-word}
+.failtip{margin-top:8px;padding-top:8px;border-top:1px solid var(--err);color:var(--ink2);font-size:12px}
+.drow{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12px;line-height:1.5}
+.drow:last-child{border-bottom:0}
+.drow b{flex:none;width:120px;color:var(--ink2);font-weight:500;font-size:11.5px}
+.drow span{flex:1;min-width:0;word-break:break-word}
+#busybar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:300;transition:width .3s}
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;padding:20px}
+.gate-box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:26px;box-shadow:var(--shadow)}
+.gate-box .field input{font-size:13px}
+.gate-err{color:var(--err);font-size:12px;margin-top:10px;min-height:18px;line-height:1.5}
+.link{color:var(--accent);text-decoration:underline;text-underline-offset:2px;font-size:inherit}
+.bulk{padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-direction:column}
+.genwrap{display:flex;flex-direction:column;gap:8px}
+.prog{height:5px;border-radius:3px;background:var(--surface3);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+
+/* ---------- 캘린더 ---------- */
+.cal-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r2);overflow:hidden}
+.cal .dow{background:var(--surface2);padding:8px;text-align:center;font-size:11px;color:var(--ink3);font-family:"IBM Plex Mono",monospace}
+.cal .day{background:var(--surface);min-height:104px;padding:7px;display:flex;flex-direction:column;gap:4px}
+.cal .day.pad{background:var(--surface2);opacity:.45}
+.cal .day .n{font-size:11.5px;color:var(--ink3);font-family:"IBM Plex Mono",monospace}
+.cal .day.today .n{color:var(--accent);font-weight:600}
+.ev{display:flex;align-items:center;gap:4px;font-size:10.5px;padding:4px 6px;border-radius:6px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.ev .mi{width:11px;height:11px;flex:none;display:block}
+.ev .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:11.5px;color:var(--ink2)}
+.legend .mi{width:12px;height:12px;display:inline-block;vertical-align:-2px;margin-right:5px}
+
+/* ---------- 목록 ---------- */
+.tbl{border:1px solid var(--line);border-radius:var(--r2);overflow:hidden;background:var(--surface)}
+.tr{display:flex;align-items:flex-start;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.tr:last-child{border-bottom:0}
+.tr:hover{background:var(--surface2)}
+.tr .when{width:112px;flex:none;font-size:11.5px;color:var(--ink2);font-family:"IBM Plex Mono",monospace;line-height:1.5}
+.tr .bd{flex:1;min-width:0}
+.tr .bd .tx{font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-top:4px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);background:var(--surface2);color:var(--ink2)}
+.st{font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid currentColor;font-family:"IBM Plex Mono",monospace}
+.st.ok{color:var(--ok)} .st.warn{color:var(--warn)} .st.err{color:var(--err)} .st.idle{color:var(--ink3)}
+.empty{padding:52px 20px;text-align:center;color:var(--ink3);font-size:13px}
+
+/* ---------- 토스트 ---------- */
+#toasts{position:fixed;right:18px;bottom:82px;display:flex;flex-direction:column;gap:8px;z-index:200;pointer-events:none}
+.toast{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:11px 15px;font-size:12.5px;max-width:330px;box-shadow:var(--shadow);
+  animation:in .22s ease;
+}
+.toast.ok{border-left-color:var(--ok)} .toast.err{border-left-color:var(--err)}
+@keyframes in{from{opacity:0;transform:translateX(12px)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+@media (max-width:1180px){
+  .composer{grid-template-columns:1fr;gap:18px}
+  .splitter{display:none}
+}
+@media (max-width:860px){
+  .topbar{gap:10px;padding:0 12px}
+  .topbar .pill:not(#modepill){display:none}
+  .brand{font-size:13px;white-space:nowrap}
+  .rail{display:none}
+  main{padding:0 14px 60px}
+  .views{top:54px;overflow-x:auto}
+  .tr{flex-wrap:wrap}
+  .tr .when{width:auto}
+}
+</style>
+
+<div id="busybar"></div>
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="brand" style="margin-bottom:16px"><span class="mk">W</span> We Vape 발행 콘솔</div>
+    <p class="hint" style="margin-bottom:16px">접속 코드를 넣으면 실제 시트와 연결됩니다. 그냥 둘러보시려면 아래 시연 모드로 들어가세요.</p>
+    <div class="field" style="margin-bottom:10px">
+      <span class="lbl">웹앱 주소</span>
+      <input id="gate-url" value="https://script.google.com/macros/s/AKfycby79BDH9Z6HXAPLS9t4_Te4kqIucJicsMtmNzx_9MGx0D4NgRMBXxT4MbuN109IC9hE/exec">
+    </div>
+    <div class="field">
+      <span class="lbl">접속 코드</span>
+      <input id="gate-code" type="password" placeholder="담당자에게 받은 코드" autocomplete="off">
+    </div>
+    <button class="btn p full" style="margin-top:12px" onclick="enterLive()">연결하기</button>
+    <button class="btn o full" style="margin-top:8px" onclick="enterDemo()">시연 모드로 둘러보기</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="brand"><span class="mk">W</span> We Vape 발행 콘솔</div>
+  <button class="pill" id="modepill" onclick="toggleMode()"><span class="dot warn"></span>실행 <b>수동</b></button>
+  <span class="pill"><span class="dot ok"></span>계정 <b>공식 1개</b></span>
+  <div class="grow"></div>
+  <button class="pill" id="livepill" onclick="openGate()"><span class="dot warn"></span>시연 모드 · 발행 안 됨</button>
+  <button class="ghost" onclick="refreshAll()">새로고침</button>
+</div>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="rail-h"><span class="lbl">채널</span><span class="lbl" id="chcount">4 / 4</span></div>
+    <div class="chlist" id="chlist"></div>
+    <div class="rail-note" id="railnote"></div>
+
+    <div class="rail-sec">
+      <div class="rail-h"><span class="lbl">이번 달</span></div>
+      <div class="stat"><span>예약 대기</span><b id="s-queue">0</b></div>
+      <div class="stat"><span>발행 완료</span><b id="s-done">0</b></div>
+      <div class="stat"><span>실패</span><b id="s-fail">0</b></div>
+      <div class="stat"><span>큐 잔여</span><b id="s-days">0일</b></div>
+    </div>
+
+    <div class="rail-sec">
+      <div class="rail-h"><span class="lbl">성과 학습</span></div>
+      <div class="stat"><span>최적 시간</span><b>화 19:00</b></div>
+      <div class="stat"><span>권장 길이</span><b>180~260자</b></div>
+      <div class="stat"><span>표본</span><b>412건</b></div>
+    </div>
+  </aside>
+
+  <main>
+    <nav class="views">
+      <button class="vt on" data-v="compose">작성</button>
+      <button class="vt" data-v="cal">캘린더</button>
+      <button class="vt" data-v="queue">대기열 <em id="q-n">0</em></button>
+      <button class="vt" data-v="log">기록</button>
+      <button class="vt" data-v="set">설정 <em id="set-n" class="">1</em></button>
+    </nav>
+
+    <!-- ================= 작성 ================= -->
+    <section class="view on" id="v-compose">
+      <div class="composer">
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">원본</span><h2>하나만 만듭니다</h2></div>
+          <div class="panel-b">
+
+            <div class="field">
+              <span class="lbl">제목</span>
+              <input id="title" placeholder="예: 추석 연휴 휴무 안내" oninput="titleChanged()">
+              <div class="chips" id="presets"></div>
+            </div>
+
+            <div class="field">
+              <span class="lbl">본문에 넣을 내용</span>
+              <textarea id="body" placeholder="메모하듯 적으세요. 날짜, 시간, 조건만 있으면 됩니다."></textarea>
+              <button class="sugg" onclick="suggestTopic()">소재가 없으면 추천받기</button>
+            </div>
+
+            <div class="field">
+              <span class="lbl">카테고리</span>
+              <select id="cat" onchange="recompose()"></select>
+              <span class="hint">문구 톤과 사진 장면을 정하는 값입니다. 서버가 이 값으로 프롬프트를 만듭니다.</span>
+            </div>
+
+            <div class="field">
+              <span class="lbl">사진</span>
+              <button class="drop" id="drop">클릭하거나 사진을 끌어다 놓으세요</button>
+              <input type="file" id="file" accept="image/*" hidden>
+              <div class="shots" id="shots"></div>
+              <button class="btn o full" id="genimg" onclick="genImage(0)" style="margin-top:9px">본문에 맞는 사진 자동 생성</button>
+              <div class="addrow" style="margin-top:7px">
+                <input id="scene" placeholder="원하는 장면을 적어도 됩니다 (예: 비 오는 저녁 매장 앞)">
+                <button class="btn o" onclick="genImage(1)">장면대로</button>
+              </div>
+              <div id="picked"></div>
+            </div>
+
+            <div class="field">
+              <span class="lbl">내보낼 채널</span>
+              <div class="chtog" id="chtog"></div>
+            </div>
+
+            <div class="field">
+              <span class="lbl">발행 시각</span>
+              <input type="datetime-local" id="when">
+              <button class="sugg" id="bestbtn" onclick="applyBest()">다음 발행 슬롯 적용</button>
+            </div>
+
+            <div class="field">
+              <span class="lbl">본문 자동 삽입</span>
+              <label class="opt"><input type="checkbox" id="opt-store" checked onchange="recompose()">인천·경기 9개 매장 안내 문구</label>
+              <label class="opt"><input type="checkbox" id="opt-tag" checked onchange="recompose()">해시태그 · 매장명 포함</label>
+              <span class="hint">매장명과 기본 태그는 <button class="link" onclick="go('set')">설정 탭</button>에서 바꿉니다.</span>
+            </div>
+
+            <button class="btn p full" id="gen" onclick="generate()">AI 문구 생성 · 채널별 4벌</button>
+            <div class="bulk">
+              <span class="lbl">한꺼번에 만들기</span>
+              <div class="addrow" style="margin-top:7px">
+                <button class="btn o" style="flex:1" onclick="bulk(1)">1주치</button>
+                <button class="btn o" style="flex:1" onclick="bulk(2)">2주치</button>
+              </div>
+              <span class="hint">슬롯에 맞춰 소재를 뽑고 채널별 문안까지 만들어 대기열에 쌓습니다. 발행은 승인 후에 나갑니다.</span>
+              <div class="genwrap" id="bulkbox" style="display:none;margin-top:11px">
+                <span class="hint mono" id="bulklab">준비 중…</span>
+                <div class="prog"><i id="bulkbar"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="splitter" id="splitter" aria-hidden="true">
+          <svg viewBox="0 0 44 420" preserveAspectRatio="none">
+            <path d="M0 210 C 22 210, 22 52, 44 52"></path>
+            <path d="M0 210 C 22 210, 22 158, 44 158"></path>
+            <path d="M0 210 C 22 210, 22 262, 44 262"></path>
+            <path d="M0 210 C 22 210, 22 368, 44 368"></path>
+          </svg>
+        </div>
+
+        <div class="fan">
+          <div class="fan-h"><span class="lbl">채널별 문안</span><h2 id="fanh">네 갈래로 갈라집니다</h2></div>
+          <div class="grid4" id="cards"></div>
+
+          <div id="failbox" class="failbox" style="display:none"></div>
+
+          <div class="sendbar">
+            <div class="sum" id="sum">주제를 적고 생성을 누르면 채널별 문안이 만들어집니다.</div>
+            <button class="btn o" onclick="regenAll()">전체 다시 쓰기</button>
+            <button class="btn p" id="send" onclick="publish()" disabled>4개 채널 예약</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= 캘린더 ================= -->
+    <section class="view" id="v-cal">
+      <div class="cal-h">
+        <h2 id="calTitle" class="mono">2026년 9월</h2>
+        <div class="grow"></div>
+        <button class="ghost" onclick="moveMonth(-1)">이전</button>
+        <button class="ghost" onclick="moveMonth(1)">다음</button>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <!-- ================= 대기열 ================= -->
+    <section class="view" id="v-queue">
+      <div class="tbl" id="queue"></div>
+    </section>
+
+    <!-- ================= 기록 ================= -->
+    <section class="view" id="v-log">
+      <div class="tbl" id="log"></div>
+    </section>
+
+    <!-- ================= 설정 ================= -->
+    <section class="view" id="v-set">
+      <div class="setgrid">
+
+        <div class="panel span2">
+          <div class="panel-h"><span class="lbl">채널 연결</span><h3>계정 상태</h3>
+            <div class="grow"></div>
+            <span class="setnote">주의가 필요한 채널이 맨 위로 올라옵니다</span></div>
+          <div id="conns"></div>
+          <div class="panel-b" style="border-top:1px solid var(--line)">
+            <p class="setnote">메타 계열(인스타그램·쓰레드·페이스북) 토큰은 <b>60일</b>마다 만료됩니다. 만료되면 예약된 글이 조용히 나가지 않으니, 만료 2주 전부터 여기에 경고가 뜹니다. X는 만료 기한이 없지만 비밀번호를 바꾸거나 계정이 정지되면 끊깁니다. 지금 자동 발행은 인스타그램과 쓰레드 둘뿐이고, 페이스북은 패치를 붙이면 자동으로 바뀝니다. X는 문구만 만들고 사람이 올립니다.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">톤 규칙</span><h3>채널마다 어떻게 쓸지</h3></div>
+          <div class="panel-b">
+            <p class="setnote">여기 적은 문장이 그대로 AI에게 전달됩니다. 문안이 마음에 안 들면 다시 쓰라고 하지 말고 이 규칙을 고치세요.</p>
+            <div id="rules"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">사람 냄새</span><h3>기계 티를 없애는 지침</h3></div>
+          <div class="panel-b">
+            <p class="setnote">네 채널 모두에 공통으로 붙습니다. 아래 세 가지는 화면에서 실제로 계산해 알려줍니다 — 문장 길이가 고른지, 같은 어미가 반복되는지, 구체적인 숫자와 이유가 있는지.</p>
+            <textarea id="cfg-human" oninput="CFG.human=this.value" style="min-height:150px;font-size:12.5px"></textarea>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">문장 검사</span><h3>걸러낼 표현</h3></div>
+          <div class="panel-b">
+            <div class="field">
+              <span class="lbl" style="color:var(--err)">규제 표현 · 발행 차단</span>
+              <div class="tagbox" id="ban-box"></div>
+              <div class="addrow">
+                <input id="ban-in" placeholder="차단할 단어" onkeydown="if(event.key==='Enter')addWord('banned')">
+                <button class="btn o" onclick="addWord('banned')">추가</button>
+              </div>
+            </div>
+            <div class="field">
+              <span class="lbl" style="color:var(--ok)">허용어 · 금지어보다 우선</span>
+              <div class="tagbox" id="allow-box"></div>
+              <div class="addrow">
+                <input id="allow-in" placeholder="상호처럼 예외로 둘 말" onkeydown="if(event.key==='Enter')addWord('allow')">
+                <button class="btn o" onclick="addWord('allow')">추가</button>
+              </div>
+              <span class="hint">여기 적은 말 안에 있는 금지어는 넘어갑니다. <b>단, 서버의 금지어 시트에서 「베이프」를 빼야 실제 발행됩니다.</b> 이 화면만으로는 서버 검사를 통과하지 못합니다.</span>
+            </div>
+
+            <div class="field">
+              <span class="lbl" style="color:var(--warn)">상투어 · 권고</span>
+              <div class="tagbox" id="cli-box"></div>
+              <div class="addrow">
+                <input id="cli-in" placeholder="AI 티가 나는 표현" onkeydown="if(event.key==='Enter')addWord('cliche')">
+                <button class="btn o" onclick="addWord('cliche')">추가</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">매장 정보</span><h3>본문에 들어갈 값</h3></div>
+          <div class="panel-b">
+            <div class="field"><span class="lbl">발신자 명의</span>
+              <input id="cfg-hq" oninput="saveCfg()"></div>
+            <div class="field"><span class="lbl">매장 해시태그 접두어</span>
+              <input id="cfg-prefix" oninput="saveCfg()">
+              <span class="hint">상호는 광고가 아니므로 한글로 써도 됩니다. 서버 금지어 시트에서 「베이프」를 빼두세요.</span></div>
+            <div class="field"><span class="lbl">매장명 · 쉼표로 구분</span>
+              <textarea id="cfg-stores" oninput="saveCfg()" style="min-height:62px"></textarea>
+              <span class="hint">적은 순서대로 <b>#위베이프인천연수점</b> 형태로 붙습니다. 인스타그램과 페이스북에만 들어갑니다.</span></div>
+            <div class="field"><span class="lbl">기본 해시태그 · 인스타그램</span>
+              <input id="cfg-tag-ig" oninput="saveCfg()"></div>
+            <div class="field"><span class="lbl">기본 해시태그 · 페이스북</span>
+              <input id="cfg-tag-fb" oninput="saveCfg()"></div>
+            <label class="opt"><input type="checkbox" id="cfg-fc" onchange="saveCfg()">인스타그램 해시태그를 첫 댓글로 분리</label>
+            <p class="setnote">본문이 깔끔해지고 글자 수도 줄어듭니다. 발행 직후 자동으로 댓글이 달립니다.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">발행 시간대</span><h3>큐 슬롯</h3></div>
+          <div class="panel-b">
+            <p class="setnote">여기 등록한 시간이 작성 화면의 추천 시각이 됩니다. 성과 학습으로 뽑은 시간을 넣어두면 매번 고를 필요가 없습니다.</p>
+            <div id="slots"></div>
+            <div class="addrow">
+              <select id="slot-d" style="flex:none;width:88px"></select>
+              <input id="slot-t" type="time" value="19:00" style="flex:none;width:120px">
+              <div class="grow"></div>
+              <button class="btn o" onclick="addSlot()">슬롯 추가</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><span class="lbl">알림</span><h3>언제 알려줄지</h3></div>
+          <div class="panel-b">
+            <label class="opt"><input type="checkbox" id="cfg-nf" checked onchange="saveCfg()">발행이 실패하면 바로 알림</label>
+            <label class="opt"><input type="checkbox" id="cfg-ne" checked onchange="saveCfg()">토큰 만료 2주 전부터 알림</label>
+            <label class="opt"><input type="checkbox" id="cfg-nq" onchange="saveCfg()">예약 잔여가 3일 미만이면 알림</label>
+            <p class="setnote">실패 알림은 꺼두지 마세요. 토큰이 끊기면 화면상으로는 아무 일도 없었던 것처럼 보이고, 며칠 뒤에야 글이 안 나갔다는 걸 알게 됩니다.</p>
+            <div class="field" style="margin-top:4px"><span class="lbl">받을 곳</span>
+              <input id="cfg-notify" value="카카오톡 · 매장운영방" oninput="saveCfg()"></div>
+            <div class="field" style="margin-top:10px"><span class="lbl">서버 상태 점검</span>
+              <div id="livehealth" class="setnote">시연 모드에서는 확인할 수 없습니다.</div></div>
+          </div>
+        </div>
+
+        <div class="panel span2">
+          <div class="panel-h"><span class="lbl">연결 진단</span><h3>서버가 실제로 무엇을 주는지</h3>
+            <div class="grow"></div>
+            <button class="btn o" onclick="runDiag()">지금 진단</button></div>
+          <div class="panel-b">
+            <p class="setnote">등록이 실패할 때 여기부터 보세요. 서버가 쓰는 채널명·지점명·글자수 상한이 내 화면과 맞는지 확인할 수 있습니다.</p>
+            <div id="diagsrv"><span class="setnote">진단을 누르면 표시됩니다.</span></div>
+            <div style="margin-top:14px"><span class="lbl">최근 호출</span>
+              <div id="diaglog" style="margin-top:7px"><span class="setnote">아직 호출 기록이 없습니다.</span></div></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ============ 채널 정의 ============ */
+var TODAY = new Date(2026, 7, 31);
+
+/* 토큰 수명: 메타 계열(인스타·쓰레드·페북)은 장기 토큰이 60일, X는 만료 기한 없음 */
+var CH = [
+  {id:'ig', name:'인스타그램', handle:'wevape_official', limit:2200, tone:'격식', img:'required', color:'var(--ig)',
+   exp:'2026-10-30', last:'2026-08-29 19:02', mode:'auto',
+   rule:'[대괄호 제목] → 본부 인사 → 계절 덕담 → 본문 → 마무리. 정보부터 들이밀지 않기'},
+  {id:'th', name:'쓰레드',     handle:'wevape_official', limit:500,  tone:'친근', img:'optional', color:'var(--mono)',
+   exp:'2026-10-30', last:'2026-08-29 19:02', mode:'auto',
+   rule:'인사 → 안부 질문 → 우리 매장 소식 → 덕담. 친구한테 말 걸듯 반말, 시키는 말투 금지'},
+  {id:'fb', name:'페이스북',   handle:'We Vape 위베이프', limit:5000, tone:'격식', img:'optional', color:'var(--fb)',
+   exp:'2026-09-08', last:'2026-08-26 19:01', mode:'soon',
+   rule:'[대괄호 제목] → 본부 인사 → 계절 덕담 → 항목별 본문 → 마무리'},
+  {id:'x',  name:'X',          handle:'wevape_kr',       limit:280,  tone:'격식', img:'optional', color:'var(--mono)',
+   exp:null, last:'2026-08-29 19:03', mode:'manual',
+   rule:'[대괄호 제목] → 본부 인사 → 짧은 덕담 → 핵심만. 280자라 덕담은 한 줄'}
+];
+function daysLeft(c){
+  if(!c.exp) return null;
+  return Math.round((new Date(c.exp) - TODAY) / 864e5);
+}
+function connState(c){
+  var d = daysLeft(c);
+  if(d === null) return 'ok';
+  if(d <= 0) return 'err';
+  return d <= 14 ? 'warn' : 'ok';
+}
+var CHM = {}; CH.forEach(function(c){ CHM[c.id]=c; });
+var WAY = {
+  auto:  {n:'자동 발행', t:'예약 시각에 시스템이 직접 올립니다'},
+  soon:  {n:'자동 예정', t:'페이스북 발행 패치를 붙이면 자동으로 전환됩니다'},
+  manual:{n:'수동 업로드', t:'문구만 만들고 사람이 직접 올립니다'}
+};
+function copyOut(id){
+  var el = document.getElementById('e-'+id);
+  if(!el) return;
+  el.select(); el.setSelectionRange(0, 99999);
+  try { document.execCommand('copy'); toast(CHM[id].name+' 문구를 복사했습니다','ok'); }
+  catch(e){ toast('직접 선택해 복사해 주세요','err'); }
+  window.getSelection().removeAllRanges();
+}
+
+function icon(id, c){
+  c = c || 'currentColor';
+  if(id==='ig') return '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="'+c+'" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="'+c+'" stroke="none"/></svg>';
+  if(id==='th') return '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="'+c+'" stroke-width="1.9" stroke-linecap="round"><path d="M12.2 21c-4.9 0-8-3.3-8-9s3.2-9 8-9c3.5 0 5.9 1.6 6.9 4.3"/><path d="M9.4 13.6c0-1.7 1.6-2.7 3.6-2.7 3 0 4.6 1.7 4.6 4 0 2-1.3 3.3-2.7 3.3-1.5 0-2.3-1-2.3-3.4 0-2.6.8-4.9 3.2-6"/></svg>';
+  if(id==='fb') return '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="'+c+'" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M14.6 8.4h-1.4c-.9 0-1.4.5-1.4 1.4v1.6h2.6l-.4 2.6h-2.2V21"/></svg>';
+  return '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="'+c+'" stroke-width="1.9" stroke-linecap="round"><path d="M4 4l16 16M20 4L4 20"/></svg>';
+}
+var ACT = {
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.4-7-9a3.8 3.8 0 017-2 3.8 3.8 0 017 2c0 4.6-7 9-7 9z"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12a7 7 0 01-9.9 6.4L5 20l1.6-4.6A7 7 0 1120 12z"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12v7h16v-7M12 4v11M12 4l-4 4M12 4l4 4"/></svg>',
+  retweet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 9h11l-3-3M20 15H9l3 3"/></svg>'
+};
+
+/* ============ 샘플 사진 ============ */
+var SHOTS = [
+  {k:'매장', css:'radial-gradient(110% 80% at 22% 12%, #7d94a6 0%, rgba(125,148,166,0) 58%), linear-gradient(158deg,#33475a 0%,#16212b 100%)'},
+  {k:'제품', css:'radial-gradient(95% 75% at 78% 18%, #8c7aa6 0%, rgba(140,122,166,0) 55%), linear-gradient(152deg,#3a3049 0%,#181420 100%)'},
+  {k:'안내', css:'radial-gradient(100% 80% at 30% 82%, #b08a5e 0%, rgba(176,138,94,0) 56%), linear-gradient(160deg,#4b3a2a 0%,#1f1811 100%)'}
+];
+
+/* ============ 문안 라이브러리 ============ */
+var LIB = {
+  '추석 연휴 운영 안내':{
+    body:'추석 당일 9월 25일(금) 하루만 휴무. 24일(목), 26일(토)은 정상 운영. 9개 매장 전부 같은 일정.',
+    ig:'[ 추석 연휴 휴무 공지 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n곧 다가오는 대명절 추석, 사랑하는 가족분들과 즐겁고 풍성한 한가위 되시길 바랍니다.\n\n저희 인천·경기 9개 매장은 추석 당일인 9월 25일(금) 하루만 휴무합니다. 24일(목)과 26일(토)은 평소와 같이 운영합니다.\n\n연휴에 헛걸음하지 않으시도록 미리 안내드립니다.',
+    th:'안녕하세요 스친이분들~ 곧 추석인데 다들 어디 떠나는 곳 있어?\n\n우리 위베이프 인천·경기 9개 매장은 추석 당일 25일 하루만 쉬어가려고 해! 가족들이랑 시간 좀 보내고 오려고 ㅎㅎ\n\n24일이랑 26일은 평소대로 여니까 필요한 거 있으면 편하게 들러~\n\n다들 풍성한 추석 연휴 보내길 바래!',
+    fb:'[ 추석 연휴 휴무 공지 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n곧 다가오는 대명절 추석, 사랑하는 가족분들과 즐겁고 풍성한 한가위 되시길 바랍니다.\n\n▪ 9월 24일(목) — 정상 운영\n▪ 9월 25일(금, 추석 당일) — 휴무\n▪ 9월 26일(토) — 정상 운영\n\n인천·경기 9개 매장 모두 같은 일정입니다. 매장별 위치와 연락처는 프로필 링크에서 확인하실 수 있습니다.',
+    x:'[ 추석 연휴 휴무 공지 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n풍성한 한가위 되시길 바랍니다.\n\n9월 25일(금) 추석 당일 하루 휴무\n24일과 26일은 정상 운영합니다.'
+  },
+  '9월 신규 입고':{
+    body:'9월 입고분 9개 매장 전부 도착. 지난달에 일찍 소진돼서 헛걸음한 분들 많았음. 이번엔 물량 넉넉히 확보. 매장별 재고 다르니 방문 전 전화 확인 가능.',
+    ig:'[ 9월 신규 입고 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n아침저녁으로 선선해진 요즘, 환절기 감기 조심하시길 바랍니다.\n\n지난달에는 준비한 수량이 일찍 소진되어 발걸음을 돌리신 분들이 계셨습니다. 이번에는 물량을 넉넉히 확보했습니다.\n\n9월 입고분이 인천·경기 9개 매장에 모두 도착했습니다. 매장별로 재고에 차이가 있으니 방문 전 연락 주시면 확인해 드리겠습니다.',
+    th:'안녕 스친이분들~ 다들 9월 잘 보내고 있어?\n\n우리가 지난달에 재고를 너무 적게 잡아서 헛걸음한 분들이 꽤 있었거든. 그게 계속 마음에 걸려서 이번엔 물량을 넉넉하게 잡아봤어!\n\n9월 입고분 인천·경기 9개 매장 다 들어왔어. 매장마다 조금씩 다르니까 미리 전화 주면 확인해 줄게~',
+    fb:'[ 9월 신규 입고 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n아침저녁으로 선선해진 요즘, 환절기 감기 조심하시길 바랍니다.\n\n지난달에는 준비한 수량이 일찍 소진되어 발걸음을 돌리신 분들이 계셨습니다. 같은 일이 반복되지 않도록 이번에는 물량을 넉넉히 확보했습니다.\n\n9월 입고분이 인천·경기 9개 매장에 모두 도착했습니다. 매장별로 재고에 차이가 있으니 방문 전 연락 주시면 미리 확인해 드리겠습니다.',
+    x:'[ 9월 신규 입고 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n환절기 감기 조심하시길 바랍니다.\n\n9월 입고분이 인천·경기 9개 매장에 모두 도착했습니다. 매장별 재고는 방문 전 전화로 확인하실 수 있습니다.'
+  },
+  '구월점 리뉴얼 오픈':{
+    _solo:true,
+    body:'구월점 2주 공사 끝. 9월 5일(금) 오전 11시 재오픈. 상담 자리 늘리고 주차 동선 정리함. 공사 기간 불편했던 점 사과.',
+    ig:'[ 구월점 리뉴얼 오픈 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n공사 기간 동안 불편을 드려 죄송했습니다.\n\n구월점이 2주간의 리뉴얼을 마치고 9월 5일(금) 오전 11시 다시 문을 엽니다. 앉아서 상담받으실 수 있도록 자리를 늘렸고, 주차 동선도 정리했습니다.\n\n그동안 인근 매장을 이용해 주신 분들께 감사드립니다.',
+    th:'스친이분들 안녕~ 드디어 소식 하나 들고 왔어!\n\n구월점 2주 동안 공사했는데 오늘 끝났어. 앉아서 편하게 얘기할 자리가 없다는 말을 하도 들어서 자리부터 늘렸고, 주차도 훨씬 편해졌어!\n\n9월 5일 금요일 11시부터 다시 문 여니까 근처 지나면 구경 와줘~ 기다릴게!',
+    fb:'[ 구월점 리뉴얼 오픈 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n공사 기간 동안 불편을 드려 죄송했습니다.\n\n구월점이 2주간의 리뉴얼 공사를 마치고 9월 5일(금) 오전 11시 다시 문을 엽니다. 상담 공간을 넓히고 주차 동선을 정리했습니다.\n\n그동안 인근 매장을 이용해 주신 분들께 감사드립니다.',
+    x:'[ 구월점 리뉴얼 오픈 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n공사 기간 동안 불편을 드려 죄송했습니다.\n\n구월점이 9월 5일(금) 오전 11시 다시 문을 엽니다. 상담 공간과 주차 동선을 정리했습니다.'
+  },
+  '겨울 대비 기기 점검 안내':{
+    body:'추워지면서 기기 반응 둔해졌다는 문의 증가. 열에 아홉은 접점 이물이나 배터리 문제. 매장에서 3분이면 확인 끝. 점검비 무료.',
+    ig:'[ 무상 점검 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n갑자기 쌀쌀해진 날씨에 감기 조심하시길 바랍니다.\n\n기온이 내려가면서 기기 반응이 둔해졌다는 문의가 늘고 있습니다. 대부분 접점 이물이나 배터리 상태 문제로, 매장에서 3분이면 확인이 끝납니다.\n\n인천·경기 9개 매장 어디든 들러 주시면 점검해 드리며, 점검 비용은 받지 않습니다.',
+    th:'안녕하세요 스친이분들~ 요즘 아침에 좀 춥지 않아?\n\n날씨 추워지니까 기기가 예전 같지 않다는 얘기가 부쩍 늘었어. 근데 열에 아홉은 접점에 뭐가 꼈거나 배터리 문제라서 매장에서 3분이면 끝나!\n\n지나는 길에 편하게 들러~ 점검은 돈 안 받아! 다들 감기 조심하고~',
+    fb:'[ 무상 점검 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n갑자기 쌀쌀해진 날씨에 감기 조심하시길 바랍니다.\n\n기온이 내려가면서 기기 반응이 둔해졌다는 문의가 늘고 있습니다. 대부분 접점 이물이나 배터리 상태 문제로, 매장에서 3분이면 확인이 끝납니다.\n\n인천·경기 9개 매장 어디든 들러 주시면 점검해 드리며, 점검 비용은 받지 않습니다.',
+    x:'[ 무상 점검 안내 ]\n\n안녕하세요, 위베이프 인천/경기 본부입니다.\n쌀쌀해진 날씨에 감기 조심하시길 바랍니다.\n\n기기 반응이 둔해졌다면 대부분 접점 이물이나 배터리 문제입니다. 인천·경기 9개 매장에서 무상으로 점검해 드립니다.'
+  }
+};
+function storeLine(id){
+  var n = CFG.stores.length || 9;
+  if(id==='th') return '인천·경기 '+n+'개 매장 다 똑같아~';
+  if(id==='x')  return '인천·경기 '+n+'개 매장 동일합니다.';
+  return '인천·경기 '+n+'개 매장에서 동일하게 운영합니다.';
+}
+/* ============ 설정값 ============ */
+var CFG = {
+  hq:'위베이프 인천/경기 본부',
+  stores:['인천연수점','인천논현점','부천상동점','부천중동점','구월로데오점','구월길병원점','인천공항점','인천검단점','인천계산점'],
+  human:'문장 길이를 섞어라. 짧은 문장을 최소 하나 넣어라.\n사실만 나열하지 말고 왜 그렇게 했는지 한 줄 붙여라.\n숫자는 구체적으로 적어라. 며칠, 몇 개, 몇 분.\n같은 어미를 세 번 연속 쓰지 마라.\n완벽하게 정돈된 병렬 구조를 피하라.\n이모지는 쓰지 마라. 쓰레드에서 ㅎㅎ 정도만 허용.',
+  tags:{ ig:'#위베이프 #WeVape #인천 #부천 #직영매장', fb:'#위베이프 #WeVape #직영매장', th:'', x:'' },
+  tagPrefix:'위베이프',
+  allow:['위베이프','WeVape'],
+  firstComment:false,
+  rules:{},
+  banned:['건강','안전','무해','금연','치료','청소년','학생','미성년','중독','효능'],
+  cliche:['여러분','지금 바로','함께해요','놓치지 마세요','설레는','완벽한','최고의','만나보세요','특별한 혜택','서두르세요'],
+  slots:[{d:2,t:'19:00'},{d:5,t:'13:00'}],
+  notify:{fail:true, expire:true, queue:false, to:'카카오톡 · 매장운영방'}
+};
+CH.forEach(function(c){ CFG.rules[c.id] = c.rule; });
+
+function tagsFor(id){
+  if(!CFG.tags[id]) return '';
+  var st = CFG.stores.map(function(s){ return '#' + CFG.tagPrefix + s; }).join(' ');
+  return CFG.tags[id] + (st ? '\n' + st : '');
+}
+/* 첫 댓글로 뺀 해시태그 */
+function commentFor(id){ return (CFG.firstComment && id==='ig') ? tagsFor(id) : ''; }
+
+/* ============ 검사 ============ */
+/* 허용어 안에 들어 있는 금지어는 눈감아 줍니다.
+   「베이프」가 금지어라도 상호 「위베이프」는 통과시키기 위한 장치입니다. */
+function maskAllowed(t){
+  var m = String(t);
+  (CFG.allow || []).forEach(function(a){
+    if(!a) return;
+    m = m.split(a).join(new Array(a.length + 1).join('\u0001'));
+  });
+  return m;
+}
+function checkText(t){
+  var b=[], c=[], m = maskAllowed(t);
+  CFG.banned.forEach(function(w){ if(m.indexOf(w)>=0) b.push(w); });
+  CFG.cliche.forEach(function(w){ if(t.indexOf(w)>=0) c.push(w); });
+  return {banned:b, cliche:c, rhythm:rhythm(t)};
+}
+
+/* 사람이 쓴 글과 기계가 쓴 글은 리듬이 다릅니다. 그걸 실제로 재봅니다. */
+function rhythm(t){
+  var body = String(t).replace(/#[^\s#]+/g,'').replace(/^\[[^\]]*\]/,'').trim();
+  var ss = body.split(/[.!?\n]+/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 3; });
+  var out = [];
+  if(ss.length >= 4){
+    var L = ss.map(function(s){ return s.length; });
+    var avg = L.reduce(function(a,b){ return a+b; },0) / L.length;
+    var sd = Math.sqrt(L.reduce(function(a,b){ return a + (b-avg)*(b-avg); },0) / L.length);
+    if(sd < avg * 0.18) out.push('문장 길이가 너무 고릅니다 — 짧은 문장을 하나 넣으세요');
+    var e = ss.map(function(s){ return s.slice(-4); });
+    for(var i=0; i+2 < e.length; i++){
+      if(e[i] === e[i+1] && e[i+1] === e[i+2]){ out.push('같은 어미가 세 번 이어집니다'); break; }
+    }
+  }
+  if(!/\d/.test(body)) out.push('구체적인 숫자가 없습니다');
+  if(!/(라서|때문|려고|거든|어서|아서|되어|느라|덕분|탓에|하도|보니|도록|면서|드려|고자)/.test(body))
+    out.push('왜 그렇게 했는지가 빠졌습니다');
+  return out.slice(0,2);
+}
+
+/* ============ 상태 ============ */
+var S = {
+  photo:null, photoName:'',
+  on:{ig:true, th:true, fb:true, x:true},
+  draft:{}, edit:{}, mode:'수동',
+  queue:[], log:[], calY:2026, calM:8
+};
+
+var SEED_Q = [
+  {d:'2026-09-02 19:00', topic:'겨울 대비 기기 점검 안내', ch:['ig','th','fb','x'], st:'승인 완료'},
+  {d:'2026-09-05 11:00', topic:'구월점 리뉴얼 오픈', ch:['ig','th','fb','x'], st:'승인 대기'},
+  {d:'2026-09-09 19:00', topic:'9월 신규 입고', ch:['ig','fb'], st:'승인 대기'},
+  {d:'2026-09-24 10:00', topic:'추석 연휴 운영 안내', ch:['ig','th','fb','x'], st:'승인 완료'}
+];
+var SEED_L = [
+  {d:'2026-08-29 19:00', topic:'8월 마지막 주 운영 안내', ch:['ig','th','fb','x'], st:'발행 완료', note:'4개 채널 모두 성공'},
+  {d:'2026-08-26 19:00', topic:'가을 신제품 입고', ch:['ig','th','fb','x'], st:'일부 실패', note:'페이스북 — 토큰이 만료되어 보내지 못했습니다'},
+  {d:'2026-08-22 13:00', topic:'논현점 임시 휴무', ch:['ig','fb'], st:'발행 완료', note:'2개 채널 성공'}
+];
+
+/* ============ 유틸 ============ */
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function $(id){ return document.getElementById(id); }
+function toast(m,k){
+  var d=document.createElement('div'); d.className='toast '+(k||''); d.textContent=m;
+  $('toasts').appendChild(d); setTimeout(function(){d.remove();},4000);
+}
+function activeCh(){ return CH.filter(function(c){ return S.on[c.id]; }); }
+function bg(p){ return p && p.type==='css' ? p.css : 'url('+p.url+')'; }
+
+/* ============ 좌측 채널 레일 ============ */
+function paintRail(){
+  $('chlist').innerHTML = CH.map(function(c){
+    var st = connState(c);
+    return '<div class="ch'+(S.on[c.id]?'':' off')+'">'
+      + '<span class="ico">'+icon(c.id,c.color)+'</span>'
+      + '<span class="nm"><b>'+esc(c.name)+'</b><span>@'+esc(c.handle)+'</span></span>'
+      + '<span class="dot '+st+'" title="'+(st==='ok'?'연결됨':'재연결 필요')+'"></span></div>';
+  }).join('');
+  $('chcount').textContent = activeCh().length + ' / 4';
+
+  var bad = CH.filter(function(c){ return connState(c)!=='ok'; });
+  var nb = $('railnote'), sn = $('set-n');
+  if(bad.length){
+    var c0 = bad[0], d0 = daysLeft(c0);
+    nb.style.display = '';
+    nb.innerHTML = esc(c0.name)+' 토큰이 <b>'+(d0>0 ? d0+'일 뒤' : '이미')+'</b> 만료됩니다. 다시 연결하지 않으면 '
+      + esc(c0.name)+' 발행만 조용히 실패합니다. <button class="link" onclick="go(\'set\')">설정에서 재연결</button>';
+    sn.textContent = bad.length; sn.className = '';
+  } else {
+    nb.style.display = 'none';
+    sn.className = 'zero'; sn.textContent = '0';
+  }
+
+  var q = S.queue.length, done = S.log.filter(function(x){return x.st==='발행 완료';}).length;
+  var fail = S.log.filter(function(x){return x.st==='일부 실패';}).length;
+  $('s-queue').textContent = q; $('s-done').textContent = done; $('s-fail').textContent = fail;
+  $('s-days').textContent = Math.max(0, Math.round(q*2.5)) + '일';
+  $('q-n').textContent = q;
+}
+
+/* ============ 입력부 ============ */
+function paintShots(){
+  $('shots').innerHTML = SHOTS.map(function(s,i){
+    var sel = S.photo && S.photo.k===s.k ? ' sel':'';
+    return '<button class="shot'+sel+'" style="background-image:'+s.css+'" onclick="pickShot('+i+')"><small>'+s.k+'</small></button>';
+  }).join('');
+  $('picked').innerHTML = S.photo
+    ? '<div class="picked"><span class="px" style="background-image:'+bg(S.photo)+'"></span>'
+      + '<span class="info"><b style="color:var(--ink);font-weight:500">'+esc(S.photoName)+'</b><br><span class="hint">인스타그램은 사진이 있어야 발행됩니다</span></span>'
+      + '<button class="mini" onclick="clearPhoto()">제거</button></div>'
+    : '';
+}
+function pickShot(i){
+  var s = SHOTS[i];
+  S.photo = {type:'css', css:s.css, k:s.k};
+  S.photoName = '샘플 · ' + s.k + '.jpg';
+  paintShots(); render();
+}
+function clearPhoto(){ S.photo=null; S.photoName=''; paintShots(); render(); }
+
+function paintPresets(){
+  $('presets').innerHTML = Object.keys(LIB).map(function(k){
+    return '<button class="chip" onclick="setTopic(this.dataset.k)" data-k="'+esc(k)+'">'+esc(k)+'</button>';
+  }).join('');
+}
+
+function paintToggles(){
+  $('chtog').innerHTML = CH.map(function(c){
+    var need = c.img==='required' && !S.photo;
+    return '<button class="tog'+(S.on[c.id]?' on':'')+'"'+(need?' title="사진을 넣어야 발행됩니다"':'')
+      + ' onclick="toggleCh(\''+c.id+'\')"><span class="mark"></span>'
+      + '<span class="ico">'+icon(c.id,c.color)+'</span><span>'+esc(c.name)+'</span></button>';
+  }).join('');
+}
+function toggleCh(id){
+  var c = CHM[id];
+  if(!S.on[id] && c.img==='required' && !S.photo) toast('인스타그램은 사진을 넣어야 발행됩니다');
+  S.on[id] = !S.on[id]; paintToggles(); paintRail(); render();
+}
+
+var DOW = ['일','월','화','수','목','금','토'];
+function nextSlot(){
+  var now = new Date(), best = null;
+  CFG.slots.forEach(function(s){
+    var d = new Date(now);
+    var add = (s.d - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + add);
+    d.setHours(+s.t.slice(0,2), +s.t.slice(3,5), 0, 0);
+    if(d <= now) d.setDate(d.getDate() + 7);
+    if(!best || d < best.at) best = {at:d, s:s};
+  });
+  return best;
+}
+function slotLabel(){
+  var b = nextSlot();
+  return b ? DOW[b.s.d] + ' ' + b.s.t : '슬롯 없음';
+}
+function applyBest(){
+  var b = nextSlot();
+  if(!b){ toast('설정 탭에서 발행 시간대를 먼저 등록해주세요','err'); go('set'); return; }
+  $('when').value = new Date(b.at.getTime() - b.at.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  toast('다음 슬롯 ' + DOW[b.s.d] + '요일 ' + b.s.t + '으로 맞췄습니다','ok');
+}
+function paintSlotBtn(){
+  var el = $('bestbtn');
+  if(el) el.textContent = '다음 발행 슬롯 적용 · ' + slotLabel();
+}
+
+/* ============ 생성 ============ */
+function compose(id, topic){
+  var lib = LIB[topic];
+  var base = lib ? lib[id] : draftFor(id, topic, $('body').value.trim());
+  var parts = [base];
+  var solo = lib && lib._solo;
+  if($('opt-store').checked && !solo && base.indexOf('개 매장') < 0) parts.push(storeLine(id));
+  var tg = tagsFor(id);
+  if($('opt-tag').checked && tg && !commentFor(id)) parts.push(tg);
+  return parts.join('\n\n');
+}
+/* ---- 개조식 메모를 채널 어투로 바꿉니다 ---- */
+/* '하다'가 붙는 동작명사 — 이게 없으면 "출시이야" 같은 문장이 나옵니다 */
+var ACT_N = ['출시','입고','출고','도착','판매','개시','시작','종료','마감','오픈','개점','폐점','휴무','점검','수리','교환','환불',
+  '진행','완료','정리','확보','변경','수정','추가','삭제','소진','증가','감소','확장','이전','리뉴얼','공사','입점','등록','접수',
+  '배송','발송','예약','할인','적립','사용','이용','방문','상담','안내','문의','준비','실시','운영','개최','참여','응모','당첨',
+  '배포','지급','제공','철수','연장','단축','재개','중단','보완','개선'];
+var V_DO   = ['가능','필요','충분','무료','동일','한산','다양','저렴'];
+var PASS_N = ['입고','소진','마감','배송','지급','배포','변경','종료','중단','재개','연장','단축','철수','이전'];
+function isAct(s){ var t = tail(s); return ACT_N.some(function(v){ return t.slice(-v.length) === v; }); }
+function isPass(s){ var t = tail(s); return PASS_N.some(function(v){ return t.slice(-v.length) === v; }); }
+function isUnit(s){ return /\d\s*(년|개월|개|원|일|시|분|초|명|자|번|층|대|병|세트|가지|주|시간)$/.test(s); }
+/* 받침이 있으면 '이야', 없으면 '야' */
+function ya(s){
+  var c = s.charCodeAt(s.length-1) - 0xAC00;
+  if(c < 0 || c > 11171) return '이야';
+  return (c % 28) ? '이야' : '야';
+}
+function tail(s){ return s.split(/\s+/).pop(); }
+/* 양성모음이면 '아', 아니면 '어'. 과거형 았/었/였 뒤에는 항상 '어' */
+function bright(s){
+  if(/[았었였]$/.test(s)) return false;
+  var c = s.charCodeAt(s.length-1) - 0xAC00;
+  if(c < 0 || c > 11171) return false;
+  var j = Math.floor(c/28) % 21;
+  return j===0 || j===2 || j===8 || j===12;
+}
+function polite(f){
+  var s = f.trim().replace(/[.]+$/,'');
+  if(!s) return '';
+  if(/(습니다|입니다|합니다|됩니다|세요|십시오|드립니다)$/.test(s)) return s + '.';
+  if(/음$/.test(s)) return s.replace(/음$/,'습니다') + '.';
+  if(/함$/.test(s)) return s.replace(/함$/,'했습니다') + '.';
+  if(/됨$/.test(s)) return s.replace(/됨$/,'됩니다') + '.';
+  if(/임$/.test(s)) return s.replace(/임$/,'입니다') + '.';
+  if(/다$/.test(s)) return s.replace(/다$/,'습니다') + '.';
+  if(isUnit(s)) return s + '입니다.';
+  if(isPass(s)) return s + '되었습니다.';
+  if(isAct(s)) return s + '했습니다.';
+  if(V_DO.some(function(v){ return tail(s).indexOf(v)>=0; })) return s + '합니다.';
+  return s + '입니다.';
+}
+function casual(f){
+  var s = f.trim().replace(/[.]+$/,'');
+  if(!s) return '';
+  if(/음$/.test(s)) return s.replace(/음$/,'어') + '.';
+  if(/함$/.test(s)) return s.replace(/함$/,'했어') + '.';
+  if(/됨$/.test(s)) return s.replace(/됨$/,'됐어') + '.';
+  if(/임$/.test(s)) return s.replace(/임$/,'이야') + '.';
+  if(/(습니다|입니다|합니다)$/.test(s)) return s.replace(/(습니다|입니다|합니다)$/,'어') + '.';
+  if(isUnit(s)) return s + ya(s) + '.';
+  if(isPass(s)) return s + '됐어.';
+  if(isAct(s)) return s + '했어.';
+  if(V_DO.some(function(v){ return tail(s).indexOf(v)>=0; })) return s + '해.';
+  return s + ya(s) + '.';
+}
+/* 첫 조각은 "~해서 소식 전해주러 왔어!" 처럼 이어 붙입니다 */
+var OPENERS = ['{}해서 소식 전해주러 왔어!','{}해서 알려주려고 왔어!','오늘은 {} 소식 들고 왔어!'];
+function opener(frag){
+  var s = frag.trim().replace(/[.]+$/,'');
+  if(!s || !isAct(s)) return '';
+  var t = pick(OPENERS);
+  return t.indexOf('{}해서') === 0 ? s + t.slice(2) : t.replace('{}', s);
+}
+function splitMemo(b){
+  return String(b||'')
+    .split(/[.\n]+/)
+    .reduce(function(a,s){ return a.concat(s.split(/(?:하고|이고|이며|하며)\s+/)); }, [])
+    .map(function(s){ return s.trim(); })
+    .filter(function(s){ return s.length > 1; });
+}
+
+/* ---- 개조식 조각을 완성된 문장으로 다시 씁니다 ----
+   "~~ 많음"     → "~~ 분들이 종종 계십니다"
+   "~~ 확인 가능" → "~~ 확인하실 수 있습니다"
+   "~~ 문의 부탁" → "추가 문의사항은 연락 주시면 신속하게 답변드리겠습니다"      */
+function josa(s, a, b){
+  var c = s.charCodeAt(s.length-1) - 0xAC00;
+  if(c < 0 || c > 11171) return a;
+  return (c % 28) ? a : b;
+}
+var RW = {
+  f:[
+    [/^(?=.*(문의|dm|디엠|연락|카톡))(?=.*(부탁|주세요|바람|요망|환영|주시)).*$/, function(){ return pick(ASK.f); }],
+    [/^(.*)\s*분들?\s*많음$/,      function(m){ return m[1].trim() + ' 분들이 종종 계십니다'; }],
+    [/^(.*?)\s*많음$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 많습니다'; }],
+    [/^(.*?)\s*확인\s*가능$/,      function(m){ return m[1] + ' 확인하실 수 있습니다'; }],
+    [/^(.*?)\s*사용\s*가능$/,      function(m){ return m[1] + ' 사용하실 수 있습니다'; }],
+    [/^(.*?)\s*이용\s*가능$/,      function(m){ return m[1] + ' 이용하실 수 있습니다'; }],
+    [/^(.*?)\s*방문\s*가능$/,      function(m){ return m[1] + ' 방문하실 수 있습니다'; }],
+    [/^(.*?)\s*가능$/,             function(m){ return m[1] + ' 가능합니다'; }],
+    [/^(.*?)\s*안내\s*예정$/,      function(m){ return m[1] + ' 안내해 드릴 예정입니다'; }],
+    [/^(.*?)\s*안내$/,             function(m){ return m[1] + josa(m[1],'은','는') + ' 매장에서 안내해 드립니다'; }],
+    [/^(.*?)\s*예정$/,             function(m){ return m[1] + ' 예정입니다'; }],
+    [/^(.*?)\s*증가$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 늘고 있습니다'; }],
+    [/^(.*?)\s*감소$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 줄고 있습니다'; }],
+    [/^(.*?)\s*무료$/,             function(m){ return m[1] + josa(m[1],'은','는') + ' 받지 않습니다'; }],
+    [/^(.*?)\s*휴무$/,             function(m){ return m[1] + ' 휴무입니다'; }],
+    [/^(.*?)\s*재오픈$/,           function(m){ return m[1] + ' 다시 문을 엽니다'; }],
+    [/^(.*?)\s*오픈$/,             function(m){ return m[1] + ' 문을 엽니다'; }],
+    [/^(.*?)\s*정상\s*운영$/,      function(m){ return m[1] + ' 평소와 같이 운영합니다'; }],
+    [/^(.*?)\s*도착$/,             function(m){ return m[1] + ' 도착했습니다'; }],
+    [/^(.*?)\s*완료$/,             function(m){ return m[1] + ' 마쳤습니다'; }],
+    [/^(.*?)\s*확보$/,             function(m){ return m[1] + ' 넉넉히 확보했습니다'; }],
+    [/^(.*?)\s*정리$/,             function(m){ return m[1] + ' 정리했습니다'; }],
+    [/^(.*?)\s*필요$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 필요합니다'; }],
+    [/^(.*?)\s*추천$/,             function(m){ return m[1] + ' 추천드립니다'; }],
+    [/^(.*?)\s*사과$/,             function(m){ return m[1] + ' 죄송한 마음입니다'; }]
+  ],
+  c:[
+    [/^(?=.*(문의|dm|디엠|연락|카톡))(?=.*(부탁|주세요|바람|요망|환영|주시)).*$/, function(){ return pick(ASK.c); }],
+    [/^(.*)\s*분들?\s*많음$/,      function(m){ return m[1].trim() + ' 분들이 종종 있더라고'; }],
+    [/^(.*?)\s*많음$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 많더라고'; }],
+    [/^(.*?)\s*확인\s*가능$/,      function(m){ return m[1] + ' 확인할 수 있어'; }],
+    [/^(.*?)\s*사용\s*가능$/,      function(m){ return m[1] + ' 쓸 수 있어'; }],
+    [/^(.*?)\s*이용\s*가능$/,      function(m){ return m[1] + ' 이용할 수 있어'; }],
+    [/^(.*?)\s*가능$/,             function(m){ return m[1] + '할 수 있어'; }],
+    [/^(.*?)\s*안내\s*예정$/,      function(m){ return m[1] + ' 곧 알려줄게'; }],
+    [/^(.*?)\s*안내$/,             function(m){ return m[1] + josa(m[1],'은','는') + ' 매장에서 알려줄게'; }],
+    [/^(.*?)\s*예정$/,             function(m){ return m[1] + ' 할 예정이야'; }],
+    [/^(.*?)\s*증가$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 부쩍 늘었어'; }],
+    [/^(.*?)\s*감소$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 좀 줄었어'; }],
+    [/^(.*?)\s*무료$/,             function(m){ return m[1] + josa(m[1],'은','는') + ' 안 받아'; }],
+    [/^(.*?)\s*휴무$/,             function(m){ return m[1] + ' 쉬어'; }],
+    [/^(.*?)\s*재오픈$/,           function(m){ return m[1] + ' 다시 열어'; }],
+    [/^(.*?)\s*오픈$/,             function(m){ return m[1] + ' 열어'; }],
+    [/^(.*?)\s*정상\s*운영$/,      function(m){ return m[1] + ' 평소대로 열어'; }],
+    [/^(.*?)\s*도착$/,             function(m){ return m[1] + ' 다 들어왔어'; }],
+    [/^(.*?)\s*완료$/,             function(m){ return m[1] + ' 끝났어'; }],
+    [/^(.*?)\s*확보$/,             function(m){ return m[1] + ' 넉넉히 잡아놨어'; }],
+    [/^(.*?)\s*정리$/,             function(m){ return m[1] + ' 정리했어'; }],
+    [/^(.*?)\s*필요$/,             function(m){ return m[1] + josa(m[1],'이','가') + ' 필요해'; }],
+    [/^(.*?)\s*추천$/,             function(m){ return m[1] + ' 추천이야'; }],
+    [/^(.*?)\s*사과$/,             function(m){ return m[1] + ' 미안해'; }]
+  ]
+};
+var ASK = {
+  f:['궁금하신 점은 언제든지 편하게 문의 주시길 바랍니다',
+     '문의사항은 언제든지 편하게 연락 주시길 바랍니다',
+     '더 궁금하신 내용은 가까운 매장으로 문의 주시길 바랍니다'],
+  c:['궁금한 거 있으면 언제든지 연락줘!!',
+     '궁금한 거 있으면 편하게 물어봐 줘!',
+     '더 궁금한 건 댓글이나 디엠으로 물어봐!']
+};
+function isAsk(s){
+  return /(문의|dm|디엠|연락|카톡)/i.test(s) && /(부탁|주세요|바람|요망|환영|주시)/.test(s);
+}
+/* 서술어 없는 짧은 명사구 — 앞 문장에 부사구로 흡수시킵니다 */
+function bare(s){
+  return s.length <= 9 && !/\d/.test(s) && !isAsk(s) && !isAct(s) && !isPass(s)
+    && !/(음|함|됨|임|다|가능|필요|무료|동일|한산)$/.test(s);
+}
+function ro(s){
+  var c = s.charCodeAt(s.length-1) - 0xAC00;
+  if(c < 0 || c > 11171) return '로';
+  var j = c % 28;
+  return (j === 0 || j === 8) ? '로' : '으로';
+}
+/* "한정수량" + "9개 매장 동시 입고" → "한정수량으로 9개 매장 동시 입고" */
+function prep(frags){
+  var out = [];
+  frags.forEach(function(f){
+    if(bare(f) && out.length) out[out.length-1] = f + ro(f) + ' ' + out[out.length-1];
+    else out.push(f);
+  });
+  return out;
+}
+/* 앞 문장을 원인절로 바꿔 뒷 문장에 붙입니다 — "입고됐어" → "입고됐으니까" */
+function toCause(sent){
+  var s = sent.replace(/[.!?]+$/,'');
+  if(/(됐|했|았|었|있|없|왔|갔)어$/.test(s)) return s.replace(/어$/,'으니까');
+  if(/이야$/.test(s)) return s.replace(/이야$/,'이니까');
+  if(/야$/.test(s))   return s.replace(/야$/,'니까');
+  if(/해$/.test(s))   return s.replace(/해$/,'하니까');
+  if(/어$/.test(s))   return s + '서';
+  return s + '니까';
+}
+function rewrite(frag, mode){
+  var s = frag.trim().replace(/[.]+$/,'');
+  if(!s) return '';
+  var tbl = RW[mode];
+  for(var i=0; i<tbl.length; i++){
+    var m = s.match(tbl[i][0]);
+    if(m){
+      var r = tbl[i][1](m).replace(/\s+/g,' ').trim();
+      return /[.!?~]$/.test(r) ? r : r + '.';
+    }
+  }
+  return mode==='f' ? polite(s) : casual(s);
+}
+
+/* ---- 인사와 마무리는 계절과 채널에 따라 매번 다르게 ---- */
+function season(m){ return m<=2||m===12 ? 'w' : m<=5 ? 's' : m<=8 ? 'h' : 'f'; }
+var GREET = {
+  f:{ s:['완연한 봄 날씨에 나들이 많으신 요즘, 잘 지내고 계신지요.','바람이 부쩍 부드러워진 요즘입니다.'],
+      h:['무더위가 이어지는 요즘, 더위에 지치지 않으셨는지요.','장마가 오락가락하는 요즘입니다.'],
+      f:['아침저녁으로 선선해진 요즘, 환절기 감기 조심하시길 바랍니다.','하늘이 높아진 요즘, 편안한 가을 보내고 계신지요.'],
+      w:['부쩍 추워진 날씨에 감기 조심하시길 바랍니다.','한 해를 마무리하는 요즘, 잘 지내고 계신지요.'] },
+  c:{ s:['안녕 스친이분들~ 날 풀리니까 확실히 다니기 좋더라.','스친이분들 안녕~ 다들 봄 잘 보내고 있어?'],
+      h:['안녕하세요 스친이분들~ 다들 더위 잘 버티고 있어?','스친이분들 안녕~ 오늘도 덥다 진짜.'],
+      f:['안녕하세요 스친이분들~ 요즘 아침에 좀 춥지 않아?','안녕 스친이분들~ 저녁이 확 빨리 어두워지네.'],
+      w:['안녕하세요 스친이분들~ 다들 감기 안 걸렸지?','스친이분들 안녕~ 오늘 진짜 춥더라.'] }
+};
+var CLOSE = {
+  f:['자세한 내용은 가까운 매장에서 확인하실 수 있습니다.','궁금한 점은 매장으로 편하게 문의해 주세요.','방문 전 연락 주시면 미리 안내해 드리겠습니다.'],
+  c:['궁금한 거 있으면 편하게 물어봐~','지나는 길에 들러도 좋고~ 매장에서 보자!','더 궁금한 건 댓글로 물어봐 줘!']
+};
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+/* 본문이 이미 마무리 인사로 끝나면 마무리를 또 붙이지 않습니다 */
+function closes(arr){ return /(문의|물어봐|연락 주시|답변드리)/.test(arr[arr.length-1] || ''); }
+
+/* 제목 + 본문 메모 → 채널 톤으로 재작성 */
+function draftFor(id, t, body){
+  var when = $('when').value ? new Date($('when').value) : new Date();
+  var sn = season(when.getMonth()+1);
+  var frags = prep(splitMemo(body));
+  if(!frags.length) frags = [t + '에 대해 안내드립니다'];
+
+  if(id==='th'){
+    var rest = frags.slice();
+    /* 첫 조각이 동작이면 "~해서 소식 전해주러 왔어!"로 엽니다 */
+    var lead = opener(rest[0]);
+    if(lead) rest.shift();
+    else if(rest.length > 2) lead = rewrite(rest.shift(),'c');
+    var cb = rest.map(function(f){ return rewrite(f,'c'); });
+    /* 문의 문장은 앞 문장과 인과로 이어 붙입니다 */
+    if(cb.length >= 2 && /(연락줘|물어봐)/.test(cb[cb.length-1])){
+      var ask = cb.pop(), prev = cb.pop();
+      cb.push(toCause(prev) + ' ' + ask);
+    } else if(cb.length > 1){
+      cb[cb.length-1] = cb[cb.length-1].replace(/\.$/,'!');
+    }
+    var tailC = closes(cb) ? '' : pick(CLOSE.c);
+    return [pick(GREET.c[sn]), lead, cb.join(' '), tailC].filter(Boolean).join('\n\n');
+  }
+
+  var pb = frags.map(function(f){ return rewrite(f,'f'); });
+  var head = '[ ' + t + ' ]\n\n안녕하세요, ' + CFG.hq + '입니다.\n' + pick(GREET.f[sn]);
+  if(id==='x'){
+    return head + '\n\n' + pb.slice(0,2).join(' ');
+  }
+  if(id==='fb' && pb.length >= 3){
+    return head + '\n\n' + pb[0] + '\n\n' + pb.slice(1).map(function(s){ return '▪ ' + s; }).join('\n')
+      + (closes(pb) ? '' : '\n\n' + pick(CLOSE.f));
+  }
+  return head + '\n\n' + pb.join(' ') + (closes(pb) ? '' : '\n\n' + pick(CLOSE.f));
+}
+
+/* 제목을 프리셋에서 고르면 본문 메모도 같이 채웁니다 */
+function titleChanged(){
+  var t = $('title').value.trim(), lib = LIB[t];
+  if(lib && !$('body').value.trim()) $('body').value = lib.body || '';
+}
+function setTopic(k){
+  $('title').value = k;
+  $('body').value = (LIB[k] && LIB[k].body) || '';
+}
+
+/* 소재 추천 — 실제로는 성과 학습과 트렌드에서 뽑습니다 */
+var IDEAS = [
+  {t:'환절기 기기 관리 요령', b:'일교차 커지면서 결로 생기는 경우 있음. 사용 후 물기 닦고 세워서 보관하면 대부분 예방됨. 매장에서 무료로 봐 드림.'},
+  {t:'매장별 주차 안내', b:'주차 문의가 꾸준히 들어옴. 매장마다 주차 가능 대수와 위치 정리해서 안내. 건물 주차장 이용 가능한 곳과 인근 공영주차장 위치.'},
+  {t:'첫 방문 고객 안내', b:'처음 오시는 분들이 뭘 물어봐야 할지 몰라 하심. 상담은 무료고 시간 제한 없음. 원하는 걸 모르셔도 됨, 물어보면서 찾으면 됨.'},
+  {t:'평일 한산한 시간대 안내', b:'주말 오후에 대기가 길어짐. 평일 오전 11시~2시가 가장 한산함. 천천히 상담받고 싶으면 이 시간 추천.'},
+  {t:'멤버십 적립 안내', b:'적립 쌓아두고 안 쓰시는 분들 많음. 매장에서 바로 확인 가능하고 사용처 안내.'}
+];
+function suggestTopic(){
+  var pool = IDEAS.filter(function(i){ return i.t !== $('title').value.trim(); });
+  var pick = pool[Math.floor(Math.random()*pool.length)];
+  $('title').value = pick.t;
+  $('body').value = pick.b;
+  toast('소재를 하나 뽑았습니다 · 마음에 안 들면 다시 누르세요','ok');
+}
+
+/* 사진 자동 생성 — 본문에서 장면을 뽑아 만듭니다 */
+var GEN_SHOTS = [
+  'radial-gradient(105% 85% at 26% 14%, #93a8b8 0%, rgba(147,168,184,0) 56%), linear-gradient(155deg,#3b5165 0%,#141e27 100%)',
+  'radial-gradient(100% 80% at 74% 20%, #a89478 0%, rgba(168,148,120,0) 54%), linear-gradient(148deg,#4a3d2e 0%,#1b1610 100%)',
+  'radial-gradient(110% 82% at 40% 78%, #7f93b0 0%, rgba(127,147,176,0) 58%), linear-gradient(162deg,#2f3d54 0%,#12181f 100%)'
+];
+function genImage(useScene){
+  var t = $('title').value.trim();
+  var scene = ($('scene') && $('scene').value.trim()) || '';
+  if(useScene && !scene){ toast('원하는 장면을 적어주세요','err'); $('scene').focus(); return; }
+  if(!useScene && !t){ toast('제목을 먼저 적어주세요','err'); $('title').focus(); return; }
+
+  var btn = useScene ? null : $('genimg');
+  if(btn){ btn.disabled = true; btn.textContent = '만드는 중… 20초쯤 걸립니다'; }
+  function done(){ if(btn){ btn.disabled = false; btn.textContent = '본문에 맞는 사진 자동 생성'; } }
+
+  if(LIVE){
+    var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '';
+    var body = { store: store, cat: curCat() };
+    if(useScene) body.hint = scene;
+    else body.postText = ($('body').value.trim() || t);
+
+    apiPost('genimage', body).then(function(j){
+      var nm = (j.data && j.data.name) || '';
+      var base = (SRV && SRV.imageBase) || '';
+      if(base && base.slice(-1) !== '/') base += '/';
+      S.photo = { type:'url', url: /^https?:/.test(nm) ? nm : base + nm, k:'생성' };
+      S.photoName = nm;
+      logApi('genimage', { channel:'-', store:store, date:'-', category:body.cat, text:(body.hint||body.postText) }, '사진 ' + nm);
+      done(); paintShots(); recompose();
+      toast('사진을 만들었습니다','ok');
+    }, function(e){
+      done();
+      logApi('genimage', null, null, e.message);
+      var m = e.message || '';
+      if(/Cloudflare API 토큰/.test(m))
+        showFail(['사진 생성: ' + m + '  →  Apps Script 설정 시트에 Cloudflare 토큰을 넣고 saveCfKeys 를 실행하세요.']);
+      else showFail(['사진 생성: ' + m]);
+      toast('사진을 만들지 못했습니다','err');
+    });
+    return;
+  }
+
+  /* 시연 모드 — 진짜로 만들지 않고 자리만 채웁니다 */
+  setTimeout(function(){
+    var css = GEN_SHOTS[Math.floor(Math.random()*GEN_SHOTS.length)];
+    S.photo = {type:'css', css:css, k:'생성'};
+    S.photoName = '샘플 자리 · ' + (useScene ? scene : t) + '.jpg';
+    done(); paintShots(); recompose();
+    toast('시연 모드라 진짜 사진은 만들지 않습니다','ok');
+  }, 900);
+}
+
+/* 1~2주치 한꺼번에 만들기 */
+function bulk(w){
+  var slots = CFG.slots;
+  if(!slots.length){ toast('설정 탭에서 발행 시간대를 먼저 등록해주세요','err'); go('set'); return; }
+  var n = slots.length * w;
+  if(!confirm(w+'주치 '+n+'건을 만듭니다.\n소재를 뽑고 채널별 문안까지 만들어 대기열에 쌓습니다.')) return;
+
+  var box = $('bulkbox'), bar = $('bulkbar'), lab = $('bulklab');
+  box.style.display = 'flex';
+  var made = 0, base = new Date(), pool = IDEAS.slice();
+  (function step(){
+    if(made >= n){
+      lab.textContent = '완료 — ' + n + '건을 대기열에 쌓았습니다';
+      bar.style.width = '100%';
+      paintQueue(); paintCal(); paintRail(); go('queue');
+      toast(n + '건을 만들었습니다 · 승인 후 발행됩니다','ok');
+      return;
+    }
+    var idea = pool[made % pool.length];
+    var slot = slots[made % slots.length];
+    var d = new Date(base);
+    d.setDate(d.getDate() + Math.floor(made / slots.length) * 7 + ((slot.d - d.getDay() + 7) % 7 || 7));
+    var stamp = d.toISOString().slice(0,10) + ' ' + slot.t;
+    S.queue.push({ d:stamp, topic:idea.t, ch:['ig','th','fb','x'], st:'승인 대기' });
+    made++;
+    lab.textContent = made + ' / ' + n + ' · ' + idea.t;
+    bar.style.width = Math.round(made/n*100) + '%';
+    setTimeout(step, 260);
+  })();
+}
+
+function generate(){
+  var topic = $('title').value.trim();
+  if(!topic){ toast('먼저 제목을 적어주세요','err'); $('title').focus(); return; }
+  if(!activeCh().length){ toast('채널을 하나 이상 켜주세요','err'); return; }
+
+  $('gen').disabled = true;
+  $('gen').textContent = '쓰는 중…';
+  $('splitter').classList.add('live');
+  S.draft = {}; S.edit = {};
+
+  var list = activeCh(), i = 0;
+  (function step(){
+    if(i >= list.length){
+      $('gen').disabled = false;
+      $('gen').textContent = 'AI 문구 생성 · 채널별 4벌';
+      toast(list.length + '개 채널 문안을 만들었습니다','ok');
+      render();
+      return;
+    }
+    var c = list[i++];
+    S.draft[c.id] = compose(c.id, topic);
+    render();
+    setTimeout(step, 340);
+  })();
+}
+function regen(id){
+  var topic = $('title').value.trim();
+  if(!topic){ toast('주제가 비어 있습니다','err'); return; }
+  delete S.edit[id];
+  S.draft[id] = compose(id, topic);
+  render(); toast(CHM[id].name + ' 문안을 다시 썼습니다','ok');
+}
+function regenAll(){ if(Object.keys(S.draft).length) generate(); else toast('먼저 생성을 눌러주세요'); }
+
+/* 옵션을 바꾸면 손대지 않은 문안만 다시 조합합니다 */
+function recompose(){
+  var topic = $('title').value.trim();
+  if(topic){
+    CH.forEach(function(c){
+      if(S.draft[c.id] !== undefined && S.edit[c.id] === undefined) S.draft[c.id] = compose(c.id, topic);
+    });
+  }
+  render();
+}
+
+function textOf(id){ return S.edit[id] !== undefined ? S.edit[id] : (S.draft[id] || ''); }
+function onEdit(id, el){ S.edit[id] = el.value; renderFooters(); }
+
+/* ============ 미리보기 ============ */
+function mockFor(c, t){
+  var initial = c.id==='fb' ? 'WV' : 'wv';
+  var head = '<div class="mock-top"><span class="av">'+initial+'</span><span class="who">'
+    + (c.id==='fb' ? 'We Vape 위베이프' : 'wevape')
+    + '<small>@'+esc(c.handle)+' · 지금</small></span></div>';
+
+  if(c.id==='ig'){
+    var cmt = commentFor('ig');
+    return '<div class="mock">'+head
+      + '<div class="mock-img sq" style="background-image:'+(S.photo?bg(S.photo):'none')+'"></div>'
+      + '<div class="mock-bar">'+ACT.heart+ACT.chat+ACT.share+'</div>'
+      + '<div class="mock-txt clip">'+esc(t.replace(/\n{2,}/g,'\n'))+'</div>'
+      + (t.length>70 ? '<div class="mock-more">… 더 보기</div>' : '')
+      + (cmt ? '<div class="mock-cmt"><b>첫 댓글</b>'+esc(cmt)+'</div>' : '')
+      + '</div>';
+  }
+  if(c.id==='th'){
+    return '<div class="mock">'+head
+      + '<div class="mock-txt">'+esc(t)+'</div>'
+      + (S.photo ? '<div class="mock-img wide" style="background-image:'+bg(S.photo)+'"></div>' : '')
+      + '<div class="mock-bar">'+ACT.heart+ACT.chat+ACT.retweet+ACT.share+'</div></div>';
+  }
+  if(c.id==='fb'){
+    return '<div class="mock">'+head
+      + '<div class="mock-txt">'+esc(t)+'</div>'
+      + (S.photo ? '<div class="mock-img wide" style="background-image:'+bg(S.photo)+'"></div>' : '')
+      + '<div class="mock-bar">'+ACT.heart+ACT.chat+ACT.share+'</div></div>';
+  }
+  return '<div class="mock">'+head
+    + '<div class="mock-txt">'+esc(t)+'</div>'
+    + (S.photo ? '<div class="mock-img wide" style="background-image:'+bg(S.photo)+'"></div>' : '')
+    + '<div class="mock-bar">'+ACT.chat+ACT.retweet+ACT.heart+ACT.share+'</div></div>';
+}
+
+function render(){
+  paintToggles();
+  var made = Object.keys(S.draft).length;
+  $('fanh').textContent = made ? made + '개 채널 문안' : '네 갈래로 갈라집니다';
+
+  $('cards').innerHTML = CH.map(function(c){
+    var on = S.on[c.id], t = textOf(c.id);
+    var body;
+    if(!on){
+      body = '<div class="mock empty">이 채널은 꺼져 있습니다</div>';
+    } else if(!t){
+      body = '<div class="mock empty">생성을 누르면 여기에 채워집니다</div>';
+    } else {
+      body = mockFor(c, t)
+        + '<textarea class="edit" id="e-'+c.id+'" oninput="onEdit(\''+c.id+'\',this)">'+esc(t)+'</textarea>'
+        + (c.mode==='manual'
+            ? '<div class="copybar"><span>이 채널은 자동 발행이 안 됩니다. 문구를 복사해 직접 올려주세요.</span>'
+              + '<button onclick="copyOut(\''+c.id+'\')">복사</button></div>' : '')
+        + '<div class="flags" id="f-'+c.id+'"></div>';
+    }
+    return '<div class="pv'+(on?'':' dim')+'">'
+      + '<div class="pv-h"><span class="ico">'+icon(c.id,c.color)+'</span><b>'+esc(c.name)+'</b>'
+      + '<span class="tone'+(c.id==='th'?' casual':'')+'" title="'+esc(CFG.rules[c.id])+'">'+c.tone+'</span>'
+      + '<span class="way '+c.mode+'" title="'+esc(WAY[c.mode].t)+'">'+WAY[c.mode].n+'</span></div>'
+      + '<div class="pv-b"><div class="tonerule">'+esc(CFG.rules[c.id])
+      + ' <button class="link" onclick="go(\'set\')">고치기</button></div>'+body+'</div>'
+      + (on && t ? '<div class="pv-f"><button class="mini" onclick="regen(\''+c.id+'\')">다시 쓰기</button>'
+          + '<button class="mini" onclick="trim(\''+c.id+'\')">줄이기</button>'
+          + '<span class="cnt" id="c-'+c.id+'"></span></div>' : '')
+      + '</div>';
+  }).join('');
+
+  renderFooters();
+}
+
+function renderFooters(){
+  var blockers = 0, warns = 0, ready = 0;
+  CH.forEach(function(c){
+    if(!S.on[c.id]) return;
+    var t = textOf(c.id);
+    if(!t) return;
+    ready++;
+    var cn = $('c-'+c.id), fl = $('f-'+c.id);
+    var over = t.length > c.limit;
+    if(cn){
+      cn.textContent = t.length + ' / ' + c.limit + '자';
+      cn.className = 'cnt' + (over ? ' over':'');
+    }
+    var r = checkText(t), rows = [];
+    if(over){ blockers++; rows.push('<div class="flag err"><b>길이 초과</b> '+(t.length-c.limit)+'자를 줄여야 발행됩니다</div>'); }
+    if(c.img==='required' && !S.photo){ blockers++; rows.push('<div class="flag err"><b>사진 없음</b> 인스타그램은 사진 없이 발행되지 않습니다</div>'); }
+    if(r.banned.length){ blockers++; rows.push('<div class="flag err"><b>규제 표현</b> '+esc(r.banned.join(', '))+' — 담배 관련 광고에서 문제가 될 수 있는 단어입니다</div>'); }
+    if(r.cliche.length){ warns++; rows.push('<div class="flag warn"><b>상투어</b> '+esc(r.cliche.join(', '))+' — AI가 쓴 티가 나는 표현입니다</div>'); }
+    r.rhythm.forEach(function(m){ warns++; rows.push('<div class="flag tip"><b>사람 냄새</b> '+esc(m)+'</div>'); });
+    if(!rows.length) rows.push('<div class="flag ok"><b>이상 없음</b> 규제·상투어·문장 리듬 검사를 모두 통과했습니다</div>');
+    if(fl) fl.innerHTML = rows.join('');
+  });
+
+  var n = activeCh().length;
+  var btn = $('send');
+  if(!ready){
+    $('sum').textContent = '주제를 적고 생성을 누르면 채널별 문안이 만들어집니다.';
+    btn.disabled = true; btn.textContent = n + '개 채널 예약';
+  } else if(blockers){
+    $('sum').innerHTML = '<b style="color:var(--err)">'+blockers+'건</b>을 고쳐야 발행됩니다.' + (warns? ' 상투어 '+warns+'건은 권고입니다.':'');
+    btn.disabled = true; btn.textContent = '고칠 항목 '+blockers+'건';
+  } else {
+    $('sum').innerHTML = '<b>'+ready+'개 채널</b> 준비됐습니다.' + (warns? ' 상투어 '+warns+'건은 권고이니 그대로 보내도 됩니다.':' 검사 모두 통과했습니다.');
+    var au = activeCh().filter(function(c){ return c.mode!=='manual'; }).length;
+    var mn = ready - au;
+    btn.disabled = false;
+    btn.textContent = au + '개 채널 예약' + (mn ? ' (+수동 '+mn+')' : '');
+  }
+}
+
+function trim(id){
+  var c = CHM[id], t = textOf(id);
+  var cut = t.split('\n\n').filter(function(p){ return p.indexOf('#')!==0; }).join('\n\n');
+  if(cut.length > c.limit) cut = cut.slice(0, c.limit-1).replace(/\s+\S*$/,'');
+  S.edit[id] = cut;
+  var el = $('e-'+id); if(el) el.value = cut;
+  renderFooters(); toast(c.name+' 문안을 '+cut.length+'자로 줄였습니다','ok');
+}
+
+/* ============ 발행 ============ */
+function publish(){
+  var when = ($('when').value || '').replace('T',' ');
+  var title = $('title').value.trim() || '제목 없음';
+  var live = activeCh().filter(function(c){ return c.mode !== 'manual'; });
+  if(!live.length){ toast('자동 발행되는 채널이 없습니다','err'); return; }
+
+  if(!LIVE){
+    S.queue.unshift({ d:when || '2026-09-02 19:00', topic:title,
+      ch:activeCh().map(function(c){ return c.id; }),
+      st:S.mode==='자동' ? '자동 발행 예정' : '승인 대기' });
+    S.queue.sort(function(a,b){ return a.d < b.d ? -1 : 1; });
+    toast(live.length + '개 채널에 예약했습니다 (시연 모드)','ok');
+    afterPublish(); return;
+  }
+
+  /* 서버에 보내기 전에 금지어를 먼저 봅니다 */
+  var pre = [];
+  live.forEach(function(c){
+    var r = checkText(textOf(c.id));
+    if(r.banned.length) pre.push(c.name + ': 금지어 ' + r.banned.join(', '));
+  });
+  if(pre.length){
+    showFail(pre);
+    toast('금지어 때문에 보내지 않았습니다','err');
+    return;
+  }
+
+  var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '전체';
+  var cat = curCat();
+  var btn = $('send'); btn.disabled = true; btn.textContent = '등록하는 중…';
+
+  /* 인스타와 쓰레드가 시트에서 한 채널이면 한 줄만 보냅니다 */
+  var seen = {};
+  live = live.filter(function(c){
+    var key = SRV_CH[c.id] || c.name;
+    if(seen[key]) return false;
+    seen[key] = true; return true;
+  });
+
+  var jobs = live.map(function(c){
+    return function(){
+      var body = {
+        date: when, store: store, channel: SRV_CH[c.id] || c.name,
+        category: cat, text: textOf(c.id),
+        image: (S.photo && S.photo.type === 'url') ? S.photoName : ''
+      };
+      return apiPost('posts', body).then(function(j){
+        logApi('posts', body, '등록 성공'); return j;
+      }, function(e){
+        logApi('posts', body, null, e.message); throw e;
+      });
+    };
+  });
+
+  var i = 0, okN = 0, bad = [];
+  (function step(){
+    if(i >= jobs.length){
+      btn.disabled = false;
+      showFail(bad);
+      toast(okN ? (okN + '개 등록 · ' + bad.length + '개 실패')
+                : (bad.length + '개 채널 모두 등록하지 못했습니다'), bad.length ? 'err' : 'ok');
+      if(!bad.length) afterPublish();
+      else { render(); renderFooters(); }
+      liveLoad();
+      return;
+    }
+    var c = live[i];
+    jobs[i]().then(function(){ okN++; }, function(e){ bad.push(c.name + ': ' + e.message); })
+      .then(function(){ i++; step(); });
+  })();
+}
+function afterPublish(){
+  S.draft = {}; S.edit = {};
+  $('title').value = ''; $('body').value = '';
+  $('splitter').classList.remove('live');
+  render(); paintRail(); paintQueue(); paintCal();
+  go('queue');
+}
+
+function refreshAll(){
+  if(!LIVE){ reset(); return; }
+  liveLoad().then(liveHealth).then(function(){ toast('새로고침했습니다','ok'); },
+    function(e){ toast(e.message,'err'); });
+}
+
+/* ============ 대기열 · 기록 ============ */
+function chipsFor(ids){
+  return ids.map(function(id){
+    var c = CHM[id];
+    return '<span class="chip"><span style="width:12px;height:12px;display:inline-block">'+icon(id,c.color)+'</span>'+esc(c.name)+'</span>';
+  }).join('');
+}
+function paintQueue(){
+  if(!S.queue.length){ $('queue').innerHTML = '<div class="empty">예약된 게시물이 없습니다.</div>'; return; }
+  $('queue').innerHTML = S.queue.map(function(q,i){
+    var cls = q.st==='승인 대기' ? 'warn' : 'ok';
+    return '<div class="tr"><span class="when">'+esc(q.d)+'</span><div class="bd">'
+      + '<div class="chips"><b style="font-size:13px">'+esc(q.topic)+'</b><span class="st '+cls+'">'+esc(q.st)+'</span></div>'
+      + '<div class="chips" style="margin-top:6px">'+chipsFor(q.ch)+'</div></div>'
+      + '<div class="chips">'
+      + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
+      + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div></div>';
+  }).join('');
+}
+function approve(i){
+  var q = S.queue[i];
+  q.st = '승인 완료'; paintQueue();
+  if(!LIVE || !q.row){ toast('승인했습니다','ok'); return; }
+  apiGet('approve', { row:q.row, on:true }).then(function(){ toast('승인했습니다','ok'); },
+    function(e){ q.st = '승인 대기'; paintQueue(); toast(e.message,'err'); });
+}
+function dropQ(i){
+  var q = S.queue[i];
+  if(!confirm('이 게시물을 삭제할까요?')) return;
+  S.queue.splice(i,1); paintQueue(); paintRail(); paintCal();
+  if(!LIVE || !q.row){ toast('삭제했습니다'); return; }
+  apiPost('deletemany', { rows:String(q.row) }).then(function(){ toast('삭제했습니다','ok'); },
+    function(e){ toast(e.message,'err'); liveLoad(); });
+}
+
+function paintLog(){
+  $('log').innerHTML = S.log.map(function(l,i){
+    var cls = l.st==='발행 완료' ? 'ok' : 'err';
+    return '<div class="tr"><span class="when">'+esc(l.d)+'</span><div class="bd">'
+      + '<div class="chips"><b style="font-size:13px">'+esc(l.topic)+'</b><span class="st '+cls+'">'+esc(l.st)+'</span></div>'
+      + '<div class="tx">'+esc(l.note)+'</div>'
+      + '<div class="chips" style="margin-top:6px">'+chipsFor(l.ch)+'</div></div>'
+      + (l.st==='일부 실패' ? '<div class="chips"><button class="mini" onclick="retry('+i+')">실패분 재발행</button></div>' : '')
+      + '</div>';
+  }).join('');
+}
+function retry(i){
+  var l = S.log[i];
+  if(!LIVE){ l.st='발행 완료'; l.note='재발행으로 모두 성공'; paintLog(); paintRail(); toast('실패분을 다시 보냈습니다','ok'); return; }
+  apiGet('publish').then(function(){ toast('발행을 다시 실행했습니다','ok'); liveLoad(); },
+    function(e){ toast(e.message,'err'); });
+}
+
+/* ============ 캘린더 ============ */
+function paintCal(){
+  var y=S.calY, m=S.calM;
+  $('calTitle').textContent = y+'년 '+(m+1)+'월';
+  var first = new Date(y,m,1).getDay(), days = new Date(y,m+1,0).getDate();
+  var h = ['일','월','화','수','목','금','토'].map(function(d){ return '<div class="dow">'+d+'</div>'; }).join('');
+  for(var i=0;i<first;i++) h += '<div class="day pad"></div>';
+  for(var d=1; d<=days; d++){
+    var key = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var evs = S.queue.filter(function(q){ return q.d.indexOf(key)===0; });
+    var body = evs.map(function(q){
+      var ic = q.ch.map(function(id){ return '<span class="mi">'+icon(id,CHM[id].color)+'</span>'; }).join('');
+      return '<div class="ev" title="'+esc(q.topic)+' · '+q.ch.length+'개 채널">'+ic+'<span class="tt">'+esc(q.topic)+'</span></div>';
+    }).join('');
+    var today = (y===2026 && m===7 && d===31) ? ' today' : '';
+    h += '<div class="day'+today+'"><span class="n">'+d+'</span>'+body+'</div>';
+  }
+  $('cal').innerHTML = h;
+  $('legend').innerHTML = CH.map(function(c){
+    return '<span><span class="mi">'+icon(c.id,c.color)+'</span>'+esc(c.name)+'</span>';
+  }).join('') + '<span style="color:var(--ink3)">아이콘 하나가 채널 하나입니다</span>';
+}
+function moveMonth(n){
+  S.calM += n;
+  if(S.calM<0){ S.calM=11; S.calY--; }
+  if(S.calM>11){ S.calM=0; S.calY++; }
+  paintCal();
+}
+
+/* ============ 설정 ============ */
+function paintConns(){
+  var sorted = CH.slice().sort(function(a,b){
+    var ra = connState(a)==='ok' ? 1 : 0, rb = connState(b)==='ok' ? 1 : 0;
+    return ra - rb;
+  });
+  $('conns').innerHTML = sorted.map(function(c){
+    var st = connState(c), d = daysLeft(c);
+    var right = d === null
+      ? '<b class="ok">만료 없음</b><span style="color:var(--ink3)">비번 변경 시 끊김</span>'
+      : '<b class="'+(st==='ok'?'ok':'warn')+'">D-'+d+'</b><span style="color:var(--ink3)">'+esc(c.exp)+' 만료</span>';
+    return '<div class="conn'+(st!=='ok'?' alert':'')+'">'
+      + '<span class="ico">'+icon(c.id,c.color)+'</span>'
+      + '<span class="cn"><b>'+esc(c.name)+' <span class="way '+c.mode+'">'+WAY[c.mode].n+'</span></b>'
+      + '<span>@'+esc(c.handle)+' · 마지막 발행 '+esc(c.last)+'</span></span>'
+      + '<span class="dl">'+right+'</span>'
+      + '<button class="mini" onclick="reconnect(\''+c.id+'\')">'+(st==='ok'?'재연결':'지금 재연결')+'</button>'
+      + '</div>';
+  }).join('');
+}
+function reconnect(id){
+  var c = CHM[id];
+  if(!c.exp){ toast(c.name+'은 만료 기한이 없습니다. 끊겼을 때만 다시 연결하세요.'); return; }
+  var d = new Date(TODAY); d.setDate(d.getDate() + 60);
+  c.exp = d.toISOString().slice(0,10);
+  paintConns(); paintRail();
+  toast(c.name+' 재연결 완료 · 60일 뒤 다시 만료됩니다','ok');
+}
+
+function paintRules(){
+  $('rules').innerHTML = CH.map(function(c){
+    return '<div class="rulerow"><div class="rh"><span class="ico">'+icon(c.id,c.color)+'</span>'
+      + '<b>'+esc(c.name)+'</b><span class="tone'+(c.id==='th'?' casual':'')+'">'+c.tone+'</span>'
+      + '<span class="cnt">'+c.limit+'자</span></div>'
+      + '<textarea data-r="'+c.id+'" oninput="saveRule(this)">'+esc(CFG.rules[c.id])+'</textarea></div>';
+  }).join('');
+}
+function saveRule(el){ CFG.rules[el.dataset.r] = el.value; }
+
+function paintWords(){
+  $('ban-box').innerHTML = CFG.banned.length
+    ? CFG.banned.map(function(w,i){ return '<span class="tg bad">'+esc(w)+'<button onclick="delWord(\'banned\','+i+')" aria-label="삭제">&times;</button></span>'; }).join('')
+    : '<span class="setnote">등록된 단어가 없습니다</span>';
+  $('allow-box').innerHTML = (CFG.allow||[]).length
+    ? CFG.allow.map(function(w,i){ return '<span class="tg" style="border-color:var(--ok);color:var(--ok)">'+esc(w)+'<button onclick="delWord(\'allow\','+i+')" aria-label="삭제">&times;</button></span>'; }).join('')
+    : '<span class="setnote">등록된 허용어가 없습니다</span>';
+  $('cli-box').innerHTML = CFG.cliche.length
+    ? CFG.cliche.map(function(w,i){ return '<span class="tg mid">'+esc(w)+'<button onclick="delWord(\'cliche\','+i+')" aria-label="삭제">&times;</button></span>'; }).join('')
+    : '<span class="setnote">등록된 표현이 없습니다</span>';
+}
+function addWord(k){
+  var el = $(k==='banned' ? 'ban-in' : k==='allow' ? 'allow-in' : 'cli-in');
+  var v = el.value.trim();
+  if(!v) return;
+  if(CFG[k].indexOf(v) >= 0){ toast('이미 있습니다'); el.value=''; return; }
+  CFG[k].push(v); el.value = '';
+  paintWords(); renderFooters();
+  toast('"'+v+'"를 추가했습니다','ok');
+}
+function delWord(k, i){ CFG[k].splice(i,1); paintWords(); renderFooters(); }
+
+function paintSlots(){
+  $('slots').innerHTML = CFG.slots.length
+    ? CFG.slots.map(function(s,i){
+        return '<div class="slot"><b class="mono" style="width:34px">'+DOW[s.d]+'</b>'
+          + '<span class="mono">'+esc(s.t)+'</span><div class="grow"></div>'
+          + '<button class="mini no" onclick="delSlot('+i+')">삭제</button></div>';
+      }).join('')
+    : '<p class="setnote">등록된 슬롯이 없습니다. 하나 이상 넣어두면 작성이 빨라집니다.</p>';
+  paintSlotBtn();
+}
+function addSlot(){
+  CFG.slots.push({ d:+$('slot-d').value, t:$('slot-t').value });
+  CFG.slots.sort(function(a,b){ return a.d - b.d || (a.t < b.t ? -1 : 1); });
+  paintSlots(); toast('슬롯을 추가했습니다','ok');
+}
+function delSlot(i){ CFG.slots.splice(i,1); paintSlots(); }
+
+function saveCfg(){
+  CFG.hq = $('cfg-hq').value.trim() || CFG.hq;
+  CFG.tagPrefix = $('cfg-prefix').value.trim().replace(/^#/,'') || CFG.tagPrefix;
+  CFG.stores = $('cfg-stores').value.split(/[,\n]+/).map(function(s){ return s.trim().replace(/\s+/g,''); }).filter(Boolean);
+  CFG.tags.ig = $('cfg-tag-ig').value;
+  CFG.tags.fb = $('cfg-tag-fb').value;
+  CFG.firstComment = $('cfg-fc').checked;
+  CFG.notify = { fail:$('cfg-nf').checked, expire:$('cfg-ne').checked, queue:$('cfg-nq').checked, to:$('cfg-notify').value };
+  recompose();
+}
+function fillCfg(){
+  $('cfg-hq').value = CFG.hq;
+  $('cfg-human').value = CFG.human;
+  $('cfg-prefix').value = CFG.tagPrefix;
+  $('cfg-stores').value = CFG.stores.join(', ');
+  $('cfg-tag-ig').value = CFG.tags.ig;
+  $('cfg-tag-fb').value = CFG.tags.fb;
+  $('cfg-fc').checked = CFG.firstComment;
+  $('cfg-nf').checked = CFG.notify.fail;
+  $('cfg-ne').checked = CFG.notify.expire;
+  $('cfg-nq').checked = CFG.notify.queue;
+  $('cfg-notify').value = CFG.notify.to;
+  $('slot-d').innerHTML = DOW.map(function(d,i){ return '<option value="'+i+'"'+(i===2?' selected':'')+'>'+d+'요일</option>'; }).join('');
+}
+function paintSettings(){ paintConns(); paintRules(); paintWords(); paintSlots(); }
+
+/* ============ 화면 전환 ============ */
+function go(v){
+  Array.prototype.forEach.call(document.querySelectorAll('.vt'), function(t){ t.classList.toggle('on', t.dataset.v===v); });
+  Array.prototype.forEach.call(document.querySelectorAll('.view'), function(s){ s.classList.toggle('on', s.id==='v-'+v); });
+  if(v==='set') paintSettings();
+  window.scrollTo(0,0);
+}
+Array.prototype.forEach.call(document.querySelectorAll('.vt'), function(t){
+  t.onclick = function(){ go(t.dataset.v); };
+});
+
+function toggleMode(){
+  var was = S.mode;
+  S.mode = S.mode==='수동' ? '자동' : '수동';
+  paintMode();
+  if(!LIVE){ toast(S.mode==='자동' ? '승인 없이 예약 시간에 나갑니다' : '승인한 글만 나갑니다','ok'); return; }
+  apiGet('mode', { mode:S.mode }).then(function(){
+    toast('실행 모드를 ' + S.mode + '으로 바꿨습니다','ok');
+  }, function(e){ S.mode = was; paintMode(); toast(e.message,'err'); });
+}
+
+function reset(){
+  S.photo=null; S.photoName=''; S.draft={}; S.edit={};
+  S.on={ig:true,th:true,fb:true,x:true};
+  S.queue = SEED_Q.slice(); S.log = SEED_L.map(function(o){ return Object.assign({},o); });
+  $('title').value=''; $('body').value=''; $('splitter').classList.remove('live');
+  paintShots(); render(); paintRail(); paintQueue(); paintLog(); paintCal();
+  toast('시연 데이터를 되돌렸습니다');
+}
+
+/* ============ 사진 업로드 ============ */
+$('drop').onclick = function(){ $('file').click(); };
+$('drop').ondragover = function(e){ e.preventDefault(); this.classList.add('over'); };
+$('drop').ondragleave = function(){ this.classList.remove('over'); };
+$('drop').ondrop = function(e){
+  e.preventDefault(); this.classList.remove('over');
+  if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+};
+$('file').onchange = function(){ if(this.files[0]) readFile(this.files[0]); };
+function readFile(f){
+  if(!/^image\//.test(f.type)){ toast('이미지 파일만 올릴 수 있습니다','err'); return; }
+  var r = new FileReader();
+  r.onload = function(){
+    S.photo = {type:'url', url:r.result, k:'업로드'};
+    S.photoName = f.name;
+    paintShots(); render();
+    if(!LIVE){ toast('사진을 올렸습니다','ok'); return; }
+    var b64 = String(r.result).split(',')[1];
+    var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '';
+    apiPost('upload', { b64:b64, filename:f.name, store:store }).then(function(j){
+      S.photoName = (j.data && j.data.name) || f.name;
+      paintShots(); toast('사진을 깃허브에 올렸습니다','ok');
+    }, function(e){ toast('업로드 실패: ' + e.message,'err'); });
+  };
+  r.readAsDataURL(f);
+}
+
+/* ============================================================
+   실제 연결 — Apps Script 웹앱과 통신합니다.
+   접속 코드를 넣으면 LIVE, 안 넣으면 지금까지처럼 시연 모드로 돕니다.
+   ============================================================ */
+var LIVE = false, CODE = '', API_URL = '';
+var LOG_API = [];
+var CATS = ['A.영업공지','B.매장정보','C.고객응대','D.매장일상','E.지역계절'];
+function fillCats(list){
+  if(list && list.length) CATS = list;
+  var el = $('cat');
+  if(!el) return;
+  var cur = el.value;
+  el.innerHTML = CATS.map(function(c){ return '<option>'+esc(c)+'</option>'; }).join('');
+  if(cur && CATS.indexOf(cur) >= 0) el.value = cur;
+}
+function curCat(){ var el = $('cat'); return (el && el.value) || CATS[0] || ''; }
+function logApi(path, sent, okMsg, errMsg){
+  LOG_API.unshift({ t:new Date().toLocaleTimeString('ko-KR'), path:path, sent:sent, ok:okMsg, err:errMsg });
+  LOG_API = LOG_API.slice(0, 12);
+  paintDiag();
+}
+
+function busy(on){ document.getElementById('busybar').style.width = on ? '70%' : '0'; }
+
+/* 기존 앱과 같은 방식으로 호출합니다. GET/POST 구분도 그대로 맞췄습니다. */
+function apiGet(path, p){
+  p = p || {};
+  var q = 'path=' + encodeURIComponent(path) + '&code=' + encodeURIComponent(CODE);
+  for(var k in p) if(p[k] !== undefined && p[k] !== null) q += '&' + k + '=' + encodeURIComponent(p[k]);
+  busy(true);
+  return fetch(API_URL + '?' + q).then(readRes, failRes);
+}
+function apiPost(path, body){
+  var o = { path:path, code:CODE };
+  for(var k in (body||{})) o[k] = body[k];
+  busy(true);
+  return fetch(API_URL, {
+    method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(o)
+  }).then(readRes, failRes);
+}
+function readRes(r){
+  return r.text().then(function(t){
+    busy(false);
+    var j; try { j = JSON.parse(t); } catch(e){ throw new Error('서버 응답을 읽지 못했습니다'); }
+    if(!j.ok) throw new Error(j.error || '알 수 없는 오류');
+    return j;
+  });
+}
+function failRes(e){ busy(false); throw e; }
+
+/* ---- 채널 이름 맞추기 ---- */
+var SRV_CH = {};                      /* 내 id → 시트에 적히는 채널명 */
+function mapChannels(list){
+  SRV_CH = {};
+  var L = (list || []).filter(Boolean);
+  function findCh(re, avoid){
+    var solo = L.filter(function(n){ return re.test(n) && !(avoid && avoid.test(n)); });
+    if(solo.length) return solo[0];
+    var any = L.filter(function(n){ return re.test(n); });
+    return any.length ? any[0] : '';
+  }
+  /* 단독 채널을 먼저 찾고, 없을 때만 결합 채널을 씁니다 */
+  SRV_CH.ig = findCh(/인스타/, /쓰레드/) || '인스타그램';
+  SRV_CH.th = findCh(/쓰레드/, /인스타/) || findCh(/쓰레드/) || '쓰레드';
+  SRV_CH.fb = findCh(/페이스북/) || '페이스북';
+  SRV_CH.x  = findCh(/^x$/i)     || 'X';
+  /* 인스타와 쓰레드가 같은 값이면 한 줄로 합쳐 보냅니다 */
+  SRV_CH._merged = (SRV_CH.ig === SRV_CH.th);
+}
+
+function idsOf(name){
+  var n = String(name||'');
+  if(/인스타/.test(n) && /쓰레드/.test(n)) return ['ig','th'];
+  if(/인스타/.test(n)) return ['ig'];
+  if(/쓰레드/.test(n)) return ['th'];
+  if(/페이스북/.test(n)) return ['fb'];
+  if(/^x$/i.test(n)) return ['x'];
+  return [];
+}
+var DONE_ST = ['발행완료','수동게시완료','오류','금지어차단','거절'];
+
+/* ---- 서버 상태를 화면 모델로 옮깁니다 ---- */
+var SRV = null;
+function liveLoad(){
+  return apiGet('state').then(function(j){
+    SRV = j.data || {};
+    mapChannels(SRV.channels);
+    fillCats(SRV.categories);
+    if(SRV.mode){ S.mode = SRV.mode; paintMode(); }
+
+    var q = [], lg = [];
+    (SRV.rows || []).forEach(function(r){
+      var item = {
+        d: String(r.date || '').replace('T',' '),
+        topic: (r.text || '').split('\n')[0].slice(0,40) || '(문구 없음)',
+        ch: idsOf(r.channel),
+        st: r.status || '대기',
+        note: r.result || '',
+        row: r.row,
+        approved: !!r.approved
+      };
+      if(DONE_ST.indexOf(item.st) >= 0) lg.push(item); else q.push(item);
+    });
+    q.sort(function(a,b){ return a.d < b.d ? -1 : 1; });
+    lg.sort(function(a,b){ return a.d > b.d ? -1 : 1; });
+    S.queue = q; S.log = lg;
+
+    if(SRV.max) CH.forEach(function(c){ if(c.id!=='x' && SRV.max > c.limit) c.limit = SRV.max; });
+    paintRail(); paintQueue(); paintLog(); paintCal();
+    return j;
+  });
+}
+/* 서버의 금지어 목록을 그대로 가져옵니다. 화면에서 미리 걸러야 헛걸음이 없습니다. */
+function loadBanned(){
+  return apiGet('banned').then(function(j){
+    var list = j.data;
+    if(list && !Array.isArray(list)) list = list.list || list.words || [];
+    if(Array.isArray(list) && list.length){
+      CFG.banned = list.map(function(x){ return String(x).trim(); }).filter(Boolean);
+      paintWords(); renderFooters();
+      logApi('banned', null, CFG.banned.length + '개 받음');
+    }
+  }, function(e){ logApi('banned', null, null, e.message); });
+}
+
+function liveHealth(){
+  return apiGet('health').then(function(j){
+    var el = $('livehealth');
+    if(!el) return;
+    el.innerHTML = (!j.issues || !j.issues.length)
+      ? '<span style="color:var(--ok)">서버 점검 결과 이상 없습니다.</span>'
+      : j.issues.map(function(x){ return '· ' + esc(x); }).join('<br>');
+  }, function(e){ var el=$('livehealth'); if(el) el.textContent = e.message; });
+}
+
+/* ---- 접속 ---- */
+function enterLive(){
+  var url = $('gate-url').value.trim(), code = $('gate-code').value.trim();
+  if(!url || !code){ $('gate-err').textContent = '주소와 접속 코드를 모두 넣어주세요.'; return; }
+  API_URL = url; CODE = code;
+  $('gate-err').textContent = '연결하는 중…';
+  apiGet('ping').then(function(){
+    LIVE = true;
+    closeGate();
+    paintMode();
+    return liveLoad().then(loadBanned).then(liveHealth);
+  }, function(e){
+    var m = e && e.message || '';
+    $('gate-err').textContent = /Failed to fetch|NetworkError|load failed/i.test(m)
+      ? '주소에 닿지 못했습니다. 웹앱 주소가 맞는지, 배포가 "모든 사용자"로 되어 있는지 확인해 주세요.'
+      : (m || '연결하지 못했습니다.');
+  }).catch(function(e){ toast(e.message,'err'); });
+}
+function enterDemo(){ LIVE = false; closeGate(); reset(); paintMode(); }
+function closeGate(){ $('gate').style.display = 'none'; }
+function openGate(){ $('gate').style.display = 'flex'; }
+function paintMode(){
+  var p = $('livepill');
+  p.className = 'pill' + (LIVE ? ' act' : '');
+  p.innerHTML = '<span class="dot ' + (LIVE ? 'ok' : 'warn') + '"></span>'
+    + (LIVE ? '실제 연결됨' : '시연 모드 · 발행 안 됨');
+  var m = $('modepill');
+  m.className = 'pill' + (S.mode==='자동' ? ' act' : '');
+  m.innerHTML = '<span class="dot '+(S.mode==='자동'?'ok':'warn')+'"></span>실행 <b>'+S.mode+'</b>';
+}
+
+/* ---- 실패한 이유를 화면에 남깁니다 ---- */
+function showFail(bad){
+  var el = $('failbox');
+  if(!el) return;
+  if(!bad || !bad.length){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'block';
+  el.innerHTML = '<b>등록하지 못한 채널이 있습니다</b>'
+    + bad.map(function(m){ return '<div class="failrow">' + esc(m) + '</div>'; }).join('')
+    + '<div class="failtip">' + hintFor(bad.join(' ')) + '</div>';
+}
+/* 서버가 던진 문구를 보고 무엇을 고쳐야 하는지 알려줍니다 */
+function hintFor(msg){
+  if(/금지어/.test(msg)){
+    var brand = /베이프/.test(msg);
+    return '시트의 <b>금지어</b> 목록에 걸렸습니다.'
+      + (brand ? ' <b>서버 금지어 시트에 아직 「베이프」가 남아 있습니다.</b> 상호는 광고가 아니니 시트에서 그 단어를 빼주세요. 막아야 할 것은 상호가 아니라 취급 제품 브랜드명입니다.' : '')
+      + ' 아래 <b>걸러낼 표현</b>에서 목록을 확인하고, 문구를 고쳐 다시 등록하세요.';
+  }
+  if(/글자수 초과/.test(msg))
+    return '이 채널은 쓰레드와 묶여 있어서 <b>쓰레드 글자수 제한</b>을 함께 받습니다. 해시태그를 첫 댓글로 빼거나(설정 탭) 본문을 줄이세요.';
+  if(/발행일시/.test(msg))
+    return '발행 시각이 비었거나 서버가 읽지 못하는 형식입니다. 작성 화면에서 날짜와 시간을 다시 골라 주세요.';
+  if(/시트가 없습니다/.test(msg))
+    return '스프레드시트에 발행목록 시트가 없습니다. Apps Script 에서 초기 설정을 한 번 실행해 주세요.';
+  if(/코드/.test(msg))
+    return '접속 코드가 맞지 않습니다. 오른쪽 위 연결 상태를 눌러 다시 넣어 주세요.';
+  return '아래 <b>연결 진단</b>에서 보낸 값과 서버 응답을 확인할 수 있습니다.';
+}
+
+/* ---- 연결 진단 ---- */
+function runDiag(){
+  if(!LIVE){ toast('시연 모드에서는 진단할 수 없습니다. 먼저 연결하세요.','err'); return; }
+  apiGet('state').then(function(j){
+    var d = j.data || {};
+    logApi('state', null, '읽기 성공');
+    var box = $('diagsrv');
+    box.innerHTML = [
+      ['채널 목록', (d.channels||[]).join(' / ') || '(없음)'],
+      ['내 화면과 맞춘 값', CH.map(function(c){ return c.name + '→' + (SRV_CH[c.id]||'?'); }).join(', ')
+        + (SRV_CH._merged ? '  ※ 인스타와 쓰레드가 한 채널이라 한 줄로 보냅니다' : '')],
+      ['지점 목록', (d.stores||[]).join(' / ') || '(없음)'],
+      ['카테고리', (d.categories||[]).join(' / ') || '(없음)'],
+      ['글자수 상한', d.max || '(설정 없음)'],
+      ['등록된 행', (d.rows||[]).length + '건'],
+      ['실행 모드', d.mode || '(없음)']
+    ].map(function(r){ return '<div class="drow"><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span></div>'; }).join('');
+  }, function(e){ logApi('state', null, null, e.message); toast(e.message,'err'); });
+}
+function paintDiag(){
+  var el = $('diaglog');
+  if(!el) return;
+  el.innerHTML = LOG_API.length
+    ? LOG_API.map(function(l){
+        return '<div class="drow"><b>'+esc(l.t)+' '+esc(l.path)+'</b><span>'
+          + (l.err ? '<span style="color:var(--err)">'+esc(l.err)+'</span>' : esc(l.ok))
+          + (l.sent ? '<br><span style="color:var(--ink3)">보낸 값 · 채널 '+esc(l.sent.channel)
+              +' / 지점 '+esc(l.sent.store)+' / 시각 '+esc(l.sent.date)
+              +' / 카테고리 '+esc(l.sent.category||'(빈값)')
+              +' / 글자수 '+String(l.sent.text||'').length+'</span>' : '')
+          + '</span></div>';
+      }).join('')
+    : '<span class="setnote">아직 호출 기록이 없습니다.</span>';
+}
+
+/* ============ 시작 ============ */
+(function(){
+  var p = document.querySelectorAll('.splitter path');
+  Array.prototype.forEach.call(p, function(el){
+    var L = el.getTotalLength();
+    el.style.setProperty('--len', L);
+  });
+  S.queue = SEED_Q.slice();
+  S.log = SEED_L.map(function(o){ return Object.assign({},o); });
+  var d = new Date(2026,8,2,19,0);
+  $('when').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  fillCfg(); fillCats();
+  paintShots(); paintPresets(); paintRail(); render();
+  paintQueue(); paintLog(); paintCal(); paintSettings(); paintMode();
+})();
+</script>
