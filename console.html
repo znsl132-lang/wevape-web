@@ -344,6 +344,44 @@ main{flex:1;min-width:0;padding:0 22px 70px}
   .tr{flex-wrap:wrap}
   .tr .when{width:auto}
 }
+
+/* ---- 비서 상황판 ---- */
+.ag-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.ag-stat{padding:12px 14px}
+.ag-stat .k{font-size:11px;color:var(--ink3)}
+.ag-stat .v{font-size:22px;font-weight:600;margin-top:4px;font-family:"IBM Plex Mono",monospace;color:var(--ink)}
+.ag-stat .v small{font-size:12px;color:var(--ink3);font-weight:400;margin-left:4px}
+.ag-grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
+@media(max-width:980px){.ag-grid{grid-template-columns:1fr}}
+.ag-board{padding:16px 18px}
+.ag-board svg{width:100%;height:auto;display:block;margin:8px 0}
+.ag-node rect{fill:var(--surface2);stroke:var(--line2);stroke-width:1.2}
+.ag-node text{fill:var(--ink);font-family:inherit}
+.ag-node .name{font-size:14px;font-weight:600}
+.ag-node .role{font-size:11px;fill:var(--ink3)}
+.ag-node .last{font-size:11px;fill:var(--ink3);font-family:"IBM Plex Mono",monospace}
+.ag-node .msg{font-size:10.5px;fill:var(--ink2)}
+.ag-node .ring{fill:none;stroke-width:2;opacity:0}
+.ag-node.live .ring{opacity:1;animation:agring 1.6s ease-out infinite}
+.ag-node.live rect{stroke-width:1.8}
+.ag-node.idle rect{stroke:var(--line)}
+.ag-node.live .core{animation:agpulse 1.2s ease-in-out infinite}
+@keyframes agring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+@keyframes agpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.ag-edge{stroke:var(--line2);stroke-width:2;fill:none}
+.ag-edge.flow{stroke:var(--accent);stroke-dasharray:6 8;animation:agdash 1s linear infinite}
+@keyframes agdash{to{stroke-dashoffset:-14}}
+.ag-legend{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 8px;font-size:11px;color:var(--ink3)}
+.ag-legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+.ag-feed{display:flex;flex-direction:column;max-height:70vh}
+.ag-list{overflow:auto;padding:4px 0}
+.ag-row{display:grid;grid-template-columns:48px 12px 1fr;gap:8px;padding:8px 16px;border-top:1px solid var(--line);font-size:12.5px}
+.ag-row.new{background:var(--accent-soft)}
+.ag-row .t{color:var(--ink3);font-family:"IBM Plex Mono",monospace;font-size:11px;padding-top:2px}
+.ag-row .sw{width:10px;height:10px;border-radius:3px;margin-top:4px}
+.ag-row .b b{font-weight:600}
+.ag-row .b .tg{color:var(--ink3)}
+.ag-row .b .m{color:var(--ink2);display:block;margin-top:2px;word-break:break-all}
 </style>
 
 <div id="busybar"></div>
@@ -403,6 +441,7 @@ main{flex:1;min-width:0;padding:0 22px 70px}
       <button class="vt" data-v="cal">캘린더</button>
       <button class="vt" data-v="queue">대기열 <em id="q-n">0</em></button>
       <button class="vt" data-v="log">기록</button>
+      <button class="vt" data-v="agents">비서</button>
       <button class="vt" data-v="set">설정 <em id="set-n" class="">1</em></button>
     </nav>
 
@@ -535,6 +574,30 @@ main{flex:1;min-width:0;padding:0 22px 70px}
     <!-- ================= 기록 ================= -->
     <section class="view" id="v-log">
       <div class="tbl" id="log"></div>
+    </section>
+
+    <!-- ================= 비서 상황판 ================= -->
+    <section class="view" id="v-agents">
+      <div class="ag-stats">
+        <div class="panel ag-stat"><div class="k">승인 대기</div><div class="v" id="ag-review">-</div></div>
+        <div class="panel ag-stat"><div class="k">오늘 발행</div><div class="v" id="ag-sent">-</div></div>
+        <div class="panel ag-stat"><div class="k">큐 잔여</div><div class="v" id="ag-queue">-</div></div>
+        <div class="panel ag-stat"><div class="k">보유 소재</div><div class="v" id="ag-topics">-</div></div>
+        <div class="panel ag-stat"><div class="k">리서치 소재</div><div class="v" id="ag-trend">-</div></div>
+        <div class="panel ag-stat"><div class="k">자동 발행</div><div class="v" id="ag-auto">-</div></div>
+      </div>
+      <div class="ag-grid">
+        <div class="panel ag-board">
+          <div class="panel-h"><span class="lbl">파이프라인</span><h3>AI 비서 활동 <small class="hint" id="ag-conn">시연 모드 · 샘플 데이터</small></h3></div>
+          <svg id="ag-svg" viewBox="0 0 1080 420" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="ag-legend" id="ag-legend"></div>
+          <span class="hint">로그 시트의 실제 기록만 표시합니다. 최근 90초 안에 움직인 비서는 빛나고, 10분 안이면 테두리만 살아 있습니다. 8초마다 갱신.</span>
+        </div>
+        <div class="panel ag-feed">
+          <div class="panel-h"><span class="lbl">활동 로그</span><h3>최근 80건 <small class="hint" id="ag-n"></small></h3></div>
+          <div class="ag-list" id="ag-list"><div class="empty">연결하면 로그가 여기에 흐릅니다</div></div>
+        </div>
+      </div>
     </section>
 
     <!-- ================= 설정 ================= -->
@@ -1378,6 +1441,7 @@ function generate(){
       return;
     }
     var c = list[i++];
+    $('gen').textContent = i + '/' + list.length + ' ' + c.name + ' 쓰는 중…' + (LIVE ? ' (15~30초, 금지어에 걸리면 최대 2분)' : '');
     if(!LIVE){
       S.draft[c.id] = compose(c.id, topic);
       render();
@@ -1388,6 +1452,7 @@ function generate(){
       S.draft[c.id] = t; render(); step();
     }, function(e){
       fails.push(c.name + ': ' + e.message);
+      toast(c.name + ' 실패: ' + e.message, 'err');
       S.draft[c.id] = compose(c.id, topic);   /* 실패하면 규칙 조합으로 자리라도 채웁니다 */
       render(); step();
     });
@@ -2221,4 +2286,94 @@ function paintDiag(){
   paintShots(); paintPresets(); paintRail(); render();
   paintQueue(); paintLog(); paintCal(); paintSettings(); paintMode();
 })();
+
+/* ============ 비서 상황판 ============ */
+var AG = [
+  { id:'research', name:'리서치 비서', role:'검색·소재 발굴',   color:'#2f8fd6', x:30,  y:150, kinds:['리서치','소재'] },
+  { id:'edit',     name:'편집 비서',   role:'채널별 문안 작성',  color:'#7c5cd6', x:238, y:150, kinds:['AI생성','AI미리보기','AI미리보기실패','생성','자동생성','Gemini','재시도','드라이런'] },
+  { id:'review',   name:'규제 심사',   role:'금지어·규제 차단',  color:'#d6862f', x:446, y:150, kinds:['AI차단','차단','인입거절','거절'] },
+  { id:'queue',    name:'승인 큐',     role:'사람 승인 대기',    color:'#c9a227', x:654, y:150, kinds:['인입','등록','승인','대기','큐','상한'] },
+  { id:'publish',  name:'발행',        role:'인스타·쓰레드 게시', color:'#1e9e6a', x:862, y:150, kinds:['발행','수동게시','이미지생성','업로드','파일업로드','Cloudflare저장','첫댓글실패','삭제','일괄삭제','파일삭제'] },
+  { id:'learn',    name:'학습',        role:'성과 집계·반영',    color:'#d64f9a', x:446, y:320, kinds:['학습'] },
+  { id:'watch',    name:'감시',        role:'점검·토큰·오류',    color:'#7a8b93', x:862, y:320, kinds:['점검','오류','토큰','설정','배포'] }
+];
+var AG_EDGES = [['research','edit'],['edit','review'],['review','queue'],['queue','publish'],['publish','learn'],['learn','edit']];
+var AG_W = 180, AG_H = 96, AG_TIMER = null, AG_SEEN = {}, AG_FIRST = true;
+function agOf(kind){ for(var i=0;i<AG.length;i++) if(AG[i].kinds.indexOf(kind)>=0) return AG[i]; return AG[6]; }
+function agDraw(){
+  var s = '', by = {}; AG.forEach(function(a){ by[a.id]=a; });
+  AG_EDGES.forEach(function(e){
+    var a = by[e[0]], b = by[e[1]];
+    var x1 = a.x+AG_W, y1 = a.y+AG_H/2, x2 = b.x, y2 = b.y+AG_H/2;
+    if(e[0]==='publish'){ x1 = a.x+AG_W/2; y1 = a.y+AG_H; x2 = b.x+AG_W; y2 = b.y+AG_H/2; }
+    if(e[0]==='learn'){ x1 = a.x; y1 = a.y+AG_H/2; x2 = b.x+AG_W/2; y2 = b.y+AG_H; }
+    var mx = (x1+x2)/2;
+    s += '<path class="ag-edge" id="age-'+e[0]+'-'+e[1]+'" d="M'+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2+'"/>';
+  });
+  AG.forEach(function(a){
+    s += '<g class="ag-node idle" id="agn-'+a.id+'" transform="translate('+a.x+','+a.y+')">'
+      + '<rect width="'+AG_W+'" height="'+AG_H+'" rx="14" style="stroke:'+a.color+'"/>'
+      + '<g transform="translate(22,26)"><circle class="ring" r="9" style="stroke:'+a.color+'"/><circle class="core" r="6" fill="'+a.color+'"/></g>'
+      + '<text class="name" x="40" y="31">'+a.name+'</text><text class="role" x="16" y="52">'+a.role+'</text>'
+      + '<text class="last" x="16" y="70" id="agl-'+a.id+'">아직 기록 없음</text><text class="msg" x="16" y="86" id="agm-'+a.id+'"></text></g>';
+  });
+  $('ag-svg').innerHTML = s;
+  $('ag-legend').innerHTML = AG.map(function(a){ return '<span><i style="background:'+a.color+'"></i>'+a.name+' · '+a.kinds.slice(0,3).join('/')+(a.kinds.length>3?'…':'')+'</span>'; }).join('');
+}
+function agAgo(iso){
+  var d = (Date.now() - new Date(iso).getTime())/1000;
+  if(d < 60) return Math.max(0,Math.round(d)) + '초 전';
+  if(d < 3600) return Math.round(d/60) + '분 전';
+  if(d < 86400) return Math.round(d/3600) + '시간 전';
+  return Math.round(d/86400) + '일 전';
+}
+function agPaint(d){
+  var logs = d.logs || [], last = {}, now = Date.now();
+  logs.forEach(function(l){ var a = agOf(l.kind); if(!last[a.id]) last[a.id] = l; });
+  AG.forEach(function(a){
+    var l = last[a.id], age = l ? now - new Date(l.t).getTime() : Infinity;
+    $('agn-'+a.id).setAttribute('class', 'ag-node ' + (age < 90000 ? 'live' : (age < 600000 ? 'recent' : 'idle')));
+    $('agl-'+a.id).textContent = l ? (agAgo(l.t) + ' · ' + l.kind) : '아직 기록 없음';
+    $('agm-'+a.id).textContent = l ? (l.target + (l.msg ? ' — ' + l.msg : '')).substring(0, 24) : '';
+  });
+  AG_EDGES.forEach(function(e){
+    var a = last[e[0]], b = last[e[1]];
+    var flow = a && b && (now - new Date(a.t).getTime() < 600000) && (now - new Date(b.t).getTime() < 600000);
+    var p = $('age-'+e[0]+'-'+e[1]); if(p) p.setAttribute('class', 'ag-edge' + (flow ? ' flow' : ''));
+  });
+  var q = d.queue || {}, st = d.status || {}, sf = st.safety || {}, au = st.auto || {};
+  $('ag-review').textContent = q['승인대기'] || 0;
+  $('ag-sent').innerHTML = (sf.sentToday !== undefined ? sf.sentToday : '-') + '<small>/ ' + (sf.maxPerDay || '-') + '</small>';
+  $('ag-queue').innerHTML = (au.queueDays !== undefined ? au.queueDays : '-') + '<small>일</small>';
+  $('ag-topics').textContent = (st.topics && st.topics['전체'] !== undefined) ? st.topics['전체'] : '-';
+  $('ag-trend').textContent = (st.trend && st.trend['보유소재'] !== undefined) ? st.trend['보유소재'] : '-';
+  $('ag-auto').innerHTML = au.on === undefined ? '-' : (au.on ? '<span style="color:var(--ok)">ON</span>' : '<span style="color:var(--warn)">OFF</span>')
+    + (au.tokenDaysLeft !== undefined && au.tokenDaysLeft !== null ? '<small>토큰 D-' + au.tokenDaysLeft + '</small>' : '');
+  if(!logs.length){ $('ag-list').innerHTML = '<div class="empty">로그가 비어 있습니다</div>'; return; }
+  $('ag-list').innerHTML = logs.map(function(l){
+    var a = agOf(l.kind), k = l.t + '|' + l.kind + '|' + l.target, t = new Date(l.t);
+    return '<div class="ag-row'+((!AG_FIRST && !AG_SEEN[k])?' new':'')+'"><div class="t">'+(isNaN(t)?'':('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2))+'</div>'
+      + '<div class="sw" style="background:'+a.color+'"></div>'
+      + '<div class="b"><b>'+esc(l.kind)+'</b> <span class="tg">'+esc(l.target)+'</span>'+(l.msg?'<span class="m">'+esc(l.msg)+'</span>':'')+'</div></div>';
+  }).join('');
+  AG_SEEN = {}; logs.forEach(function(l){ AG_SEEN[l.t + '|' + l.kind + '|' + l.target] = 1; });
+  $('ag-n').textContent = logs.length + '건'; AG_FIRST = false;
+}
+function agTick(){
+  if(!LIVE){
+    var now = Date.now(), L = function(s,k,t,m){ return { t:new Date(now-s*1000).toISOString(), kind:k, target:t, msg:m }; };
+    $('ag-conn').textContent = '시연 모드 · 샘플 데이터';
+    agPaint({ logs:[L(20,'AI미리보기','쓰레드만 / A.영업공지','194자'), L(200,'리서치','E.지역계절','4건 저장 · 1건 탈락'), L(400,'AI차단','인스타만 / B.매장정보','금지어: 세일'), L(5000,'발행','인천연수점','인스타 완료'), L(90000,'학습','전체','n=34')],
+      queue:{ '승인대기':3 }, status:{ auto:{ on:true, queueDays:4.5, tokenDaysLeft:41 }, safety:{ sentToday:2, maxPerDay:8 }, topics:{ '전체':60 }, trend:{ '보유소재':4 } } });
+    return;
+  }
+  apiPost('agents', { n:80 }).then(function(j){
+    $('ag-conn').textContent = '실시간 · ' + new Date().toLocaleTimeString('ko-KR');
+    agPaint(j.data || {});
+  }, function(e){ $('ag-conn').textContent = '오류: ' + e.message; });
+}
+function agStart(){ agTick(); if(AG_TIMER) clearInterval(AG_TIMER); AG_TIMER = setInterval(function(){ if($('v-agents').classList.contains('on')) agTick(); }, 8000); }
+agDraw();
+var _go = go;
+go = function(v){ _go(v); if(v==='agents') agStart(); };
 </script>
