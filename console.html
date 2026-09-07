@@ -1228,12 +1228,38 @@ var IDEAS = [
   {t:'평일 한산한 시간대 안내', b:'주말 오후에 대기가 길어짐. 평일 오전 11시~2시가 가장 한산함. 천천히 상담받고 싶으면 이 시간 추천.'},
   {t:'멤버십 적립 안내', b:'적립 쌓아두고 안 쓰시는 분들 많음. 매장에서 바로 확인 가능하고 사용처 안내.'}
 ];
+var RESEARCH = { items:[], i:0 };
 function suggestTopic(){
-  var pool = IDEAS.filter(function(i){ return i.t !== $('title').value.trim(); });
-  var pick = pool[Math.floor(Math.random()*pool.length)];
-  $('title').value = pick.t;
-  $('body').value = pick.b;
-  toast('소재를 하나 뽑았습니다 · 마음에 안 들면 다시 누르세요','ok');
+  if(!LIVE){
+    var pool = IDEAS.filter(function(i){ return i.t !== $('title').value.trim(); });
+    var pick = pool[Math.floor(Math.random()*pool.length)];
+    $('title').value = pick.t;
+    $('body').value = pick.b;
+    toast('소재를 하나 뽑았습니다 · 마음에 안 들면 다시 누르세요','ok');
+    return;
+  }
+  /* 서버 리서치 — 받아둔 후보가 있으면 다음 것을, 없으면 새로 조사합니다 */
+  if(RESEARCH.items.length && RESEARCH.i < RESEARCH.items.length){ applyResearch(RESEARCH.items[RESEARCH.i++]); return; }
+  var btn = document.querySelector('.sugg');
+  if(btn){ btn.disabled = true; btn.textContent = '검색해서 소재 찾는 중… 30초쯤'; }
+  function done(){ if(btn){ btn.disabled = false; btn.textContent = '소재가 없으면 추천받기'; } }
+  apiPost('researchlist', { cat:curCat() }).then(function(j){
+    var fresh = ((j.data && j.data.items) || []).filter(function(x){ return !x.used; });
+    if(fresh.length){ RESEARCH = { items:fresh, i:0 }; done(); applyResearch(RESEARCH.items[RESEARCH.i++]); return; }
+    return apiPost('research', { cat:curCat(), n:5 }).then(function(j2){
+      var d = j2.data || {};
+      logApi('research', { category:curCat() }, (d.kept||[]).length + '건');
+      done();
+      if(!(d.kept||[]).length){ showFail(['리서치: 쓸 수 있는 소재가 없었습니다' + ((d.dropped||[]).length ? ' (탈락 ' + d.dropped.length + '건)' : '')]); toast('소재를 찾지 못했습니다','err'); return; }
+      RESEARCH = { items:d.kept, i:0 };
+      applyResearch(RESEARCH.items[RESEARCH.i++]);
+    });
+  }, function(e){ done(); logApi('research', null, null, e.message); showFail(['리서치: ' + e.message]); toast('소재를 찾지 못했습니다','err'); });
+}
+function applyResearch(it){
+  $('title').value = it.topic;
+  $('body').value = (it.why || '') + (it.src ? '\n(출처: ' + it.src + ')' : '');
+  toast('[' + (it.angle||'소재') + '] ' + it.topic + ' · 다시 누르면 다음 후보','ok');
 }
 
 /* 사진 자동 생성 — 본문에서 장면을 뽑아 만듭니다 */
@@ -1326,31 +1352,58 @@ function generate(){
   if(!activeCh().length){ toast('채널을 하나 이상 켜주세요','err'); return; }
 
   $('gen').disabled = true;
-  $('gen').textContent = '쓰는 중…';
+  $('gen').textContent = LIVE ? 'AI가 쓰는 중… 채널당 15초쯤' : '쓰는 중…';
   $('splitter').classList.add('live');
   S.draft = {}; S.edit = {};
 
-  var list = activeCh(), i = 0;
+  var list = activeCh(), i = 0, fails = [];
   (function step(){
     if(i >= list.length){
       $('gen').disabled = false;
       $('gen').textContent = 'AI 문구 생성 · 채널별 4벌';
-      toast(list.length + '개 채널 문안을 만들었습니다','ok');
+      if(fails.length) showFail(fails);
+      toast((list.length - fails.length) + '개 채널 문안을 만들었습니다' + (fails.length ? ' · ' + fails.length + '개 실패' : ''), fails.length ? 'err' : 'ok');
       render();
       return;
     }
     var c = list[i++];
-    S.draft[c.id] = compose(c.id, topic);
-    render();
-    setTimeout(step, 340);
+    if(!LIVE){
+      S.draft[c.id] = compose(c.id, topic);
+      render();
+      setTimeout(step, 340);
+      return;
+    }
+    aiPreview(c.id, topic).then(function(t){
+      S.draft[c.id] = t; render(); step();
+    }, function(e){
+      fails.push(c.name + ': ' + e.message);
+      S.draft[c.id] = compose(c.id, topic);   /* 실패하면 규칙 조합으로 자리라도 채웁니다 */
+      render(); step();
+    });
   })();
+}
+/* 서버 AI 미리보기 — 시트에는 기록하지 않습니다 */
+function aiPreview(id, topic){
+  var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '전체';
+  var body = { chan:id, cat:curCat(), store:store, title:topic, memo:$('body').value.trim(), date:($('when').value||'').replace('T',' ') };
+  return apiPost('aipreview', body).then(function(j){
+    var d = j.data || {};
+    logApi('aipreview', { channel:id, store:store, date:body.date, category:body.cat, text:topic }, d.ok ? (d.len + '자') : null, d.ok ? null : d.reason);
+    if(!d.ok) throw new Error(d.reason || '생성 실패');
+    var parts = [d.text];
+    var tg = tagsFor(id);
+    if($('opt-tag').checked && tg && !commentFor(id) && d.text.indexOf('#') < 0) parts.push(tg);
+    return parts.join('\n\n');
+  }, function(e){ logApi('aipreview', { channel:id, text:topic }, null, e.message); throw e; });
 }
 function regen(id){
   var topic = $('title').value.trim();
   if(!topic){ toast('주제가 비어 있습니다','err'); return; }
   delete S.edit[id];
-  S.draft[id] = compose(id, topic);
-  render(); toast(CHM[id].name + ' 문안을 다시 썼습니다','ok');
+  if(!LIVE){ S.draft[id] = compose(id, topic); render(); toast(CHM[id].name + ' 문안을 다시 썼습니다','ok'); return; }
+  toast(CHM[id].name + ' 다시 쓰는 중…');
+  aiPreview(id, topic).then(function(t){ S.draft[id] = t; render(); toast(CHM[id].name + ' 문안을 다시 썼습니다','ok'); },
+    function(e){ toast(e.message,'err'); });
 }
 function regenAll(){ if(Object.keys(S.draft).length) generate(); else toast('먼저 생성을 눌러주세요'); }
 
