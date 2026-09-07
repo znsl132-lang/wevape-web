@@ -389,7 +389,7 @@ main{flex:1;min-width:0;padding:0 22px 70px}
 <div id="gate">
   <div class="gate-box">
     <div class="brand" style="margin-bottom:16px"><span class="mk">W</span> We Vape 발행 콘솔</div>
-    <p class="hint" style="margin-bottom:16px">접속 코드를 넣으면 실제 시트와 연결됩니다. 그냥 둘러보시려면 아래 시연 모드로 들어가세요.</p>
+    <p class="hint" style="margin-bottom:16px">접속 코드는 이 기기에 한 번만 넣으면 다음부터 자동으로 연결됩니다. 그냥 둘러보시려면 아래 시연 모드로 들어가세요.</p>
     <div class="field" style="margin-bottom:10px">
       <span class="lbl">웹앱 주소</span>
       <input id="gate-url" value="https://script.google.com/macros/s/AKfycby79BDH9Z6HXAPLS9t4_Te4kqIucJicsMtmNzx_9MGx0D4NgRMBXxT4MbuN109IC9hE/exec">
@@ -401,6 +401,7 @@ main{flex:1;min-width:0;padding:0 22px 70px}
     <button class="btn p full" style="margin-top:12px" onclick="enterLive()">연결하기</button>
     <button class="btn o full" style="margin-top:8px" onclick="enterDemo()">시연 모드로 둘러보기</button>
     <div class="gate-err" id="gate-err"></div>
+    <p class="hint" style="margin-top:10px">공용 PC라면 <button class="link" onclick="forgetConnect()">이 기기의 접속 정보 지우기</button></p>
   </div>
 </div>
 
@@ -1468,7 +1469,7 @@ function aiPreview(id, topic){
     if(!d.ok) throw new Error(d.reason || '생성 실패');
     var parts = [d.text];
     var tg = tagsFor(id);
-    if($('opt-tag').checked && tg && !commentFor(id) && d.text.indexOf('#') < 0) parts.push(tg);
+    if($('opt-tag').checked && tg && !commentFor(id) && d.text.indexOf('#') < 0) parts.push(tg.split(/\s+/).filter(function(t){ return t.charAt(0)==='#'; }).slice(0, id==='ig' ? 5 : 2).join(' '));
     return parts.join('\n\n');
   }, function(e){ logApi('aipreview', { channel:id, text:topic }, null, e.message); throw e; });
 }
@@ -2184,6 +2185,7 @@ function enterLive(){
   $('gate-err').textContent = '연결하는 중…';
   apiGet('ping').then(function(){
     LIVE = true;
+    try{ localStorage.setItem('wv_console', JSON.stringify({ u:API_URL, c:CODE })); }catch(e){}
     closeGate();
     paintMode();
     return liveLoad().then(loadBanned).then(liveHealth);
@@ -2195,6 +2197,19 @@ function enterLive(){
   }).catch(function(e){ toast(e.message,'err'); });
 }
 function enterDemo(){ LIVE = false; closeGate(); reset(); paintMode(); }
+/* 이 기기에 저장된 접속 정보로 자동 연결. 없으면 접속 화면을 보여줍니다 */
+function autoConnect(){
+  var saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('wv_console') || 'null'); }catch(e){}
+  if(!saved || !saved.u || !saved.c) return;
+  $('gate-url').value = saved.u; $('gate-code').value = saved.c;
+  enterLive();
+}
+function forgetConnect(){
+  try{ localStorage.removeItem('wv_console'); }catch(e){}
+  $('gate-code').value = '';
+  toast('이 기기의 접속 정보를 지웠습니다 · 다음 접속 때 코드를 다시 넣습니다','ok');
+}
 function closeGate(){ $('gate').style.display = 'none'; }
 function openGate(){ $('gate').style.display = 'flex'; }
 function paintMode(){
@@ -2280,12 +2295,15 @@ function paintDiag(){
   });
   S.queue = SEED_Q.slice();
   S.log = SEED_L.map(function(o){ return Object.assign({},o); });
-  var d = new Date(2026,8,2,19,0);
+  var d = new Date(); d.setHours(d.getHours() + 1, 0, 0, 0);   /* 기본값: 다음 정시. 슬롯이 있으면 아래에서 덮어씁니다 */
   $('when').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
   fillCfg(); fillCats();
+  try{ var _b = nextSlot(); if(_b) $('when').value = new Date(_b.at.getTime() - _b.at.getTimezoneOffset()*60000).toISOString().slice(0,16); }catch(e){}
   paintShots(); paintPresets(); paintRail(); render();
   paintQueue(); paintLog(); paintCal(); paintSettings(); paintMode();
 })();
+
+autoConnect();
 
 /* ============ 비서 상황판 ============ */
 var AG = [
