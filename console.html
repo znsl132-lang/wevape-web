@@ -442,6 +442,17 @@ main{flex:1;min-width:0;padding:0 22px 70px}
                 <input id="scene" placeholder="원하는 장면을 적어도 됩니다 (예: 비 오는 저녁 매장 앞)">
                 <button class="btn o" onclick="genImage(1)">장면대로</button>
               </div>
+              <div class="addrow" style="margin-top:7px">
+                <select id="cardtpl" style="flex:1">
+                  <option value="auto">카드 서식 · 카테고리에 맞춰 자동</option>
+                  <option value="notice">공지형 — 진한 바탕, 제목 크게</option>
+                  <option value="info">정보형 — 밝은 바탕, 항목 나열</option>
+                  <option value="greet">인사형 — 부드러운 배경, 짧은 문장</option>
+                </select>
+                <button class="btn o" onclick="makeCard()">문구 카드 만들기</button>
+              </div>
+              <span class="hint">사진 대신 글자 카드를 씁니다. 제품·인물이 없어 규제상 가장 안전하고, 생성 비용도 없습니다.</span>
+              <canvas id="cardcv" width="1080" height="1080" hidden></canvas>
               <div id="picked"></div>
             </div>
 
@@ -1840,6 +1851,102 @@ function reset(){
   $('title').value=''; $('body').value=''; $('splitter').classList.remove('live');
   paintShots(); render(); paintRail(); paintQueue(); paintLog(); paintCal();
   toast('시연 데이터를 되돌렸습니다');
+}
+
+/* ============ 문구 카드 (canvas) ============ */
+var CARD_TPL = { 'A':'notice', 'B':'info', 'C':'info', 'D':'greet', 'E':'greet' };
+var CARD_SIGN = '위베이프 인천/경기 본부';
+function cardLines(){
+  var body = $('body').value.replace(/\(출처:[^)]*\)/g,'').replace(/https?:\/\/\S+/g,'').trim();
+  var raw = body.split(/\n+|(?<=[.!?。])\s+/).map(function(x){ return x.trim().replace(/[.。]$/,''); }).filter(Boolean);
+  return raw.slice(0, 4);
+}
+function wrapText(ctx, text, maxW){
+  var out = [], line = '';
+  for(var i=0;i<text.length;i++){
+    var t = line + text[i];
+    if(ctx.measureText(t).width > maxW && line){ out.push(line.trim()); line = text[i]; }
+    else line = t;
+  }
+  if(line.trim()) out.push(line.trim());
+  return out;
+}
+function drawWrapped(ctx, text, x, y, maxW, lh, maxLines){
+  var ls = wrapText(ctx, text, maxW).slice(0, maxLines || 99);
+  ls.forEach(function(l, i){ ctx.fillText(l, x, y + i*lh); });
+  return y + ls.length*lh;
+}
+function makeCard(){
+  var title = $('title').value.trim();
+  if(!title){ toast('먼저 제목을 적어주세요','err'); $('title').focus(); return; }
+  var tpl = $('cardtpl').value;
+  if(tpl === 'auto') tpl = CARD_TPL[(curCat()||'A').charAt(0)] || 'notice';
+  var lines = cardLines();
+  var cv = $('cardcv'), ctx = cv.getContext('2d'), W = 1080, H = 1080;
+  var F = '"IBM Plex Sans KR", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+  var pal = {
+    notice:{ bg:['#0b6f6a','#083f3c'], ink:'#ffffff', sub:'rgba(255,255,255,.78)', chip:'rgba(255,255,255,.14)' },
+    info:  { bg:['#f4f6f7','#e6ebed'], ink:'#0f1619', sub:'#46545c', chip:'#0b6f6a' },
+    greet: { bg:['#dff0ed','#c9e3df'], ink:'#0f1619', sub:'#2f4a47', chip:'#0b6f6a' }
+  }[tpl];
+
+  function paint(){
+    var g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,pal.bg[0]); g.addColorStop(1,pal.bg[1]);
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    ctx.textBaseline = 'top';
+    /* 상단 워드마크 */
+    ctx.fillStyle = tpl==='notice' ? pal.chip : pal.chip;
+    ctx.beginPath(); ctx.roundRect(88, 88, 190, 52, 26); ctx.fill();
+    ctx.fillStyle = tpl==='notice' ? '#fff' : '#fff';
+    ctx.font = '600 24px ' + F; ctx.textAlign = 'center';
+    ctx.fillText('WEVAPE', 183, 101);
+    ctx.textAlign = 'left';
+
+    if(tpl === 'notice'){
+      ctx.fillStyle = pal.sub; ctx.font = '500 34px ' + F;
+      ctx.fillText(curCat().replace(/^[A-E]\./,''), 88, 200);
+      ctx.fillStyle = pal.ink; ctx.font = '700 76px ' + F;
+      var y = drawWrapped(ctx, title, 88, 260, W-176, 96, 3);
+      ctx.fillStyle = pal.sub; ctx.font = '400 40px ' + F;
+      y += 40;
+      lines.forEach(function(l){ y = drawWrapped(ctx, l, 88, y, W-176, 56, 2) + 18; });
+    } else if(tpl === 'info'){
+      ctx.fillStyle = pal.chip; ctx.font = '500 32px ' + F;
+      ctx.fillText(curCat().replace(/^[A-E]\./,''), 88, 200);
+      ctx.fillStyle = pal.ink; ctx.font = '700 66px ' + F;
+      var y2 = drawWrapped(ctx, title, 88, 250, W-176, 84, 2) + 40;
+      ctx.font = '400 40px ' + F;
+      lines.forEach(function(l, i){
+        ctx.fillStyle = pal.chip; ctx.beginPath(); ctx.arc(108, y2+24, 9, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = pal.ink;
+        y2 = drawWrapped(ctx, l, 140, y2, W-228, 56, 2) + 22;
+      });
+    } else {
+      ctx.textAlign = 'center';
+      ctx.fillStyle = pal.ink; ctx.font = '700 70px ' + F;
+      var y3 = drawWrapped(ctx, title, W/2, 400, W-200, 90, 2) + 36;
+      ctx.fillStyle = pal.sub; ctx.font = '400 40px ' + F;
+      lines.slice(0,2).forEach(function(l){ y3 = drawWrapped(ctx, l, W/2, y3, W-220, 56, 2) + 10; });
+      ctx.textAlign = 'left';
+    }
+    /* 하단 서명 */
+    ctx.fillStyle = pal.sub; ctx.font = '500 30px ' + F;
+    ctx.fillText(CARD_SIGN, 88, H-130);
+    ctx.font = '400 26px ' + F;
+    ctx.fillText('인천·부천 9개 매장', 88, H-88);
+    var url = cv.toDataURL('image/jpeg', .92);
+    S.photo = { type:'url', url:url, k:'카드' };
+    S.photoName = 'card-' + tpl + '.jpg';
+    paintShots(); render();
+    if(!LIVE){ toast('문구 카드를 만들었습니다 (시연 모드라 서버엔 안 올립니다)','ok'); return; }
+    var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '';
+    apiPost('upload', { b64:url.split(',')[1], filename:S.photoName, store:store }).then(function(j){
+      S.photoName = (j.data && j.data.name) || S.photoName;
+      logApi('upload', { channel:'-', store:store, date:'-', category:curCat(), text:'카드 ' + tpl }, '카드 ' + S.photoName);
+      paintShots(); toast('카드를 깃허브에 올렸습니다','ok');
+    }, function(e){ logApi('upload', null, null, e.message); toast('카드 업로드 실패: ' + e.message,'err'); });
+  }
+  if(document.fonts && document.fonts.load){ document.fonts.load('700 70px "IBM Plex Sans KR"').then(paint, paint); } else paint();
 }
 
 /* ============ 사진 업로드 ============ */
