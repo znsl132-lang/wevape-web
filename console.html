@@ -755,6 +755,7 @@ function daysLeft(c){
   return Math.round((new Date(c.exp) - TODAY) / 864e5);
 }
 function connState(c){
+  if(c.err) return 'err';
   var d = daysLeft(c);
   if(d === null) return 'ok';
   if(d <= 0) return 'err';
@@ -944,7 +945,9 @@ function paintRail(){
   if(bad.length){
     var c0 = bad[0], d0 = daysLeft(c0);
     nb.style.display = '';
-    nb.innerHTML = esc(c0.name)+' 토큰이 <b>'+(d0>0 ? d0+'일 뒤' : '이미')+'</b> 만료됩니다. 다시 연결하지 않으면 '
+    nb.innerHTML = c0.err
+      ? esc(c0.name)+' 연결이 안 되어 있습니다: '+esc(c0.msg||'')+' <button class="link" onclick="go(\'set\')">설정에서 확인</button>'
+      : esc(c0.name)+' 토큰이 <b>'+(d0>0 ? d0+'일 뒤' : '이미')+'</b> 만료됩니다. 다시 연결하지 않으면 '
       + esc(c0.name)+' 발행만 조용히 실패합니다. <button class="link" onclick="go(\'set\')">설정에서 재연결</button>';
     sn.textContent = bad.length; sn.className = '';
   } else {
@@ -1738,12 +1741,13 @@ function dropQ(i){
     function(e){ toast(e.message,'err'); liveLoad(); });
 }
 
+function linkify(h){ return String(h).replace(/(https?:\/\/[^\s<]+)/g, function(u){ return '<a href="'+u+'" target="_blank" rel="noopener">'+u.replace(/^https?:\/\/(www\.)?/,'').slice(0,60)+'</a>'; }); }
 function paintLog(){
   $('log').innerHTML = S.log.map(function(l,i){
     var cls = l.st==='발행 완료' ? 'ok' : 'err';
     return '<div class="tr"><span class="when">'+esc(l.d)+'</span><div class="bd">'
       + '<div class="chips"><b style="font-size:13px">'+esc(l.topic)+'</b><span class="st '+cls+'">'+esc(l.st)+'</span></div>'
-      + '<div class="tx">'+esc(l.note)+'</div>'
+      + '<div class="tx">'+linkify(esc(l.note))+'</div>'
       + '<div class="chips" style="margin-top:6px">'+chipsFor(l.ch)+'</div></div>'
       + (l.st==='일부 실패' ? '<div class="chips"><button class="mini" onclick="retry('+i+')">실패분 재발행</button></div>' : '')
       + '</div>';
@@ -1796,17 +1800,29 @@ function paintConns(){
     var right = d === null
       ? '<b class="ok">만료 없음</b><span style="color:var(--ink3)">비번 변경 시 끊김</span>'
       : '<b class="'+(st==='ok'?'ok':'warn')+'">D-'+d+'</b><span style="color:var(--ink3)">'+esc(c.exp)+' 만료</span>';
+    if(c.err) right = '<b class="warn">연결 안 됨</b><span style="color:var(--ink3)">'+esc(c.msg||'')+'</span>';
+    else if(c.msg && LIVE) right = d === null
+      ? '<b class="ok">'+(c.mode==='auto'?'연결됨':'수동')+'</b><span style="color:var(--ink3)">'+esc(c.msg)+'</span>'
+      : '<b class="'+(st==='ok'?'ok':'warn')+'">D-'+d+'</b><span style="color:var(--ink3)">'+esc(c.exp)+' 만료 · '+esc(c.msg)+'</span>';
     return '<div class="conn'+(st!=='ok'?' alert':'')+'">'
       + '<span class="ico">'+icon(c.id,c.color)+'</span>'
       + '<span class="cn"><b>'+esc(c.name)+' <span class="way '+c.mode+'">'+WAY[c.mode].n+'</span></b>'
-      + '<span>@'+esc(c.handle)+' · 마지막 발행 '+esc(c.last)+'</span></span>'
+      + '<span>@'+esc(c.handle)+(LIVE ? '' : ' · 마지막 발행 '+esc(c.last))+'</span></span>'
       + '<span class="dl">'+right+'</span>'
-      + '<button class="mini" onclick="reconnect(\''+c.id+'\')">'+(st==='ok'?'재연결':'지금 재연결')+'</button>'
+      + (c.id==='th' || !LIVE ? '<button class="mini" onclick="reconnect(\''+c.id+'\')">'+(st==='ok'?'토큰 갱신':'지금 갱신')+'</button>' : '')
       + '</div>';
   }).join('');
 }
 function reconnect(id){
   var c = CHM[id];
+  if(LIVE){
+    toast('토큰 갱신 요청 중…');
+    apiPost('refreshtokens', {}).then(function(j){
+      toast(String(j.data || '완료'), /실패/.test(String(j.data)) ? 'err' : 'ok');
+      return loadConn();
+    }, function(e){ toast('갱신 실패: ' + e.message, 'err'); });
+    return;
+  }
   if(!c.exp){ toast(c.name+'은 만료 기한이 없습니다. 끊겼을 때만 다시 연결하세요.'); return; }
   var d = new Date(TODAY); d.setDate(d.getDate() + 60);
   c.exp = d.toISOString().slice(0,10);
@@ -2177,6 +2193,21 @@ function liveHealth(){
   }, function(e){ var el=$('livehealth'); if(el) el.textContent = e.message; });
 }
 
+/* ---- 채널 연결 상태 (서버 실측) ---- */
+function loadConn(){
+  return apiPost('conn', {}).then(function(j){
+    var d = j.data || {}; TODAY = new Date();
+    function expIn(days){ if(days === null || days === undefined) return null; var x = new Date(); x.setDate(x.getDate() + days); return x.toISOString().slice(0,10); }
+    var th = d.th || {}, ig = d.ig || {}, fb = d.fb || {};
+    CHM.th.exp = expIn(th.daysLeft); CHM.th.err = !th.ok; CHM.th.msg = th.msg || ''; CHM.th.mode = th.ok ? 'auto' : 'manual';
+    if(ig.linked){ CHM.ig.exp = CHM.th.exp; CHM.ig.err = !th.ok; CHM.ig.msg = '쓰레드 연동 발행'; CHM.ig.mode = th.ok ? 'auto' : 'manual'; }
+    else { CHM.ig.exp = null; CHM.ig.err = !ig.ok; CHM.ig.msg = ig.msg || ''; CHM.ig.mode = ig.ok ? 'auto' : 'manual'; }
+    CHM.fb.exp = null; CHM.fb.err = false; CHM.fb.msg = fb.msg || '자동 발행 미연동'; CHM.fb.mode = 'manual';
+    CHM.x.exp = null; CHM.x.err = false; CHM.x.msg = '수동 업로드'; CHM.x.mode = 'manual';
+    paintRail(); if($('conns')) paintConns();
+  }, function(e){ logApi('conn', null, null, e.message); });
+}
+
 /* ---- 접속 ---- */
 function enterLive(){
   var url = $('gate-url').value.trim(), code = $('gate-code').value.trim();
@@ -2188,7 +2219,7 @@ function enterLive(){
     try{ localStorage.setItem('wv_console', JSON.stringify({ u:API_URL, c:CODE })); }catch(e){}
     closeGate();
     paintMode();
-    return liveLoad().then(loadBanned).then(liveHealth);
+    return liveLoad().then(loadBanned).then(liveHealth).then(loadConn);
   }, function(e){
     var m = e && e.message || '';
     $('gate-err').textContent = /Failed to fetch|NetworkError|load failed/i.test(m)
