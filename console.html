@@ -318,6 +318,18 @@ main{flex:1;min-width:0;padding:0 22px 70px}
 .st{font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid currentColor;font-family:"IBM Plex Mono",monospace}
 .st.ok{color:var(--ok)} .st.warn{color:var(--warn)} .st.err{color:var(--err)} .st.idle{color:var(--ink3)}
 .empty{padding:52px 20px;text-align:center;color:var(--ink3);font-size:13px}
+/* 대기열 펼침 편집 */
+.tr.open{flex-wrap:wrap;background:var(--surface2)}
+.qx{flex:none;width:22px;height:22px;border:1px solid var(--line2);border-radius:6px;background:var(--surface);color:var(--ink2);font-size:11px;line-height:1}
+.qx:hover{border-color:var(--accent);color:var(--accent)}
+.qed{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:14px;padding:10px 0 2px 34px}
+.qed textarea{width:100%;min-height:150px;resize:vertical;line-height:1.6;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none;color:var(--ink);font-size:12.5px}
+.qed textarea:focus{border-color:var(--accent)}
+.qimg{display:flex;flex-direction:column;gap:8px}
+.qimg .pic{width:180px;height:180px;border-radius:9px;border:1px solid var(--line);background:var(--surface) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:11px}
+.qed .foot{grid-column:1/-1;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.qed .foot .cnt{margin-left:auto;font-size:11px;color:var(--ink3);font-family:"IBM Plex Mono",monospace}
+@media (max-width:760px){ .qed{grid-template-columns:1fr;padding-left:0} .qimg .pic{width:100%} }
 
 /* ---------- 토스트 ---------- */
 #toasts{position:fixed;right:18px;bottom:82px;display:flex;flex-direction:column;gap:8px;z-index:200;pointer-events:none}
@@ -1717,14 +1729,82 @@ function paintQueue(){
   if(!S.queue.length){ $('queue').innerHTML = '<div class="empty">예약된 게시물이 없습니다.</div>'; return; }
   $('queue').innerHTML = S.queue.map(function(q,i){
     var cls = q.st==='승인 대기' ? 'warn' : 'ok';
-    return '<div class="tr"><span class="when">'+esc(q.d)+'</span><div class="bd">'
+    var open = QOPEN === i;
+    return '<div class="tr'+(open?' open':'')+'">'
+      + '<button class="qx" title="펼쳐서 보기·수정" onclick="toggleQ('+i+')">'+(open?'▲':'▼')+'</button>'
+      + '<span class="when">'+esc(q.d)+'</span><div class="bd">'
       + '<div class="chips"><b style="font-size:13px">'+esc(q.topic)+'</b><span class="st '+cls+'">'+esc(q.st)+'</span></div>'
       + '<div class="chips" style="margin-top:6px">'+chipsFor(q.ch)+'</div></div>'
       + '<div class="chips">'
       + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
-      + (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--brand);color:var(--brand)" onclick="publishNow('+i+')">지금 발행</button>')
-      + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div></div>';
+      + (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>')
+      + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div>'
+      + (open ? qEditor(q, i) : '')
+      + '</div>';
   }).join('');
+  if(open !== undefined){ var ta = $('qta'); if(ta && !ta.value && QD.text) ta.value = QD.text; }
+}
+/* ---- 대기열 펼침: 문구·사진 보기와 수정 ---- */
+var QOPEN = -1, QD = {};
+function qEditor(q, i){
+  var pic = QD.imageUrl ? 'style="background-image:url(\''+QD.imageUrl.replace(/'/g,'%27')+'\')"' : '';
+  var picLbl = QD.loading ? '불러오는 중…' : (QD.imageUrl ? '' : (q.image ? esc(q.image) : '사진 없음'));
+  return '<div class="qed">'
+    + '<div class="field"><textarea id="qta" oninput="qCount()" placeholder="문구를 입력하세요"></textarea></div>'
+    + '<div class="qimg"><div class="pic" '+pic+'>'+picLbl+'</div>'
+    + '<button class="mini" onclick="$(\'qfile\').click()">사진 바꾸기</button>'
+    + (q.image ? '<button class="mini" onclick="qClearImg('+i+')">사진 빼기</button>' : '')
+    + '<input type="file" id="qfile" accept="image/*" style="display:none" onchange="qPickImg('+i+', this.files[0])">'
+    + '<div class="hint" style="word-break:break-all">'+esc(QD.image || q.image || '')+'</div></div>'
+    + '<div class="foot"><button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="qSave('+i+')">저장</button>'
+    + '<button class="mini" onclick="toggleQ('+i+')">닫기</button><span class="cnt" id="qcnt"></span></div>'
+    + '</div>';
+}
+function toggleQ(i){
+  if(QOPEN === i){ QOPEN = -1; QD = {}; paintQueue(); return; }
+  var q = S.queue[i];
+  QOPEN = i; QD = { text:q.text || '', image:q.image || '', imageUrl:'', loading: !!(LIVE && q.row) };
+  paintQueue(); qCount();
+  if(!LIVE || !q.row) return;
+  apiPost('rowdetail', { row:q.row }).then(function(j){
+    var d = j.data || {};
+    if(QOPEN !== i) return;
+    QD.loading = false; QD.text = d.text || ''; QD.image = d.image || ''; QD.imageUrl = d.imageUrl || '';
+    var ta = $('qta'); var cur = ta ? ta.value : '';
+    paintQueue();
+    ta = $('qta'); if(ta) ta.value = cur || QD.text; qCount();
+  }, function(e){ QD.loading = false; paintQueue(); toast('불러오기 실패: '+e.message,'err'); });
+}
+function qCount(){ var ta = $('qta'), c = $('qcnt'); if(ta && c) c.textContent = ta.value.length + '자'; }
+function qClearImg(i){ QD.image = ''; QD.imageUrl = ''; S.queue[i].image = ''; var ta=$('qta'); var cur=ta?ta.value:''; paintQueue(); if($('qta')) $('qta').value = cur; qCount(); toast('저장을 누르면 사진이 빠집니다'); }
+function qPickImg(i, f){
+  if(!f) return;
+  if(!/^image\//.test(f.type)){ toast('이미지 파일만 올릴 수 있습니다','err'); return; }
+  var r = new FileReader();
+  r.onload = function(){
+    var ta = $('qta'); var cur = ta ? ta.value : '';
+    QD.imageUrl = r.result; QD.image = f.name; paintQueue(); if($('qta')) $('qta').value = cur; qCount();
+    if(!LIVE){ toast('사진을 바꿨습니다 (시연)','ok'); return; }
+    var store = (SRV && SRV.stores || []).filter(function(x){ return x !== '전체'; })[0] || '';
+    apiPost('upload', { b64:String(r.result).split(',')[1], filename:f.name, store:store }).then(function(j){
+      QD.image = (j.data && j.data.name) || f.name;
+      var ta2 = $('qta'); var cur2 = ta2 ? ta2.value : ''; paintQueue(); if($('qta')) $('qta').value = cur2; qCount();
+      toast('사진을 올렸습니다. 저장을 누르면 반영됩니다','ok');
+    }, function(e){ toast('업로드 실패: '+e.message,'err'); });
+  };
+  r.readAsDataURL(f);
+}
+function qSave(i){
+  var q = S.queue[i]; var ta = $('qta'); var text = ta ? ta.value : QD.text;
+  if(!text.trim()){ toast('문구가 비어 있습니다','err'); return; }
+  var hit = (CFG.banned || []).filter(function(w){ return w && text.indexOf(w) >= 0; });
+  if(hit.length){ toast('금지어가 들어 있습니다: '+hit.join(', '),'err'); return; }
+  q.text = text; q.image = QD.image; q.topic = text.split('\n')[0].slice(0,40) || '(문구 없음)';
+  if(!LIVE || !q.row){ QOPEN = -1; QD = {}; paintQueue(); toast('저장했습니다 (시연)','ok'); return; }
+  apiPost('updaterow', { row:q.row, text:text, image:QD.image }).then(function(){
+    toast('저장했습니다','ok'); QOPEN = -1; QD = {};
+    return liveLoad();
+  }, function(e){ toast('저장 실패: '+e.message,'err'); });
 }
 function approve(i){
   var q = S.queue[i];
@@ -1752,7 +1832,7 @@ function publishNow(i){
 function dropQ(i){
   var q = S.queue[i];
   if(!confirm('이 게시물을 삭제할까요?')) return;
-  S.queue.splice(i,1); paintQueue(); paintRail(); paintCal();
+  S.queue.splice(i,1); QOPEN = -1; QD = {}; paintQueue(); paintRail(); paintCal();
   if(!LIVE || !q.row){ toast('삭제했습니다'); return; }
   apiPost('deletemany', { rows:String(q.row) }).then(function(){ toast('삭제했습니다','ok'); },
     function(e){ toast(e.message,'err'); liveLoad(); });
@@ -2174,13 +2254,15 @@ function liveLoad(){
         st: r.status || '대기',
         note: r.result || '',
         row: r.row,
-        approved: !!r.approved
+        approved: !!r.approved,
+        text: r.text || '',
+        image: r.image || ''
       };
       if(DONE_ST.indexOf(item.st) >= 0) lg.push(item); else q.push(item);
     });
     q.sort(function(a,b){ return a.d < b.d ? -1 : 1; });
     lg.sort(function(a,b){ return a.d > b.d ? -1 : 1; });
-    S.queue = q; S.log = lg;
+    S.queue = q; S.log = lg; QOPEN = -1; QD = {};
 
     if(SRV.max) CH.forEach(function(c){ if(c.id!=='x' && SRV.max > c.limit) c.limit = SRV.max; });
     paintRail(); paintQueue(); paintLog(); paintCal();
