@@ -318,6 +318,10 @@ main{flex:1;min-width:0;padding:0 22px 70px}
 .st{font-size:10.5px;padding:2px 8px;border-radius:999px;border:1px solid currentColor;font-family:"IBM Plex Mono",monospace}
 .st.ok{color:var(--ok)} .st.warn{color:var(--warn)} .st.err{color:var(--err)} .st.idle{color:var(--ink3)}
 .empty{padding:52px 20px;text-align:center;color:var(--ink3);font-size:13px}
+.rtbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+.rtbl th,.rtbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.rtbl th{color:var(--ink3);font-weight:500;font-size:11px}
+#plan-btn:disabled{opacity:.5;cursor:default}
 /* 대기열 펼침 편집 */
 .tr.open{flex-wrap:wrap;background:var(--surface2)}
 .qx{flex:none;width:22px;height:22px;border:1px solid var(--line2);border-radius:6px;background:var(--surface);color:var(--ink2);font-size:11px;line-height:1}
@@ -599,6 +603,12 @@ main{flex:1;min-width:0;padding:0 22px 70px}
         <div class="panel ag-stat"><div class="k">보유 소재</div><div class="v" id="ag-topics">-</div></div>
         <div class="panel ag-stat"><div class="k">리서치 소재</div><div class="v" id="ag-trend">-</div></div>
         <div class="panel ag-stat"><div class="k">자동 발행</div><div class="v" id="ag-auto">-</div></div>
+      </div>
+      <div class="panel" id="ag-plan" style="margin-bottom:14px">
+        <div class="panel-h"><span class="lbl">주간 기획 비서</span><h3>매주 월 07:30 발행규칙대로 이번 주 초안을 만들어 승인대기에 올립니다 <small class="hint" id="plan-st"></small></h3>
+          <div class="grow"></div>
+          <button class="mini" id="plan-btn" onclick="planNow()">이번 주 기획 지금 실행</button></div>
+        <div class="panel-b"><div id="plan-rules" class="hint">연결하면 발행규칙 시트가 여기 표시됩니다</div></div>
       </div>
       <div class="ag-grid">
         <div class="panel ag-board">
@@ -1739,6 +1749,7 @@ function paintQueue(){
       + '<div class="chips" style="margin-top:6px">'+chipsFor(q.ch)+'</div></div>'
       + '<div class="chips">'
       + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
+      + (q.st==='승인대기' ? '<button class="mini" style="border-color:var(--ok);color:var(--ok)" onclick="approve('+i+')">승인</button><button class="mini" onclick="rejectQ('+i+')">거절</button>' : '')
       + (isX ? '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="postToX('+i+')">X에 올리기</button><button class="mini" onclick="markPosted('+i+')">게시 완료 처리</button>'
              : (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>'))
       + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div>'
@@ -1811,10 +1822,23 @@ function qSave(i){
 }
 function approve(i){
   var q = S.queue[i];
+  if(LIVE && q.row && q.st==='승인대기'){
+    var ta = (QOPEN===i) ? $('qta') : null; var text = ta ? ta.value : undefined;
+    apiPost('review', { row:q.row, ok:true, text:text }).then(function(){ toast('승인했습니다 — 예약 시각에 자동 발행됩니다','ok'); return liveLoad(); },
+      function(e){ toast('승인 실패: '+e.message,'err'); });
+    return;
+  }
   q.st = '승인 완료'; paintQueue();
   if(!LIVE || !q.row){ toast('승인했습니다','ok'); return; }
   apiGet('approve', { row:q.row, on:true }).then(function(){ toast('승인했습니다','ok'); },
     function(e){ q.st = '승인 대기'; paintQueue(); toast(e.message,'err'); });
+}
+function rejectQ(i){
+  var q = S.queue[i];
+  if(!(LIVE && q.row && q.st==='승인대기')) return;
+  if(!confirm('「'+q.topic+'」을(를) 거절할까요?')) return;
+  apiPost('review', { row:q.row, ok:false, reason:'콘솔에서 거절' }).then(function(){ toast('거절했습니다'); return liveLoad(); },
+    function(e){ toast('거절 실패: '+e.message,'err'); });
 }
 /* ---- X 수동 발행 도우미: 문구 복사 + X 작성창 열기 + 사진 탭 열기 ---- */
 function copyFallback(t){
@@ -2557,12 +2581,42 @@ function agTick(){
       queue:{ '승인대기':3 }, status:{ auto:{ on:true, queueDays:4.5, tokenDaysLeft:41 }, safety:{ sentToday:2, maxPerDay:8 }, topics:{ '전체':60 }, trend:{ '보유소재':4 } } });
     return;
   }
+  planStatus();
   apiPost('agents', { n:80 }).then(function(j){
     $('ag-conn').textContent = '실시간 · ' + new Date().toLocaleTimeString('ko-KR');
     agPaint(j.data || {});
   }, function(e){ $('ag-conn').textContent = '오류: ' + e.message; });
 }
-function agStart(){ agTick(); if(AG_TIMER) clearInterval(AG_TIMER); AG_TIMER = setInterval(function(){ if($('v-agents').classList.contains('on')) agTick(); }, 8000); }
+/* ---- 주간 기획 비서 ---- */
+var PLAN_RUNNING = false;
+function planNow(){
+  if(!LIVE){ toast('연결 후 사용할 수 있습니다','err'); return; }
+  if(!confirm('발행규칙에 따라 이번 주 초안을 지금 만들까요?\n규칙 하나에 1~2분씩 걸리고, 끝나면 대기열에 승인대기로 들어옵니다.')) return;
+  apiPost('weeklyplan', {}).then(function(j){ var d = j.data || {}; toast(d.msg || '시작했습니다', d.started ? 'ok' : 'err'); planStatus(); },
+    function(e){ toast('실패: '+e.message,'err'); });
+}
+function planStatus(){
+  if(!LIVE){ $('plan-st').textContent = '시연 모드'; return; }
+  apiPost('planstatus', {}).then(function(j){
+    var d = j.data || {}, el = $('plan-st'), b = $('plan-btn');
+    if(d.running){ el.textContent = '진행 중 · 규칙 '+(d.total-d.left)+'/'+d.total+' · 초안 '+d.made+'건'; b.disabled = true; PLAN_RUNNING = true; }
+    else {
+      if(PLAN_RUNNING){ toast('이번 주 기획이 끝났습니다. 대기열을 확인하세요','ok'); liveLoad(); }
+      PLAN_RUNNING = false; el.textContent = '대기 중 · 다음 자동 실행 월요일 07:30'; b.disabled = false;
+    }
+  }, function(){});
+}
+function planRules(){
+  if(!LIVE){ $('plan-rules').textContent = '연결하면 발행규칙 시트가 여기 표시됩니다'; return; }
+  apiPost('rules', {}).then(function(j){
+    var rs = (j.data || []).filter(function(r){ return r.on !== false; });
+    if(!rs.length){ $('plan-rules').textContent = '발행규칙 시트에 사용 중인 규칙이 없습니다'; return; }
+    $('plan-rules').innerHTML = '<table class="rtbl"><tr><th>요일</th><th>시간</th><th>채널</th><th>카테고리</th><th>지점</th></tr>'
+      + rs.map(function(r){ return '<tr><td>'+esc(r.dow)+'</td><td>'+esc(r.time)+'</td><td>'+esc(r.channel || '인스타+쓰레드 · 페이스북 · X')+'</td><td>'+esc(r.cat)+'</td><td>'+esc(r.store || '전체')+'</td></tr>'; }).join('')
+      + '</table><span class="hint">규칙은 구글시트 「발행규칙」 탭에서 고칩니다. 시간은 학습 결과(최적 시간대)로 자동 보정됩니다.</span>';
+  }, function(e){ $('plan-rules').textContent = '불러오기 실패: '+e.message; });
+}
+function agStart(){ agTick(); planRules(); if(AG_TIMER) clearInterval(AG_TIMER); AG_TIMER = setInterval(function(){ if($('v-agents').classList.contains('on')) agTick(); }, 8000); }
 agDraw();
 var _go = go;
 go = function(v){ _go(v); if(v==='agents') agStart(); };
