@@ -1722,6 +1722,7 @@ function paintQueue(){
       + '<div class="chips" style="margin-top:6px">'+chipsFor(q.ch)+'</div></div>'
       + '<div class="chips">'
       + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
+      + (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--brand);color:var(--brand)" onclick="publishNow('+i+')">지금 발행</button>')
       + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div></div>';
   }).join('');
 }
@@ -1731,6 +1732,22 @@ function approve(i){
   if(!LIVE || !q.row){ toast('승인했습니다','ok'); return; }
   apiGet('approve', { row:q.row, on:true }).then(function(){ toast('승인했습니다','ok'); },
     function(e){ q.st = '승인 대기'; paintQueue(); toast(e.message,'err'); });
+}
+/* 예약시각을 기다리지 않고 이 건만 승인 + 즉시 발행 */
+function publishNow(i){
+  var q = S.queue[i];
+  if(!confirm('「'+q.topic+'」을(를) 지금 바로 발행할까요?\n예약 시각과 관계없이 즉시 올라갑니다.')) return;
+  if(!LIVE || !q.row){
+    S.queue.splice(i,1); S.log.unshift({ d:q.d, topic:q.topic, ch:q.ch, st:'발행 완료', note:'시연' });
+    paintQueue(); paintLog(); paintRail(); toast('발행했습니다 (시연)','ok'); return;
+  }
+  q.busy = true; paintQueue();
+  apiPost('publishnow', { row:q.row }).then(function(j){
+    var d = j.data || {};
+    var ok = (d.status==='발행완료' || d.status==='수동게시완료');
+    toast(ok ? '발행 완료: '+(d.result||'') : '결과: '+(d.status||'')+' '+(d.result||''), ok ? 'ok' : 'err');
+    return liveLoad().then(function(){ if(ok) go('log'); });
+  }, function(e){ q.busy = false; paintQueue(); toast('발행 실패: '+e.message,'err'); });
 }
 function dropQ(i){
   var q = S.queue[i];
