@@ -266,6 +266,7 @@ main{flex:1;min-width:0;padding:0 22px 70px}
 .rulerow .rh{display:flex;align-items:center;gap:8px}
 .rulerow .rh .ico{width:17px;height:17px;flex:none;display:grid;place-items:center}
 .rulerow .rh b{font-size:12.5px;flex:1}
+.rulerow textarea.sample{min-height:70px;font-size:11.5px;color:var(--ink2)}
 .rulerow textarea{min-height:60px;font-size:12.5px}
 .slot{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
 .slot:last-of-type{border-bottom:0}
@@ -634,14 +635,14 @@ main{flex:1;min-width:0;padding:0 22px 70px}
             <span class="setnote">주의가 필요한 채널이 맨 위로 올라옵니다</span></div>
           <div id="conns"></div>
           <div class="panel-b" style="border-top:1px solid var(--line)">
-            <p class="setnote">메타 계열(인스타그램·쓰레드·페이스북) 토큰은 <b>60일</b>마다 만료됩니다. 만료되면 예약된 글이 조용히 나가지 않으니, 만료 2주 전부터 여기에 경고가 뜹니다. X는 만료 기한이 없지만 비밀번호를 바꾸거나 계정이 정지되면 끊깁니다. 지금 자동 발행은 인스타그램과 쓰레드 둘뿐이고, 페이스북은 패치를 붙이면 자동으로 바뀝니다. X는 문구만 만들고 사람이 올립니다.</p>
+            <p class="setnote">메타 계열(인스타그램·쓰레드·페이스북) 토큰은 <b>60일</b>마다 만료됩니다. 만료되면 예약된 글이 조용히 나가지 않으니, 만료 2주 전부터 여기에 경고가 뜹니다. X는 만료 기한이 없지만 비밀번호를 바꾸거나 계정이 정지되면 끊깁니다. 인스타그램·쓰레드·페이스북은 채널마다 「자동 ↔ 수동」을 바꿀 수 있습니다. 수동으로 두면 예약 시각에 나가지 않고 대기열에서 문구를 복사해 직접 올립니다. X는 항상 수동입니다.</p>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-h"><span class="lbl">톤 규칙</span><h3>채널마다 어떻게 쓸지</h3></div>
           <div class="panel-b">
-            <p class="setnote">여기 적은 문장이 그대로 AI에게 전달됩니다. 문안이 마음에 안 들면 다시 쓰라고 하지 말고 이 규칙을 고치세요.</p>
+            <p class="setnote">「서버에 저장」을 누르면 규칙과 예시 글이 그대로 AI에게 전달됩니다. 문안이 마음에 안 들면 다시 쓰라고 하지 말고 규칙을 고치거나, 마음에 드는 글을 예시로 넣으세요.</p>
             <div id="rules"></div>
           </div>
         </div>
@@ -1751,7 +1752,8 @@ function paintQueue(){
       + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
       + (q.st==='승인대기' ? '<button class="mini" style="border-color:var(--ok);color:var(--ok)" onclick="approve('+i+')">승인</button><button class="mini" onclick="rejectQ('+i+')">거절</button>' : '')
       + (isX ? '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="postToX('+i+')">X에 올리기</button><button class="mini" onclick="markPosted('+i+')">게시 완료 처리</button>'
-             : (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>'))
+             : (q.st==='게시대기(수동)' ? '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="copyQ('+i+')">문구 복사</button><button class="mini" onclick="markPosted('+i+')">게시 완료 처리</button>'
+               : (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>')))
       + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div>'
       + (open ? qEditor(q, i) : '')
       + '</div>';
@@ -1851,6 +1853,7 @@ function copyText(t){
   }
   return copyFallback(t);
 }
+function copyQ(i){ var q = S.queue[i]; var t = q.text || QD.text || q.topic || ''; toast(copyText(t) ? '문구를 복사했습니다. 해당 채널에 붙여 넣어 올리세요' : '복사 실패 — 펼쳐서 직접 복사하세요', 'ok'); }
 function postToX(i){
   var q = S.queue[i];
   var text = q.text || QD.text || q.topic || '';
@@ -1871,7 +1874,7 @@ function postToX(i){
 }
 function markPosted(i){
   var q = S.queue[i];
-  if(!confirm('「'+q.topic+'」을(를) X에 올리셨나요? 게시 완료로 기록합니다.')) return;
+  if(!confirm('「'+q.topic+'」을(를) 직접 올리셨나요? 게시 완료로 기록합니다.')) return;
   if(!LIVE || !q.row){
     S.queue.splice(i,1); S.log.unshift({ d:q.d, topic:q.topic, ch:q.ch, st:'수동게시완료', note:'시연' });
     QOPEN = -1; QD = {}; paintQueue(); paintLog(); paintRail(); toast('게시 완료로 기록했습니다','ok'); return;
@@ -1965,7 +1968,7 @@ function paintConns(){
       : '<b class="'+(st==='ok'?'ok':'warn')+'">D-'+d+'</b><span style="color:var(--ink3)">'+esc(c.exp)+' 만료</span>';
     if(c.err) right = '<b class="warn">연결 안 됨</b><span style="color:var(--ink3)">'+esc(c.msg||'')+'</span>';
     else if(c.msg && LIVE) right = d === null
-      ? '<b class="ok">'+(c.mode==='auto'?'연결됨':'수동')+'</b><span style="color:var(--ink3)">'+esc(c.msg)+'</span>'
+      ? '<b class="ok">'+(c.mode==='auto'?'자동 발행':'수동 발행')+'</b><span style="color:var(--ink3)">'+esc(c.msg)+'</span>'
       : '<b class="'+(st==='ok'?'ok':'warn')+'">D-'+d+'</b><span style="color:var(--ink3)">'+esc(c.exp)+' 만료 · '+esc(c.msg)+'</span>';
     return '<div class="conn'+(st!=='ok'?' alert':'')+'">'
       + '<span class="ico">'+icon(c.id,c.color)+'</span>'
@@ -1973,8 +1976,36 @@ function paintConns(){
       + '<span>@'+esc(c.handle)+(LIVE ? '' : ' · 마지막 발행 '+esc(c.last))+'</span></span>'
       + '<span class="dl">'+right+'</span>'
       + (c.id==='th' || !LIVE ? '<button class="mini" onclick="reconnect(\''+c.id+'\')">'+(st==='ok'?'토큰 갱신':'지금 갱신')+'</button>' : '')
+      + (LIVE && c.id!=='x' ? '<button class="mini" onclick="chanModeToggle(\''+c.id+'\')">'+(MODES[c.id]==='수동' ? '자동으로 전환' : '수동으로 전환')+'</button>' : '')
       + '</div>';
   }).join('');
+}
+var MODES = {};
+function chanModeToggle(id){
+  var to = MODES[id]==='수동' ? '자동' : '수동';
+  var nm = (CHM[id] || {}).name || id;
+  if(!confirm(nm + ' 발행 방식을 「'+to+'」으로 바꿀까요?\n' + (to==='수동' ? '앞으로 이 채널 글은 예약 시각에 자동으로 나가지 않고, 대기열에서 문구를 복사해 직접 올린 뒤 「게시 완료 처리」를 누릅니다.' : '앞으로 이 채널 글은 예약 시각에 자동으로 발행됩니다.'))) return;
+  apiPost('chanmode', { id:id, mode:to }).then(function(){ toast(nm + ' → ' + to + ' 발행', 'ok'); return loadConn(); }, function(e){ toast('전환 실패: ' + e.message, 'err'); });
+}
+/* ---- 톤 규칙·예시 글: 서버 저장 (AI 프롬프트에 그대로 들어감) ---- */
+var TONE = {};
+function toneLoad(){
+  if(!LIVE) return;
+  apiPost('tone', {}).then(function(j){
+    TONE = j.data || {};
+    CH.forEach(function(c){ var t = TONE[c.id]; if(t && t.rule) CFG.rules[c.id] = t.rule; });
+    paintRules();
+  }, function(){});
+}
+function toneSave(){
+  if(!LIVE){ toast('연결 후 저장할 수 있습니다','err'); return; }
+  var body = {};
+  CH.forEach(function(c){
+    var r = document.querySelector('textarea[data-r="'+c.id+'"]'), s = document.querySelector('textarea[data-s="'+c.id+'"]');
+    body[c.id] = { rule: r ? r.value : '', sample: s ? s.value : '' };
+  });
+  apiPost('tonesave', body).then(function(j){ TONE = j.data || {}; toast('말투 규칙을 저장했습니다. 다음 생성부터 반영됩니다','ok'); },
+    function(e){ toast('저장 실패: ' + e.message, 'err'); });
 }
 function reconnect(id){
   var c = CHM[id];
@@ -1998,8 +2029,11 @@ function paintRules(){
     return '<div class="rulerow"><div class="rh"><span class="ico">'+icon(c.id,c.color)+'</span>'
       + '<b>'+esc(c.name)+'</b><span class="tone'+(c.id==='th'?' casual':'')+'">'+c.tone+'</span>'
       + '<span class="cnt">'+c.limit+'자</span></div>'
-      + '<textarea data-r="'+c.id+'" oninput="saveRule(this)">'+esc(CFG.rules[c.id])+'</textarea></div>';
-  }).join('');
+      + '<textarea data-r="'+c.id+'" oninput="saveRule(this)" placeholder="규칙 (구조·말투·금지 표현)">'+esc(CFG.rules[c.id])+'</textarea>'
+      + '<textarea data-s="'+c.id+'" class="sample" placeholder="예시 글 — 직접 쓴 잘 된 글 1~3개를 붙여 넣으세요. AI가 이 결·호흡·어미를 따라 씁니다 (내용은 베끼지 않음)">'+esc((TONE[c.id] && TONE[c.id].sample) || '')+'</textarea></div>';
+  }).join('')
+  + (LIVE ? '<div style="display:flex;gap:8px;align-items:center;padding-top:10px"><button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="toneSave()">서버에 저장</button><span class="hint">저장해야 AI에 전달됩니다. 다음 생성(미리보기·주간 기획)부터 반영</span></div>'
+          : '<div class="hint" style="padding-top:10px">연결하면 서버에 저장되어 AI 프롬프트에 들어갑니다</div>');
 }
 function saveRule(el){ CFG.rules[el.dataset.r] = el.value; }
 
@@ -2066,7 +2100,7 @@ function fillCfg(){
   $('cfg-notify').value = CFG.notify.to;
   $('slot-d').innerHTML = DOW.map(function(d,i){ return '<option value="'+i+'"'+(i===2?' selected':'')+'>'+d+'요일</option>'; }).join('');
 }
-function paintSettings(){ paintConns(); paintRules(); paintWords(); paintSlots(); }
+function paintSettings(){ paintConns(); paintRules(); paintWords(); paintSlots(); toneLoad(); }
 
 /* ============ 화면 전환 ============ */
 function go(v){
@@ -2367,8 +2401,10 @@ function loadConn(){
     CHM.th.exp = expIn(th.daysLeft); CHM.th.err = !th.ok; CHM.th.msg = th.msg || ''; CHM.th.mode = th.ok ? 'auto' : 'manual';
     if(ig.linked){ CHM.ig.exp = CHM.th.exp; CHM.ig.err = !th.ok; CHM.ig.msg = '쓰레드 연동 발행'; CHM.ig.mode = th.ok ? 'auto' : 'manual'; }
     else { CHM.ig.exp = null; CHM.ig.err = !ig.ok; CHM.ig.msg = ig.msg || ''; CHM.ig.mode = ig.ok ? 'auto' : 'manual'; }
-    CHM.fb.exp = null; CHM.fb.err = false; CHM.fb.msg = fb.msg || '자동 발행 미연동'; CHM.fb.mode = 'manual';
+    CHM.fb.exp = null; CHM.fb.err = !fb.ok; CHM.fb.msg = fb.msg || ''; CHM.fb.mode = fb.ok ? 'auto' : 'manual';
     CHM.x.exp = null; CHM.x.err = false; CHM.x.msg = '수동 업로드'; CHM.x.mode = 'manual';
+    MODES = d.modes || {};
+    ['ig','th','fb'].forEach(function(id){ if(MODES[id]==='수동'){ CHM[id].mode = 'manual'; CHM[id].msg = '수동으로 전환됨 · ' + (CHM[id].msg || ''); } });
     paintRail(); if($('conns')) paintConns();
   }, function(e){ logApi('conn', null, null, e.message); });
 }
