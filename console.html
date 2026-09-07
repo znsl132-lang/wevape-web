@@ -1730,6 +1730,7 @@ function paintQueue(){
   $('queue').innerHTML = S.queue.map(function(q,i){
     var cls = q.st==='승인 대기' ? 'warn' : 'ok';
     var open = QOPEN === i;
+    var isX = (q.ch || []).indexOf('x') >= 0 && (q.ch || []).length === 1;
     return '<div class="tr'+(open?' open':'')+'">'
       + '<button class="qx" title="펼쳐서 보기·수정" onclick="toggleQ('+i+')">'+(open?'▲':'▼')+'</button>'
       + '<span class="when">'+esc(q.d)+'</span><div class="bd">'
@@ -1737,7 +1738,8 @@ function paintQueue(){
       + '<div class="chips" style="margin-top:6px">'+chipsFor(q.ch)+'</div></div>'
       + '<div class="chips">'
       + (q.st==='승인 대기' ? '<button class="mini" onclick="approve('+i+')">승인</button>' : '')
-      + (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>')
+      + (isX ? '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="postToX('+i+')">X에 올리기</button><button class="mini" onclick="markPosted('+i+')">게시 완료 처리</button>'
+             : (q.busy ? '<span class="st warn">발행 중…</span>' : '<button class="mini" style="border-color:var(--accent);color:var(--accent)" onclick="publishNow('+i+')">지금 발행</button>'))
       + '<button class="mini" onclick="dropQ('+i+')">삭제</button></div>'
       + (open ? qEditor(q, i) : '')
       + '</div>';
@@ -1812,6 +1814,45 @@ function approve(i){
   if(!LIVE || !q.row){ toast('승인했습니다','ok'); return; }
   apiGet('approve', { row:q.row, on:true }).then(function(){ toast('승인했습니다','ok'); },
     function(e){ q.st = '승인 대기'; paintQueue(); toast(e.message,'err'); });
+}
+/* ---- X 수동 발행 도우미: 문구 복사 + X 작성창 열기 + 사진 탭 열기 ---- */
+function copyFallback(t){
+  try{ var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); var ok=document.execCommand('copy'); document.body.removeChild(ta); return ok; }catch(e){ return false; }
+}
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).catch(function(){ copyFallback(t); });
+    return true;
+  }
+  return copyFallback(t);
+}
+function postToX(i){
+  var q = S.queue[i];
+  var text = q.text || QD.text || q.topic || '';
+  var copied = copyText(text);
+  /* 팝업 차단을 피하려고 클릭 시점에 창을 먼저 연다 */
+  var wx = window.open('https://x.com/intent/post?text=' + encodeURIComponent(text), '_blank');
+  var wi = q.image ? window.open('', '_blank') : null;
+  if(wi){
+    if(LIVE && q.row){
+      apiPost('rowdetail', { row:q.row }).then(function(j){
+        var u = (j.data && j.data.imageUrl) || '';
+        if(u) wi.location = u; else { wi.close(); toast('사진 주소를 찾지 못했습니다','err'); }
+      }, function(){ wi.close(); });
+    } else wi.close();
+  }
+  toast((copied ? '문구를 복사했습니다. ' : '') + 'X 작성창을 열었습니다' + (q.image ? ' — 사진은 옆 탭에서 끌어다 놓으세요' : ''), 'ok');
+  if(!wx) toast('팝업이 차단됐습니다. 주소창 오른쪽 차단 아이콘에서 허용해 주세요','err');
+}
+function markPosted(i){
+  var q = S.queue[i];
+  if(!confirm('「'+q.topic+'」을(를) X에 올리셨나요? 게시 완료로 기록합니다.')) return;
+  if(!LIVE || !q.row){
+    S.queue.splice(i,1); S.log.unshift({ d:q.d, topic:q.topic, ch:q.ch, st:'수동게시완료', note:'시연' });
+    QOPEN = -1; QD = {}; paintQueue(); paintLog(); paintRail(); toast('게시 완료로 기록했습니다','ok'); return;
+  }
+  apiPost('posted', { row:q.row }).then(function(){ toast('게시 완료로 기록했습니다','ok'); return liveLoad().then(function(){ go('log'); }); },
+    function(e){ toast('기록 실패: '+e.message,'err'); });
 }
 /* 예약시각을 기다리지 않고 이 건만 승인 + 즉시 발행 */
 function publishNow(i){
