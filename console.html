@@ -368,6 +368,41 @@ main{flex:1;min-width:0;padding:0 22px 70px}
 .ag-stat .k{font-size:11px;color:var(--ink3)}
 .ag-stat .v{font-size:22px;font-weight:600;margin-top:4px;font-family:"IBM Plex Mono",monospace;color:var(--ink)}
 .ag-stat .v small{font-size:12px;color:var(--ink3);font-weight:400;margin-left:4px}
+/* ============ 작업현황판 (Claude 작업 진행) ============ */
+.wb{padding:16px 18px;margin-bottom:14px}
+.wb-top{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center}
+@media(max-width:640px){.wb-top{grid-template-columns:1fr}}
+.wb-ring{position:relative;width:130px;height:130px;margin:auto}
+.wb-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.wb-ring circle{fill:none;stroke-width:11;stroke-linecap:round}
+.wb-ring .tr{stroke:var(--line)}
+.wb-ring .br{stroke:var(--accent);stroke-dasharray:345;stroke-dashoffset:345;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.wb-ring .num{position:absolute;inset:0;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;color:var(--ink)}
+.wb-ring .num small{display:block;font-size:10.5px;color:var(--ink3);font-family:inherit;font-weight:400;text-align:center}
+.wb-now .eyebrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.wb-now h4{margin:4px 0 4px;font-size:16px;font-weight:600;color:var(--ink)}
+.wb-now p{margin:0;color:var(--ink2);font-size:13px}
+.wb-now .step{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--accent);margin-top:6px}
+.wb-typing::after{content:"";display:inline-block;width:.5em;height:1em;vertical-align:-.15em;margin-left:3px;background:var(--accent);animation:wbblink 1s steps(2) infinite}
+@keyframes wbblink{50%{opacity:0}}
+.wb-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:900px){.wb-grid{grid-template-columns:1fr}}
+.wb-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-bottom:8px}
+.wb-ph{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;padding:7px 6px;border-radius:8px}
+.wb-ph .i{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink3);text-align:center}
+.wb-ph .n{font-size:13px;font-weight:500;color:var(--ink)}
+.wb-ph .m{font-size:11.5px;color:var(--ink3);margin-top:1px}
+.wb-ph .bar{grid-column:2/4;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:5px}
+.wb-ph .bar i{display:block;height:100%;width:0;background:var(--ink3);transition:width .9s ease}
+.wb-pill{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:2px 7px;border-radius:999px;white-space:nowrap;background:var(--surface3);color:var(--ink3)}
+.wb-ph.done .wb-pill{background:var(--ok-soft);color:var(--ok)} .wb-ph.done .bar i{background:var(--ok)} .wb-ph.done .i{color:var(--ok)}
+.wb-ph.active{background:var(--accent-soft)} .wb-ph.active .wb-pill{background:var(--accent);color:var(--accent-ink)} .wb-ph.active .bar i{background:var(--accent)}
+.wb-ph.blocked .wb-pill{background:var(--warn-soft);color:var(--warn)} .wb-ph.blocked .bar i{background:var(--warn)}
+.wb-ph.pending .n,.wb-ph.pending .m{color:var(--ink3)}
+.wb-log{max-height:330px;overflow:auto}
+.wb-log div{display:grid;grid-template-columns:44px 1fr;gap:8px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line);color:var(--ink2)}
+.wb-log div:first-child{color:var(--ink)}
+.wb-log time{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink3)}
 .ag-grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
 @media(max-width:980px){.ag-grid{grid-template-columns:1fr}}
 .ag-board{padding:16px 18px}
@@ -610,6 +645,17 @@ main{flex:1;min-width:0;padding:0 22px 70px}
           <div class="grow"></div>
           <button class="mini" id="plan-btn" onclick="planNow()">이번 주 기획 지금 실행</button></div>
         <div class="panel-b"><div id="plan-rules" class="hint">연결하면 발행규칙 시트가 여기 표시됩니다</div></div>
+      </div>
+      <div class="panel wb" id="wb">
+        <div class="panel-h"><span class="lbl">작업현황판</span><h3>Claude 작업 진행 <small class="hint" id="wb-conn">연결하면 표시됩니다</small></h3></div>
+        <div class="wb-top">
+          <div class="wb-ring"><svg viewBox="0 0 120 120"><circle class="tr" cx="60" cy="60" r="55"></circle><circle class="br" id="wb-bar" cx="60" cy="60" r="55"></circle></svg><div class="num"><div><span id="wb-pct">0</span>%<small>전체 진척</small></div></div></div>
+          <div class="wb-now"><div class="eyebrow">지금 하는 일</div><h4 id="wb-title">대기 중</h4><p id="wb-detail"></p><div class="step" id="wb-step"></div></div>
+        </div>
+        <div class="wb-grid">
+          <div><div class="wb-h">착수 순서</div><div id="wb-phases"><div class="empty">단계가 아직 없습니다</div></div></div>
+          <div><div class="wb-h">작업 기록</div><div class="wb-log" id="wb-log"><div class="empty">아직 기록이 없습니다</div></div></div>
+        </div>
       </div>
       <div class="ag-grid">
         <div class="panel ag-board">
@@ -2611,18 +2657,41 @@ function agPaint(d){
 }
 function agTick(){
   if(!LIVE){
-    var now = Date.now(), L = function(s,k,t,m){ return { t:new Date(now-s*1000).toISOString(), kind:k, target:t, msg:m }; };
-    $('ag-conn').textContent = '시연 모드 · 샘플 데이터';
-    agPaint({ logs:[L(20,'AI미리보기','쓰레드만 / A.영업공지','194자'), L(200,'리서치','E.지역계절','4건 저장 · 1건 탈락'), L(400,'AI차단','인스타만 / B.매장정보','금지어: 세일'), L(5000,'발행','인천연수점','인스타 완료'), L(90000,'학습','전체','n=34')],
-      queue:{ '승인대기':3 }, status:{ auto:{ on:true, queueDays:4.5, tokenDaysLeft:41 }, safety:{ sentToday:2, maxPerDay:8 }, topics:{ '전체':60 }, trend:{ '보유소재':4 } } });
+    $('ag-conn').textContent = '연결하면 실제 기록이 표시됩니다';
+    $('ag-list').innerHTML = '<div class="empty">연결하면 로그가 여기에 흐릅니다</div>';
+    $('wb-conn').textContent = '연결하면 표시됩니다';
     return;
   }
+  wbTick();
   planStatus();
   apiPost('agents', { n:80 }).then(function(j){
     $('ag-conn').textContent = '실시간 · ' + new Date().toLocaleTimeString('ko-KR');
     agPaint(j.data || {});
   }, function(e){ $('ag-conn').textContent = '오류: ' + e.message; });
 }
+/* ---- 작업현황판 (Claude 가 path=boardset 로 갱신) ---- */
+var WB_STATUS = { done:'완료', active:'진행 중', pending:'대기', blocked:'막힘' };
+function wbTime(t){ var d = new Date(t); return isNaN(d) ? '' : ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+function wbPaint(b){
+  if(!b || !b.phases){ $('wb-conn').textContent = '데이터 없음'; return; }
+  var pct = Math.max(0, Math.min(100, Number(b.overall||0)));
+  $('wb-pct').textContent = Math.round(pct);
+  $('wb-bar').style.strokeDashoffset = String(345 - 345*pct/100);
+  var now = b.now || {};
+  $('wb-title').textContent = now.title || '대기 중';
+  $('wb-title').className = now.running ? 'wb-typing' : '';
+  $('wb-detail').textContent = now.detail || '';
+  var ph = b.phases || [], ai = -1; ph.forEach(function(p,i){ if(p.status==='active' && ai<0) ai = i; });
+  $('wb-step').textContent = ai >= 0 ? ('단계 ' + (ai+1) + ' / ' + ph.length + ' · ' + (ph[ai].name||'')) : '';
+  $('wb-phases').innerHTML = ph.length ? ph.map(function(p,i){
+    var st = p.status || 'pending', w = st==='done' ? 100 : Math.max(0, Math.min(100, Number(p.pct||0)));
+    return '<div class="wb-ph '+st+'"><div class="i">'+(i+1)+'</div><div><div class="n">'+esc(p.name)+'</div>'+(p.note?'<div class="m">'+esc(p.note)+'</div>':'')+'</div><span class="wb-pill">'+(WB_STATUS[st]||st)+(st==='active'&&p.pct?' '+w+'%':'')+'</span><div class="bar"><i style="width:'+w+'%"></i></div></div>';
+  }).join('') : '<div class="empty">단계가 아직 없습니다</div>';
+  var log = (b.log || []).slice().reverse();
+  $('wb-log').innerHTML = log.length ? log.map(function(l){ return '<div><time>'+wbTime(l.t)+'</time><span>'+esc(l.msg)+'</span></div>'; }).join('') : '<div class="empty">아직 기록이 없습니다</div>';
+  $('wb-conn').textContent = '갱신 ' + (b.updatedAt ? new Date(b.updatedAt).toLocaleString('ko-KR') : '-');
+}
+function wbTick(){ if(!LIVE) return; apiPost('board', {}).then(function(j){ wbPaint(j.data || {}); }, function(e){ $('wb-conn').textContent = '오류: ' + e.message; }); }
 /* ---- 주간 기획 비서 ---- */
 var PLAN_RUNNING = false;
 function planNow(){
