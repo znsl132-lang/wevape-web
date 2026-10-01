@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>비품 주문 보고</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{
+  --bg:#f4f5f7; --card:#ffffff; --line:#e3e6eb; --text:#1f2328; --muted:#6b7280;
+  --accent:#2f6f4e; --accent-soft:#e6f2ec; --warn:#b45309; --warn-soft:#fff4e0; --bad:#b91c1c; --bad-soft:#fdecec;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+header h1{font-size:24px;margin:0;font-weight:700;letter-spacing:-.3px}
+header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.settings{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.settings label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px}
+.settings input,.settings select{height:36px;border:1px solid var(--line);border-radius:9px;padding:0 10px;font:inherit;font-size:14px;background:#fff;min-width:120px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px}
+.step{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.step .num{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.step h2{margin:0;font-size:17px;font-weight:700}
+.step .hint{color:var(--muted);font-size:13px;margin-left:auto}
+.paste{min-height:120px;border:2px dashed #c9d0d9;border-radius:12px;padding:16px;background:#fafbfc;color:var(--muted);outline:none;transition:.15s;position:relative}
+.paste:focus{border-color:var(--accent);background:#fff;color:var(--text)}
+.paste.filled{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--text);min-height:0}
+.paste-row{display:flex;gap:10px;align-items:flex-start}
+.paste-row .paste{flex:1}
+.btn{height:38px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.12s}
+.btn:hover{background:#f3f4f6}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent;color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.big{height:46px;padding:0 22px;font-size:15px}
+.status{font-size:13px;color:var(--muted);margin-top:8px;min-height:18px}
+.status.ok{color:var(--accent)}
+.status.warn{color:var(--warn)}
+.status.bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;color:var(--muted);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);font-size:12.5px;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid #eef0f3;vertical-align:middle}
+td input,td select{width:100%;border:1px solid transparent;background:transparent;border-radius:7px;padding:6px 8px;font:inherit;font-size:14px;transition:.12s}
+td input:hover,td select:hover{border-color:var(--line);background:#fff}
+td input:focus,td select:focus{border-color:var(--accent);background:#fff;outline:none}
+td input.num{text-align:right;font-variant-numeric:tabular-nums}
+td.amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+td.link a{color:var(--accent);text-decoration:none;font-size:12.5px}
+td.link a:hover{text-decoration:underline}
+td.link .nolink{color:var(--bad);font-size:12.5px}
+tr.off td{opacity:.4}
+tr.nolink-row td{background:var(--warn-soft)}
+.tfoot td{border-top:2px solid var(--line);border-bottom:none;font-weight:700;padding-top:12px}
+.rowtools{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:13px;background:#f0f2f5;color:var(--muted)}
+.chip.ok{background:var(--accent-soft);color:var(--accent)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.pay-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px}
+.pay{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;position:relative}
+.pay .idx{position:absolute;top:10px;right:50px;font-size:12px;color:var(--muted)}
+.pay label{display:block;font-size:12px;color:var(--muted);margin-top:8px}
+.pay input{width:100%;height:34px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;font-size:14px}
+.pay .del{position:absolute;top:8px;right:12px;font-size:12px;color:var(--bad);background:none;border:none;cursor:pointer}
+.out{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.out{grid-template-columns:1fr}}
+.out h3{margin:0 0 10px;font-size:15px}
+textarea.msg{width:100%;min-height:300px;border:1px solid var(--line);border-radius:12px;padding:14px;font:inherit;font-size:14px;line-height:1.6;resize:vertical;background:#fafbfc}
+.oneliners{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.oneliner{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff;font-size:14px}
+.oneliner code{font-family:inherit;flex:1}
+.oneliner .btn{height:30px;padding:0 10px;font-size:12.5px}
+.xlsx-box{border:1px solid var(--line);border-radius:12px;padding:18px;background:#fafbfc;display:flex;flex-direction:column;gap:12px}
+.xlsx-box .fname{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv b{font-variant-numeric:tabular-nums}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2328;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+.empty{color:var(--muted);font-size:14px;padding:18px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>비품 주문 보고</h1>
+      <p>장바구니를 붙여넣으면 보고용 엑셀과 입금요청 멘트가 나옵니다.</p>
+    </div>
+    <div class="settings">
+      <label>매장 <input id="store" list="stores" value="구월점"></label>
+      <datalist id="stores">
+        <option>구월점</option><option>인천연수점</option><option>인천논현점</option><option>부천상동점</option><option>부천중동점</option>
+        <option>구월로데오점</option><option>구월길병원점</option><option>인천공항점</option><option>인천검단점</option><option>인천계산점</option>
+      </datalist>
+      <label>주문월 <input id="month" type="number" min="1" max="12" style="min-width:70px"></label>
+      <label>주문일 <input id="date" type="date"></label>
+      <label>지출증빙 매장 <input id="evName" value="연수점" style="min-width:90px"></label>
+      <label>사업자번호 <input id="evNo" value="1313632256" style="min-width:120px"></label>
+    </div>
+  </header>
+
+  <!-- STEP 1 -->
+  <section class="card">
+    <div class="step"><div class="num">1</div><h2>장바구니 붙여넣기</h2><span class="hint">쿠팡 장바구니 페이지에서 Ctrl+A → Ctrl+C 후 아래 칸에 Ctrl+V</span></div>
+    <div class="paste-row">
+      <div id="cartPaste" class="paste" contenteditable="true" data-placeholder="여기에 붙여넣기 (Ctrl+V)"></div>
+      <button class="btn" id="cartAppend" title="다른 사이트 장바구니를 추가로 붙여넣을 때">추가 붙여넣기 모드: 끔</button>
+      <button class="btn ghost" id="cartClear">비우기</button>
+    </div>
+    <div class="status" id="cartStatus">붙여넣으면 자동으로 품목을 읽습니다. 네이버 스마트스토어 장바구니도 같은 방식으로 됩니다.</div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card">
+    <div class="step"><div class="num">2</div><h2>품목 확인</h2><span class="hint">칸을 클릭하면 바로 고칠 수 있습니다 · 체크를 풀면 보고에서 빠집니다</span></div>
+    <div id="itemsWrap"><div class="empty">아직 읽은 품목이 없습니다.</div></div>
+    <div class="rowtools">
+      <div id="itemChips"></div>
+      <div><button class="btn" id="addRow">+ 품목 직접 추가</button></div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="card">
+    <div class="step"><div class="num">3</div><h2>입금 정보</h2><span class="hint">결제 후 "입금대기중" 화면을 Ctrl+A → Ctrl+C 해서 붙여넣기 · 결제가 여러 건이면 반복</span></div>
+    <div class="paste-row">
+      <div id="payPaste" class="paste" contenteditable="true" data-placeholder="입금대기 화면 붙여넣기 (Ctrl+V)"></div>
+      <button class="btn" id="payAdd">+ 직접 입력</button>
+    </div>
+    <div class="status" id="payStatus"></div>
+    <div class="pay-list" id="payList"></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="card">
+    <div class="step"><div class="num">4</div><h2>결과</h2><span class="hint" id="checkHint"></span></div>
+    <div class="out">
+      <div>
+        <h3>보고용 엑셀</h3>
+        <div class="xlsx-box">
+          <div class="kv">
+            <span>파일명</span><span class="fname" id="fname">-</span>
+            <span>품목 수</span><b id="kvCount">0</b>
+            <span>품목 합계</span><b id="kvItemTotal">0원</b>
+            <span>입금 합계</span><b id="kvPayTotal">0원</b>
+          </div>
+          <div><button class="btn primary big" id="dlXlsx" disabled>엑셀 다운로드</button></div>
+        </div>
+      </div>
+      <div>
+        <h3>카톡 멘트</h3>
+        <textarea class="msg" id="msg" readonly></textarea>
+        <div style="margin-top:8px;display:flex;gap:8px"><button class="btn primary" id="copyMsg">멘트 복사</button></div>
+        <div class="oneliners" id="oneliners"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    We Vape — 비품 주문 보고<br>
+    Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>
+    내부 운영 자료 · 외부 공유를 금합니다
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- 상태 ---------- */
+const S = { items: [], pays: [], cartExpected: null, appendMode: false };
+const REASONS = ['매장 비품 보충','고객 서비스 제공용','매장 정비 비품','프린터 잉크 보충','기타'];
+const $ = id => document.getElementById(id);
+const won = n => (Number(n)||0).toLocaleString('ko-KR') + '원';
+const num = s => Number(String(s??'').replace(/[^\d]/g,'')) || 0;
+
+/* ---------- 초기값 ---------- */
+(function init(){
+  const t = new Date();
+  $('date').value = t.toISOString().slice(0,10);
+  $('month').value = t.getMonth()+1;
+  try{
+    const saved = JSON.parse(localStorage.getItem('supplyReportSettings')||'{}');
+    for(const k of ['store','evName','evNo']) if(saved[k]) $(k).value = saved[k];
+  }catch(e){}
+  ['store','evName','evNo','month','date'].forEach(id=>$(id).addEventListener('input',()=>{saveSettings();render();}));
+  render();
+})();
+function saveSettings(){
+  try{ localStorage.setItem('supplyReportSettings', JSON.stringify({store:$('store').value,evName:$('evName').value,evNo:$('evNo').value})); }catch(e){}
+}
+
+/* ---------- 붙여넣기: HTML → 링크가 살아있는 텍스트 ---------- */
+function clipboardToText(e){
+  const html = e.clipboardData.getData('text/html');
+  const plain = e.clipboardData.getData('text/plain');
+  if(!html) return plain;
+  const doc = new DOMParser().parseFromString(html,'text/html');
+  doc.querySelectorAll('script,style').forEach(n=>n.remove());
+  doc.querySelectorAll('a[href]').forEach(a=>{
+    const href = a.getAttribute('href');
+    const t = a.textContent.replace(/\s+/g,' ').trim();
+    if(/\/vp\/products\/|\/products\/\d+/.test(href) && t){
+      a.replaceWith(doc.createTextNode(`\n[${t}](${new URL(href, 'https://www.coupang.com').href})\n`));
+    }
+  });
+  // 블록 요소 뒤에 줄바꿈
+  doc.querySelectorAll('div,p,li,tr,br,h1,h2,h3,h4,span,strong,em,td,th').forEach(n=>{
+    n.after(doc.createTextNode('\n'));
+  });
+  return doc.body.textContent;
+}
+
+/* ---------- 장바구니 파서 ---------- */
+const PRODUCT_LINK = /\[([^\]]+?)\]\((https?:\/\/[^)\s]+?(?:\/vp\/products\/\d+|\/products\/\d+)[^)\s]*)\)/;
+const PRICE_LINE = /^(?:와우할인|쿠폰할인|할인가|판매가)?\s*([\d,]{3,})\s*원$/;
+const NOISE_SOURCE = /sourceType=(CART_ADS|cart_items_intended_to_buy|cart_also_bought)|rmdId=/;
+
+function parseCart(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const items = [];
+  let cur = null;
+  let stop = false;
+  for(const ln of lines){
+    if(/^(같이 보면 좋은 상품|결제하려 했던 상품|위 상품을 구매한 고객|회사소개|상호명 및 호스팅)/.test(ln)) stop = true;
+    if(/^(전체 선택|선택삭제|주문 예상 금액|총 상품 가격|주문서|결제하기)/.test(ln) || stop) cur = null;
+    const m = ln.match(PRODUCT_LINK);
+    if(m && !stop){
+      if(NOISE_SOURCE.test(m[2])) continue;
+      const full = m[1];
+      let name = full, opt = '';
+      const oi = full.indexOf('옵션:');
+      if(oi>=0){ name = full.slice(0,oi).trim(); opt = full.slice(oi+3).trim(); }
+      cur = { on:true, name:cleanName(name), opt:cleanOpt(opt), qty:1, price:0, url:cleanUrl(m[2]), reason:guessReason(name+' '+opt), prices:[] };
+      items.push(cur);
+      continue;
+    }
+    if(!cur) continue;
+    const p = ln.match(PRICE_LINE);
+    if(p && !/^\(/.test(ln)) cur.prices.push(num(p[1]));
+    // 수량 표기가 있으면 (예: "수량 2" / "2개") — 쿠팡 텍스트에는 보통 없음
+    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/); if(q) cur.qty = Number(q[1]);
+  }
+  // 최종가 = 블록 내 마지막 가격 (정가 → 할인가 순서로 나오므로)
+  for(const it of items){ it.price = it.prices.length ? it.prices[it.prices.length-1] : 0; delete it.prices; }
+  // 쿠팡 "주문 예상 금액" 최종값: "총 N개 상품 구매하기" 바로 앞의 금액
+  let expected = null;
+  for(let i=0;i<lines.length;i++){
+    if(/^총\s*\d+개 상품 구매하기/.test(lines[i])){
+      for(let j=i-1;j>=Math.max(0,i-4);j--){ const mm = lines[j].match(/^([\d,]+)원$/); if(mm){ expected = num(mm[1]); break; } }
+    }
+  }
+  return { items, expected };
+}
+function cleanName(n){ return n.replace(/\s+/g,' ').replace(/유한공사/,'').trim(); }
+function cleanOpt(o){ return o.replace(/\s*,\s*/g,' X ').replace(/_/g,' ').trim(); }
+function cleanUrl(u){
+  try{
+    const x = new URL(u);
+    if(/coupang\.com/.test(x.host)){
+      const vid = x.searchParams.get('vendorItemId');
+      return `https://www.coupang.com${x.pathname}` + (vid?`?vendorItemId=${vid}&sourceType=CART`:'');
+    }
+    if(/smartstore\.naver\.com|brand\.naver\.com/.test(x.host)) return `https://${x.host}${x.pathname}`;
+    return u;
+  }catch(e){ return u; }
+}
+function guessReason(s){
+  if(/음료|커피|캔|사이다|콜라|이온|아이스티|에너지|제로|탄산|생수|물\b|ml|차\b|주스|우유|라떼|화이바|핫식스|레쓰비|트레비|스프라이트|펩시|립톤|비타|맥스웰/i.test(s)) return '고객 서비스 제공용';
+  if(/전구|LED|조명|램프|PAR30|형광|등\b|전선|멀티탭|배터리|건전지|공구|드릴|접착|실리콘|페인트/i.test(s)) return '매장 정비 비품';
+  if(/잉크|토너|카트리지/i.test(s)) return '프린터 잉크 보충';
+  return '매장 비품 보충';
+}
+
+/* ---------- 입금대기 파서 ---------- */
+function parsePay(text){
+  const t = text.replace(/\u00a0/g,' ');
+  const one = t.replace(/\s*\n\s*/g,' ');
+  const bankM = one.match(/(?:입금\s*은행|입금은행|은행명|은행)\s*[:：]?\s*([가-힣A-Za-z]+(?:은행|뱅크|금고|증권)?)\s*(?:\(([^)]+)\))?/);
+  const accM  = one.match(/(?:입금\s*계좌|입금계좌|계좌번호|계좌)\s*[:：]?\s*([\d][\d-]{7,})/);
+  const amtM  = one.match(/(?:입금\s*대기\s*금액|입금대기금액|입금\s*금액|입금금액|총\s*결제\s*금액|결제\s*금액|최종\s*결제\s*금액)\s*[:：]?\s*([\d,]+)\s*원/);
+  const holdM = one.match(/예금주\s*[:：]?\s*([^\s|]+)/);
+  if(!accM && !amtM) return null;
+  let bank = bankM ? bankM[1] : '';
+  let holder = holdM ? holdM[1] : (bankM && bankM[2] ? bankM[2] : '');
+  if(/쿠팡/.test(one) && !holder) holder = '쿠팡';
+  return { label: holder==='쿠팡' ? '일반 비품류 ( 음료 & 기타비품 )' : '', bank, acc: accM?accM[1]:'', holder, amount: amtM?num(amtM[1]):0 };
+}
+
+/* ---------- 이벤트 ---------- */
+$('cartPaste').addEventListener('paste', e=>{
+  e.preventDefault();
+  const text = clipboardToText(e);
+  const { items, expected } = parseCart(text);
+  if(!items.length){ setStatus('cartStatus','상품 링크를 찾지 못했습니다. 장바구니 페이지에서 Ctrl+A로 전체 선택 후 복사했는지 확인해 주세요.','bad'); return; }
+  if(S.appendMode){ S.items = S.items.concat(items); if(expected) S.cartExpected = (S.cartExpected||0) + expected; }
+  else { S.items = items; S.cartExpected = expected; }
+  const box = $('cartPaste'); box.classList.add('filled');
+  box.textContent = `${S.items.length}개 품목을 읽었습니다.` + (expected ? ` (쿠팡 주문 예상 금액 ${won(expected)})` : '');
+  box.blur();
+  setStatus('cartStatus', `${items.length}개 품목 인식 완료. 아래 2단계에서 옵션·수량·사유를 확인해 주세요.`, 'ok');
+  render();
+});
+$('payPaste').addEventListener('paste', e=>{
+  e.preventDefault();
+  const text = clipboardToText(e);
+  const p = parsePay(text);
+  if(!p){ setStatus('payStatus','계좌번호나 금액을 찾지 못했습니다. "직접 입력"으로 넣어 주세요.','bad'); return; }
+  S.pays.push(p);
+  const box = $('payPaste'); box.textContent=''; box.blur();
+  setStatus('payStatus', `${p.bank||'은행 미확인'} ${p.acc} ${won(p.amount)} 추가됨. 결제가 더 있으면 이어서 붙여넣으세요.`, 'ok');
+  render();
+});
+['cartPaste','payPaste'].forEach(id=>{
+  const el=$(id);
+  el.addEventListener('focus',()=>{ if(el.classList.contains('filled')){ el.classList.remove('filled'); el.textContent=''; } });
+  el.addEventListener('keydown',e=>{ if(!(e.ctrlKey||e.metaKey) && e.key.length===1) e.preventDefault(); });
+});
+$('cartAppend').onclick = ()=>{ S.appendMode=!S.appendMode; $('cartAppend').textContent = `추가 붙여넣기 모드: ${S.appendMode?'켬':'끔'}`; $('cartAppend').classList.toggle('primary',S.appendMode); if(S.appendMode){ const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; } };
+$('cartClear').onclick = ()=>{ S.items=[]; S.cartExpected=null; const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','비웠습니다.'); render(); };
+$('addRow').onclick = ()=>{ S.items.push({on:true,name:'',opt:'',qty:1,price:0,url:'',reason:'매장 비품 보충'}); render(); };
+$('payAdd').onclick = ()=>{ S.pays.push({label:'',bank:'',acc:'',holder:'',amount:0}); render(); };
+$('copyMsg').onclick = ()=> copyText($('msg').value, '멘트를 복사했습니다');
+$('dlXlsx').onclick = buildXlsx;
+
+function setStatus(id,msg,cls){ const el=$(id); el.textContent=msg; el.className='status '+(cls||''); }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
+async function copyText(t,msg){ try{ await navigator.clipboard.writeText(t); toast(msg||'복사했습니다'); }catch(e){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast(msg||'복사했습니다'); } }
+
+/* ---------- 렌더 ---------- */
+function activeItems(){ return S.items.filter(i=>i.on); }
+function itemTotal(){ return activeItems().reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0); }
+function payTotal(){ return S.pays.reduce((a,p)=>a+(Number(p.amount)||0),0); }
+function mm(){ return String($('month').value||'').padStart(2,'0'); }
+function fileName(){ const d=$('date').value||''; const [y,m,dd]=d.split('-'); return `비품주문보고용(${(y||'').slice(2)}.${m||''}.${dd||''}).xlsx`; }
+
+function render(){
+  renderItems(); renderPays(); renderOut();
+}
+function renderItems(){
+  const w=$('itemsWrap');
+  if(!S.items.length){ w.innerHTML='<div class="empty">아직 읽은 품목이 없습니다.</div>'; $('itemChips').innerHTML=''; return; }
+  const rows = S.items.map((it,i)=>`
+    <tr class="${it.on?'':'off'} ${it.url?'':'nolink-row'}">
+      <td><input type="checkbox" ${it.on?'checked':''} data-i="${i}" data-k="on"></td>
+      <td style="min-width:280px"><input value="${esc(it.name)}" data-i="${i}" data-k="name" placeholder="품목명"></td>
+      <td style="min-width:210px"><input value="${esc(it.opt)}" data-i="${i}" data-k="opt" placeholder="옵션"></td>
+      <td style="width:70px"><input class="num" type="number" min="1" value="${it.qty}" data-i="${i}" data-k="qty"></td>
+      <td style="width:110px"><input class="num" value="${(Number(it.price)||0).toLocaleString('ko-KR')}" data-i="${i}" data-k="price"></td>
+      <td class="amt">${won((it.qty||0)*(it.price||0))}</td>
+      <td style="min-width:175px"><select data-i="${i}" data-k="reason">${REASONS.map(r=>`<option ${r===it.reason?'selected':''}>${r}</option>`).join('')}</select></td>
+      <td class="link" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.url?`<a href="${esc(it.url)}" target="_blank" rel="noopener" title="${esc(it.url)}">${esc(shortUrl(it.url))}</a>`:`<input value="" placeholder="링크 없음 — 직접 입력" data-i="${i}" data-k="url" style="color:var(--bad)">`}</td>
+      <td style="width:34px"><button class="btn ghost" style="height:28px;padding:0 8px" data-del="${i}" title="삭제">✕</button></td>
+    </tr>`).join('');
+  w.innerHTML = `<div style="overflow:auto"><table>
+    <thead><tr><th></th><th>품목명</th><th>구매 옵션</th><th>수량</th><th>단가</th><th>구매 금액</th><th>구매 사유</th><th>링크</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="tfoot"><td colspan="5" style="text-align:right">총 구매 금액</td><td class="amt">${won(itemTotal())}</td><td colspan="3"></td></tr></tfoot>
+  </table></div>`;
+  w.querySelectorAll('input,select').forEach(el=>{
+    el.addEventListener(el.type==='checkbox'||el.tagName==='SELECT'?'change':'input', e=>{
+      const it=S.items[+el.dataset.i], k=el.dataset.k;
+      if(k==='on') it.on=el.checked; else if(k==='qty') it.qty=Number(el.value)||0; else if(k==='price') it.price=num(el.value); else it[k]=el.value;
+      if(el.type==='checkbox'||el.tagName==='SELECT'||k==='url') render(); else { updateTotalsOnly(); }
+    });
+    el.addEventListener('blur',()=>{ if(el.dataset.k==='price'||el.dataset.k==='qty') render(); });
+  });
+  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.items.splice(+b.dataset.del,1); render(); });
+  const n=activeItems().length, nolink=S.items.filter(i=>i.on&&!i.url).length;
+  let chips=`<span class="chip">${n}개 선택</span>`;
+  if(S.cartExpected!=null){ const ok=S.cartExpected===itemTotal(); chips+=` <span class="chip ${ok?'ok':'warn'}">쿠팡 예상금액 ${won(S.cartExpected)} ${ok?'일치':'불일치 (체크 해제된 상품이 있는지 확인)'}</span>`; }
+  if(nolink) chips+=` <span class="chip bad">링크 없는 품목 ${nolink}개</span>`;
+  $('itemChips').innerHTML=chips;
+}
+function updateTotalsOnly(){ renderOut(); }
+function renderPays(){
+  const w=$('payList');
+  w.innerHTML = S.pays.map((p,i)=>`
+    <div class="pay"><span class="idx">결제 ${i+1}</span>
+      <label>구분명 (멘트 소제목)</label><input value="${esc(p.label)}" data-i="${i}" data-k="label" placeholder="예: 일반 비품류 ( 음료 & 기타비품 )">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px">
+        <div><label>입금 은행</label><input value="${esc(p.bank)}" data-i="${i}" data-k="bank" placeholder="우리은행"></div>
+        <div><label>예금주</label><input value="${esc(p.holder)}" data-i="${i}" data-k="holder" placeholder="쿠팡"></div>
+      </div>
+      <label>계좌번호</label><input value="${esc(p.acc)}" data-i="${i}" data-k="acc" placeholder="숫자만">
+      <label>입금 금액</label><input value="${(Number(p.amount)||0).toLocaleString('ko-KR')}" data-i="${i}" data-k="amount" style="text-align:right">
+      <button class="del" data-del="${i}">삭제</button>
+    </div>`).join('');
+  w.querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{ const p=S.pays[+el.dataset.i], k=el.dataset.k; p[k]= k==='amount'?num(el.value):el.value; renderOut(); }));
+  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.pays.splice(+b.dataset.del,1); render(); });
+}
+function renderOut(){
+  const items=activeItems(), it=itemTotal(), pt=payTotal();
+  $('fname').textContent=fileName(); $('kvCount').textContent=items.length; $('kvItemTotal').textContent=won(it); $('kvPayTotal').textContent=won(pt);
+  $('dlXlsx').disabled = !items.length;
+  const hint=$('checkHint');
+  if(!items.length) hint.textContent='';
+  else if(!S.pays.length) hint.innerHTML='<span class="chip warn">입금 정보가 아직 없습니다 — 멘트에 계좌가 빈칸으로 들어갑니다</span>';
+  else if(it===pt) hint.innerHTML='<span class="chip ok">품목 합계와 입금 합계 일치</span>';
+  else hint.innerHTML=`<span class="chip bad">품목 합계 ${won(it)} ≠ 입금 합계 ${won(pt)} (차이 ${won(Math.abs(it-pt))})</span>`;
+  $('msg').value = buildMsg();
+  $('oneliners').innerHTML = S.pays.filter(p=>p.acc||p.amount).map((p,i)=>`<div class="oneliner"><code>${esc(p.bank)} ${esc(p.acc)} ${won(p.amount)}</code><button class="btn" data-ol="${i}">복사</button></div>`).join('');
+  $('oneliners').querySelectorAll('[data-ol]').forEach(b=>b.onclick=()=>{ const p=S.pays[+b.dataset.ol]; copyText(`${p.bank} ${p.acc} ${won(p.amount)}`,'계좌 한 줄을 복사했습니다'); });
+}
+function buildMsg(){
+  const store=$('store').value||'매장', ev=`${$('evName').value} (${$('evNo').value})`;
+  const pays = S.pays.length ? S.pays : [{label:'일반 비품류 ( 음료 & 기타비품 )',bank:'',acc:'',holder:'',amount:itemTotal()}];
+  let out = `[${store}] ${mm()}월 비품 주문건\n`;
+  pays.forEach((p,i)=>{
+    out += `\n${i+1}) ${p.label||'비품류'}\n입금 은행 : ${p.bank||''}\n계좌번호 : ${p.acc||''}\n예금주 : ${p.holder||''}\n입금 금액 : ${won(p.amount)}\n사업자 지출증빙 : ${ev}\n`;
+  });
+  out += `\n* 합계 금액 : ${won(pays.reduce((a,p)=>a+(Number(p.amount)||0),0))}`;
+  return out;
+}
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function shortUrl(u){ try{ const x=new URL(u); return x.host.replace('www.','')+x.pathname; }catch(e){ return u; } }
+
+/* ---------- 엑셀 생성 (기존 양식 그대로) ---------- */
+async function buildXlsx(){
+  const items=activeItems(); if(!items.length) return;
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('비품주문보고',{views:[{showGridLines:true}]});
+  ws.columns=[{width:43.5},{width:24.75},{width:9.875},{width:29.5},{width:46.375},{width:13.25},{width:13.875}];
+  const thin={style:'thin',color:{argb:'FF000000'}}; const border={top:thin,left:thin,bottom:thin,right:thin};
+  const center={horizontal:'center',vertical:'middle',wrapText:true};
+  const store=$('store').value||'매장';
+  // 1행 제목
+  ws.mergeCells('A1:D1'); ws.mergeCells('E1:G1');
+  ws.getCell('A1').value=`${store} 비품 주문서`;
+  const dp=($('date').value||new Date().toISOString().slice(0,10)).split('-').map(Number); const d=new Date(Date.UTC(dp[0],dp[1]-1,dp[2]));
+  ws.getCell('E1').value=d; ws.getCell('E1').numFmt='yyyy"년" m"월" d"일"';
+  ['A1','E1'].forEach(a=>{ const c=ws.getCell(a); c.font={name:'맑은 고딕',size:a==='A1'?20:14,bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFDA'}}; c.alignment=center; });
+  for(let c=1;c<=7;c++) ws.getRow(1).getCell(c).border=border;
+  ws.getRow(1).height=49.35;
+  // 2행 헤더
+  const heads=['품목명','구매 옵션','수량','링크','구매 사유','단가','구매 금액'];
+  heads.forEach((h,i)=>{ const c=ws.getRow(2).getCell(i+1); c.value=h; c.font={name:'맑은 고딕',size:11,bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFCE4D6'}}; c.alignment=center; c.border=border; });
+  ws.getRow(2).height=30;
+  // 품목
+  const nRows=Math.max(25,items.length);
+  for(let i=0;i<nRows;i++){
+    const r=ws.getRow(3+i), it=items[i];
+    for(let c=1;c<=7;c++){ const cell=r.getCell(c); cell.border=border; cell.alignment=center; cell.font={name:'맑은 고딕',size:11,bold:c<=5}; if(c>=6) cell.numFmt='#,##0_);[Red]\\(#,##0\\)'; }
+    r.getCell(7).value={formula:`C${3+i}*F${3+i}`};
+    if(it){
+      r.getCell(1).value=it.name; r.getCell(2).value=it.opt; r.getCell(3).value=Number(it.qty)||0;
+      r.getCell(4).value = it.url ? {text:it.url,hyperlink:it.url} : '';
+      r.getCell(5).value=it.reason; r.getCell(6).value=Number(it.price)||0;
+      r.height=Math.max(36, 16*Math.ceil(Math.max(String(it.opt).length/16, String(it.name).length/30)) + 6);
+    }
+  }
+  // 합계
+  const tr=3+nRows+1; ws.mergeCells(`F${tr}:G${tr}`);
+  const lab=ws.getCell(`D${tr}`); lab.value='총 구매 금액 :'; lab.font={name:'맑은 고딕',size:12,bold:true}; lab.alignment={horizontal:'right',vertical:'middle'}; lab.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+  ws.getCell(`E${tr}`).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+  const tot=ws.getCell(`F${tr}`); tot.value={formula:`SUM(G3:G${2+nRows})`}; tot.font={name:'맑은 고딕',size:16,bold:true}; tot.alignment={horizontal:'center',vertical:'middle'}; tot.numFmt='#,##0_);[Red]\\(#,##0\\)';
+  ws.getRow(tr).height=30;
+  const buf=await wb.xlsx.writeBuffer();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); a.download=fileName(); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast('엑셀을 내려받았습니다');
+}
+</script>
+<style>
+.paste:empty::before{content:attr(data-placeholder);color:#9aa3af}
+</style>
+</body>
+</html>
