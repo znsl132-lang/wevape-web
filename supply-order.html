@@ -113,6 +113,108 @@ tr.hrow:hover td{background:#f6f8fa}
 .ord td{vertical-align:middle}
 .ord .acts{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .ord .acts .btn{height:30px;padding:0 10px;font-size:12.5px}
+/* ---------- 사용법 모션 ---------- */
+.home-top{display:flex;align-items:flex-start;gap:12px}
+.home-top .btn{margin-left:auto;margin-top:6px}
+#intro{position:fixed;inset:0;z-index:60;background:rgba(244,245,247,.97);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .35s}
+#intro.show{opacity:1}
+#intro[hidden]{display:none}
+.in-box{width:min(940px,100%);display:flex;flex-direction:column;gap:14px}
+.in-top{display:flex;align-items:flex-end;gap:12px}
+.in-top .t{font-size:13px;color:var(--accent);font-weight:700;letter-spacing:.2px}
+.in-top h2{margin:2px 0 0;font-size:22px;letter-spacing:-.3px}
+.in-top .btn{margin-left:auto}
+.in-stage{position:relative;width:100%;aspect-ratio:800/460;border-radius:18px;background:#fbfbfc;border:1px solid var(--line);overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.10)}
+.in-inner{position:absolute;left:0;top:0;width:800px;height:460px;transform-origin:0 0;font-size:13px;color:var(--text)}
+.in-cap{font-size:15.5px;color:var(--text);min-height:24px;text-align:center}
+.in-cap b{color:var(--accent)}
+.in-bar{display:flex;gap:6px}
+.in-bar i{flex:1;height:5px;border-radius:5px;background:#e3e6eb;overflow:hidden;position:relative;cursor:pointer}
+.in-bar i b{position:absolute;inset:0;background:var(--accent);transform:scaleX(0);transform-origin:left}
+.in-bar i.done b{transform:scaleX(1)}
+.in-nav{display:flex;gap:8px;align-items:center}
+.in-nav .sp{flex:1}
+#inScene{position:absolute;inset:0;animation:inFade .45s ease}
+@keyframes inFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes inPop{0%{opacity:0;transform:scale(.85)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+@keyframes inDrop{0%{opacity:0;transform:translateY(-30px)}70%{opacity:1;transform:translateY(4px)}100%{opacity:1;transform:none}}
+@keyframes inRow{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes inRipple{from{opacity:.5;transform:scale(.2)}to{opacity:0;transform:scale(1.8)}}
+#inCur{position:absolute;left:0;top:0;width:22px;height:22px;z-index:20;transition:transform .85s cubic-bezier(.22,.8,.25,1);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+#inCur .rp{position:absolute;left:-14px;top:-14px;width:30px;height:30px;border-radius:50%;background:var(--accent);opacity:0}
+#inCur.clk .rp{animation:inRipple .55s ease-out}
+#inKeys{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) scale(.9);z-index:19;display:flex;gap:8px;align-items:center;opacity:0;transition:.25s;pointer-events:none;font-size:20px;font-weight:700;color:#334155}
+#inKeys.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#inKeys kbd{font:inherit;font-size:22px;background:#fff;border:1px solid #cbd5e1;border-bottom-width:4px;border-radius:10px;padding:8px 16px;box-shadow:0 10px 24px rgba(15,23,42,.15)}
+.m-toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:#1f2328;color:#fff;border-radius:999px;padding:8px 16px;font-size:13px;animation:inPop .4s both;z-index:18}
+.m-br{position:absolute;left:40px;top:28px;width:720px;height:404px;background:#fff;border:1px solid #dfe3e8;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.08);transition:transform .6s cubic-bezier(.22,.8,.25,1),opacity .5s}
+.m-br .bar{height:34px;background:#f1f3f5;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;padding:0 12px}
+.m-br .bar i{width:10px;height:10px;border-radius:50%;background:#d1d5db}
+.m-br .bar span{margin-left:12px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:3px 14px;font-size:11.5px;color:#64748b}
+.m-br .ct{position:absolute;left:0;right:0;top:34px;bottom:0;padding:18px 22px}
+.m-sel{position:absolute;left:0;right:0;top:0;height:0;background:rgba(37,99,235,.26);transition:height 1s cubic-bezier(.4,0,.2,1);z-index:5}
+.m-sel.on{height:100%}
+.m-cp-logo{font-weight:800;font-size:20px;letter-spacing:-.5px}
+.m-cp-logo b:nth-child(1){color:#7b2d26}.m-cp-logo b:nth-child(2){color:#e3342f}.m-cp-logo b:nth-child(3){color:#f59e0b}.m-cp-logo b:nth-child(4){color:#16a34a}.m-cp-logo b:nth-child(5){color:#2563eb}
+.m-item{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid #f1f3f5}
+.m-item .im{width:52px;height:52px;border-radius:8px;flex:none}
+.m-item .nm{font-weight:600;font-size:13px}
+.m-item .op{color:#64748b;font-size:11.5px;margin-top:2px}
+.m-item .pr{margin-left:auto;font-weight:700;font-size:14px}
+.m-sum{position:absolute;right:22px;top:58px;width:200px;border:1px solid #e5e7eb;border-radius:10px;padding:14px}
+.m-sum .k{display:flex;justify-content:space-between;color:#64748b;font-size:11.5px;margin-bottom:6px}
+.m-sum .tot{font-size:22px;font-weight:800;text-align:right;margin:8px 0 10px}
+.m-sum .go{background:#2563eb;color:#fff;border-radius:6px;text-align:center;padding:8px;font-weight:700;font-size:12px}
+.m-home{position:absolute;inset:0;padding:40px 50px;transition:transform .6s,opacity .5s}
+.m-home.out{transform:scale(1.06);opacity:0}
+.m-h1{font-size:24px;font-weight:800}
+.m-sub{color:var(--muted);margin:4px 0 22px}
+.m-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.m-card{height:70px;border:1px solid var(--line);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:14px;transition:.25s}
+.m-card.on{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-2px);box-shadow:0 8px 18px rgba(47,111,78,.18)}
+.m-enter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;animation:inPop .5s both}
+.m-enter .ck{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:32px}
+.m-enter .nm{font-size:26px;font-weight:800}
+.m-tool{position:absolute;left:40px;top:24px;width:720px;height:412px;transition:transform .6s cubic-bezier(.22,.8,.25,1),opacity .5s}
+.m-step{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;margin-bottom:10px}
+.m-step i{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;display:grid;place-items:center;font-size:12px}
+.m-paste{height:56px;border:2px dashed #c9d0d9;border-radius:10px;background:#fafbfc;color:#9aa3af;display:flex;align-items:center;padding:0 16px;transition:.3s}
+.m-paste.focus{border-color:var(--accent);background:#fff}
+.m-paste.fill{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--text);font-weight:600}
+.m-tbl{width:100%;border-collapse:collapse;margin-top:14px;font-size:12px}
+.m-tbl th{font-size:11px;color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--line);font-weight:600}
+.m-tbl td{padding:7px 6px;border-bottom:1px solid #f1f3f5}
+.m-tbl tr.r{opacity:0}
+.m-tbl tr.r.in{animation:inRow .35s both}
+.m-tbl .n{text-align:right;font-variant-numeric:tabular-nums}
+.m-tbl .lk{color:#1155cc;text-decoration:underline}
+.m-tot{display:flex;justify-content:flex-end;gap:14px;margin-top:10px;font-weight:700;font-size:15px}
+.m-tot b{font-variant-numeric:tabular-nums;min-width:110px;text-align:right}
+.m-done{text-align:center;padding-top:20px}
+.m-done h3{margin:0;font-size:24px}
+.m-done .ac{margin:22px auto 0;width:300px;border:1px solid #e5e7eb;border-radius:10px;padding:18px}
+.m-done .ac .a1{font-size:17px}.m-done .ac .a1 b{font-weight:800}
+.m-done .ac .a2{font-size:20px;font-weight:800;margin:6px 0 12px}
+.m-done .ac .a3{background:#3b82f6;color:#fff;border-radius:6px;padding:8px;font-size:12px}
+.m-pay{width:300px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;margin-top:14px;animation:inPop .45s both}
+.m-pay .l{font-size:11px;color:var(--muted);margin-top:6px}
+.m-pay .v{font-size:14px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:5px 9px;margin-top:3px}
+.m-chip{display:inline-block;margin-left:14px;padding:5px 12px;border-radius:999px;font-size:12px;background:var(--accent-soft);color:var(--accent);font-weight:600;animation:inPop .4s both}
+.m-out{position:absolute;left:40px;top:28px;right:40px;bottom:28px;display:grid;grid-template-columns:1fr 1.15fr;gap:20px}
+.m-panel{border:1px solid var(--line);border-radius:14px;background:#fff;padding:18px;position:relative;overflow:hidden}
+.m-panel h4{margin:0 0 12px;font-size:14px}
+.m-btn{display:inline-block;background:var(--accent);color:#fff;border-radius:10px;padding:10px 18px;font-weight:700;transition:.15s}
+.m-btn.press{transform:scale(.94);filter:brightness(1.1)}
+.m-file{margin-top:22px;display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;animation:inDrop .6s both}
+.m-file .ic{width:34px;height:40px;border-radius:5px;background:#1d6f42;color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center}
+.m-msg{border:1px solid var(--line);border-radius:10px;background:#fafbfc;padding:12px 14px;line-height:1.75;font-size:12.5px;height:228px;overflow:hidden}
+.m-msg div{opacity:0;transition:opacity .3s}
+.m-msg div.in{opacity:1}
+.m-kakao{position:absolute;right:16px;bottom:16px;width:250px;background:#bacee0;border-radius:14px;padding:12px;box-shadow:0 16px 30px rgba(15,23,42,.18);animation:inDrop .55s both;z-index:4}
+.m-kakao .who{font-size:11px;color:#334155;margin-bottom:6px;font-weight:700}
+.m-kakao .bb{background:#fee500;border-radius:10px;padding:8px 10px;font-size:11.5px;line-height:1.5;margin-left:auto;width:fit-content;max-width:210px}
+.m-kakao .tm{font-size:10px;color:#475569;text-align:right;margin-top:4px}
+@media (prefers-reduced-motion: reduce){#inCur,.m-sel,.m-br,.m-tool{transition:none}}
 footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
 .empty{color:var(--muted);font-size:14px;padding:18px 0;text-align:center}
 </style>
@@ -120,7 +222,7 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
 <body>
 <div class="wrap">
   <div id="view-home" hidden>
-    <div class="home-head"><h1>비품 주문 보고</h1><p>지점을 선택하세요. 지점마다 작성 중인 주문과 지난 주문 내역이 따로 보관됩니다.</p></div>
+    <div class="home-head home-top"><div><h1>비품 주문 보고</h1><p>지점을 선택하세요. 지점마다 작성 중인 주문과 지난 주문 내역이 따로 보관됩니다.</p></div><button class="btn" id="introBtn">▶ 사용법 보기</button></div>
     <div class="store-grid" id="storeGrid"></div>
     <section class="card" style="margin-top:24px">
       <div class="step"><div class="num">▤</div><h2>전 지점 월 합계</h2><span class="hint">주문을 붙여넣거나 엑셀을 받을 때 자동으로 쌓입니다</span></div>
@@ -224,6 +326,17 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
     Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>
     내부 운영 자료 · 외부 공유를 금합니다
   </footer>
+</div>
+<div id="intro" hidden role="dialog" aria-label="사용법">
+  <div class="in-box">
+    <div class="in-top"><div><div class="t" id="inStep">1 / 5</div><h2 id="inTitle">비품 주문 보고 사용법</h2></div><button class="btn ghost" id="inSkip">건너뛰기 ✕</button></div>
+    <div class="in-stage" id="inStage"><div class="in-inner" id="inInner"><div id="inScene"></div><div id="inKeys"></div>
+      <div id="inCur"><span class="rp"></span><svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 2 L3 18 L7.5 14 L10.5 20.5 L13 19.4 L10.1 13 L16 13 Z" fill="#111827" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+    </div></div>
+    <div class="in-cap" id="inCap"></div>
+    <div class="in-bar" id="inBar"></div>
+    <div class="in-nav"><button class="btn" id="inPrev">← 이전</button><span class="sp"></span><button class="btn" id="inReplay">↻ 이 장면 다시</button><button class="btn primary" id="inNext">다음 →</button></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <datalist id="reasonList"></datalist>
@@ -760,7 +873,112 @@ async function loadOrder(id){
     saveDraft(); showTab('write'); render(); window.scrollTo({top:0,behavior:'smooth'}); toast('불러왔습니다');
   }catch(e){ toast('불러오기 실패: '+e.message); }
 }
+/* ---------- 사용법 모션 (처음 한 번 자동 · 「▶ 사용법 보기」로 다시) ---------- */
+const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,6800],
+  T:['지점 선택','장바구니 복사','붙여넣기','입금 정보','엑셀 · 카톡 멘트'],
+  C:['첫 화면에서 <b>우리 지점</b>을 누릅니다',
+     '쿠팡 장바구니 화면에서 <b>Ctrl+A</b> → <b>Ctrl+C</b> (화면 전체 복사)',
+     '도구 1번 칸에 <b>Ctrl+V</b> — 품목·옵션·수량·단가·링크가 자동으로 채워집니다',
+     '결제 후 <b>주문완료 화면</b>도 똑같이 복사해서 3번 칸에 붙여넣기',
+     '<b>엑셀 받기</b> + <b>멘트 복사</b> → 카톡으로 보내면 끝. 지난 주문은 「지난 주문」 탭에 자동 보관' ] };
+function inAt(ms,fn){ IN.timers.push(setTimeout(fn,ms)); }
+function inQ(s){ return $('inScene').querySelector(s); }
+function inPos(el,dx=0,dy=0){ const r=el.getBoundingClientRect(), b=$('inInner').getBoundingClientRect(); return [(r.left-b.left)/IN.k + r.width/IN.k/2 + dx, (r.top-b.top)/IN.k + r.height/IN.k/2 + dy]; }
+function inCur(x,y){ $('inCur').style.transform=`translate(${x}px,${y}px)`; }
+function inCurTo(sel,dx,dy){ const el=typeof sel==='string'?inQ(sel):sel; if(el){ const [x,y]=inPos(el,dx,dy); inCur(x,y); } }
+function inClick(){ const c=$('inCur'); c.classList.remove('clk'); void c.getBoundingClientRect(); c.classList.add('clk'); }
+function inKeys(a,b){ const k=$('inKeys'); k.innerHTML=`<kbd>${a}</kbd>+<kbd>${b}</kbd>`; k.classList.add('show'); inAt(1000,()=>k.classList.remove('show')); }
+function inToast(t){ const d=document.createElement('div'); d.className='m-toast'; d.textContent=t; $('inScene').appendChild(d); inAt(1400,()=>d.remove()); }
+const IN_ITEMS=[['핫식스 제로','250ml X 30개',1,22660],['이오 소독용 알콜스왑','100개입 X 6개',1,8140],['호맥스 니트릴장갑','블랙 X M X 1개',1,6800],['맥스웰하우스 콜롬비아나','240ml X 30개',1,17900],['스프라이트 제로','250ml X 30개',1,15970],['비타500 이온킥 제로','240ml X 30개',1,14360]];
+const IN_COL=['#fde68a','#bfdbfe','#c7d2fe','#fecaca','#bbf7d0','#e9d5ff'];
+function inBrowser(url, body){ return `<div class="m-br"><div class="bar"><i></i><i></i><i></i><span>${url}</span></div><div class="ct">${body}<div class="m-sel"></div></div></div>`; }
+const IN_SCENES=[
+  ()=>{ // 1 지점 선택
+    $('inScene').innerHTML=`<div class="m-home"><div class="m-h1">비품 주문 보고</div><div class="m-sub">지점을 선택하세요</div><div class="m-grid">${STORES.map(s=>`<div class="m-card">${s}</div>`).join('')}</div></div>`;
+    inCur(700,400); const card=$('inScene').querySelectorAll('.m-card')[1];
+    inAt(250,()=>inCurTo(card,10,8)); inAt(1150,()=>{ inClick(); card.classList.add('on'); });
+    inAt(1900,()=>inQ('.m-home').classList.add('out'));
+    inAt(2300,()=>{ const d=document.createElement('div'); d.className='m-enter'; d.innerHTML='<div class="ck">✓</div><div class="nm">구월길병원점</div><div style="color:var(--muted)">이 지점 전용 화면으로 들어갑니다</div>'; $('inScene').appendChild(d); });
+  },
+  ()=>{ // 2 쿠팡 장바구니 복사
+    const items=IN_ITEMS.slice(0,4).map((it,i)=>`<div class="m-item"><div class="im" style="background:${IN_COL[i]}"></div><div><div class="nm">${it[0]}</div><div class="op">옵션: ${it[1].replace(/ X /g,', ')}</div></div><div class="pr" style="margin-right:230px">${won(it[3])}</div></div>`).join('');
+    $('inScene').innerHTML=inBrowser('coupang.com/cart', `<div class="m-cp-logo"><b>cou</b><b>p</b><b>a</b><b>n</b><b>g</b></div><div style="font-size:18px;font-weight:800;margin:6px 0 4px">장바구니(14)</div>${items}<div class="m-sum"><div style="font-weight:700;margin-bottom:8px">주문 예상 금액</div><div class="k"><span>총 상품 가격</span><span>228,620원</span></div><div class="k"><span>할인</span><span>-6,560원</span></div><div class="tot">222,060원</div><div class="go">총 14개 상품 구매하기</div></div>`);
+    inCur(680,420); inAt(200,()=>inCurTo('.m-item',0,0));
+    inAt(900,()=>inKeys('Ctrl','A')); inAt(1200,()=>inQ('.m-sel').classList.add('on'));
+    inAt(2600,()=>inKeys('Ctrl','C')); inAt(3100,()=>inToast('복사됨 ✓'));
+  },
+  ()=>{ // 3 붙여넣기
+    const rows=IN_ITEMS.map(it=>`<tr class="r"><td>${it[0]}</td><td>${it[1]}</td><td class="n">${it[2]}</td><td class="n">${it[3].toLocaleString('ko-KR')}</td><td class="lk">쿠팡 ▸</td></tr>`).join('');
+    $('inScene').innerHTML=`<div class="m-tool"><div class="m-step"><i>1</i>장바구니 붙여넣기</div><div class="m-paste">여기에 붙여넣기 (Ctrl+V)</div>
+      <table class="m-tbl"><thead><tr><th>품목명</th><th>구매 옵션</th><th class="n">수량</th><th class="n">단가</th><th>링크</th></tr></thead><tbody>${rows}</tbody></table><div class="m-tot">총 구매 금액 <b id="inTot">0원</b></div></div>`;
+    inCur(700,420); inAt(200,()=>inCurTo('.m-paste',-120,0)); inAt(1000,()=>{ inClick(); inQ('.m-paste').classList.add('focus'); });
+    inAt(1500,()=>inKeys('Ctrl','V'));
+    inAt(2000,()=>{ const p=inQ('.m-paste'); p.classList.remove('focus'); p.classList.add('fill'); p.textContent='14개 품목을 읽었습니다 (쿠팡 주문 예상 금액 222,060원)'; inCur(760,440); });
+    $('inScene').querySelectorAll('tr.r').forEach((tr,i)=>inAt(2200+i*170,()=>tr.classList.add('in')));
+    inAt(2400,()=>{ const t0=performance.now(), el=$('inTot'); (function f(){ const p=Math.min(1,(performance.now()-t0)/1400); if(!el.isConnected) return; el.textContent=won(Math.round(222060*(1-Math.pow(1-p,3)))); if(p<1) requestAnimationFrame(f); })(); });
+  },
+  ()=>{ // 4 주문완료 → 입금 정보
+    $('inScene').innerHTML=inBrowser('coupang.com/order/complete', `<div class="m-done"><h3>주문완료</h3><div style="color:#ef4444;margin-top:6px">입금을 서둘러 주세요!</div><div class="ac"><div class="a1">우리은행 <b>1234567890123</b></div><div class="a2">222,060원</div><div class="a3">입금 계좌번호 복사하기</div></div></div>`)
+      + `<div class="m-tool" style="transform:translateX(110%);opacity:0"><div class="m-step"><i>3</i>입금 정보</div><div class="m-paste">입금대기 화면 붙여넣기 (Ctrl+V)</div><div id="inPayWrap"></div></div>`;
+    inCur(690,420); inAt(200,()=>inCurTo('.ac',0,0));
+    inAt(700,()=>inKeys('Ctrl','A')); inAt(1000,()=>inQ('.m-sel').classList.add('on'));
+    inAt(2100,()=>inKeys('Ctrl','C'));
+    inAt(2800,()=>{ const b=inQ('.m-br'); b.style.transform='translateX(-110%)'; b.style.opacity='0'; const t=inQ('.m-tool'); t.style.transform='none'; t.style.opacity='1'; });
+    inAt(3500,()=>{ inCurTo('.m-tool .m-paste',-120,0); });
+    inAt(4100,()=>{ inClick(); inKeys('Ctrl','V'); });
+    inAt(4600,()=>{ inQ('.m-tool .m-paste').classList.add('fill'); inQ('.m-tool .m-paste').textContent='우리은행 1234567890123 222,060원 추가됨';
+      $('inPayWrap').innerHTML='<div style="display:flex;align-items:flex-start"><div class="m-pay"><div class="l">구분명</div><div class="v">일반 비품류 ( 음료 &amp; 기타비품 )</div><div class="l">입금 은행</div><div class="v">우리은행</div><div class="l">입금 금액</div><div class="v" style="text-align:right">222,060</div></div></div>'; inCur(760,440); });
+    inAt(5300,()=>{ const c=document.createElement('span'); c.className='m-chip'; c.textContent='✓ 품목 합계와 입금 합계 일치'; inQ('#inPayWrap > div').appendChild(c); });
+  },
+  ()=>{ // 5 엑셀 + 멘트
+    const lines=['[구월길병원점] 10월 비품 주문건','&nbsp;','1) 일반 비품류 ( 음료 &amp; 기타비품 )','입금 은행 : 우리은행','계좌번호 : 1234567890123','예금주 : 쿠팡','입금 금액 : 222,060원','사업자 지출증빙 : 연수점 (1313632256)'];
+    $('inScene').innerHTML=`<div class="m-out"><div class="m-panel"><h4>보고용 엑셀</h4><div style="color:var(--muted);font-size:12px;margin-bottom:14px">품목 14개 · 222,060원</div><span class="m-btn" id="inXl">엑셀 다운로드</span><div id="inFile"></div></div>
+      <div class="m-panel"><h4>카톡 멘트</h4><div class="m-msg">${lines.map(l=>`<div>${l}</div>`).join('')}</div><div style="margin-top:10px"><span class="m-btn" id="inCp">멘트 복사</span></div></div></div>`;
+    $('inScene').querySelectorAll('.m-msg div').forEach((d,i)=>inAt(150+i*120,()=>d.classList.add('in')));
+    inCur(400,430); inAt(300,()=>inCurTo('#inXl',10,6));
+    inAt(1150,()=>{ inClick(); $('inXl').classList.add('press'); inAt(180,()=>$('inXl').classList.remove('press')); });
+    inAt(1450,()=>{ $('inFile').innerHTML='<div class="m-file"><div class="ic">X</div><div><div style="font-weight:700">비품주문보고용(26.10.01).xlsx</div><div style="color:var(--muted);font-size:11.5px">대표님 보고용 양식 그대로 · 링크 클릭 가능</div></div></div>'; });
+    inAt(2500,()=>inCurTo('#inCp',10,6));
+    inAt(3350,()=>{ inClick(); $('inCp').classList.add('press'); inAt(180,()=>$('inCp').classList.remove('press')); inToast('멘트를 복사했습니다'); });
+    inAt(4300,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>입금 금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
+  }
+];
+function inShow(i){
+  IN.timers.forEach(clearTimeout); IN.timers=[]; IN.i=i;
+  $('inStep').textContent=`${i+1} / 5 · ${IN.T[i]}`; $('inCap').innerHTML=IN.C[i];
+  const sc=$('inScene'); sc.style.animation='none'; void sc.offsetWidth; sc.style.animation='';
+  $('inKeys').classList.remove('show');
+  [...$('inBar').children].forEach((el,j)=>{ const b=el.firstChild; el.classList.toggle('done', j<i); b.style.transition='none'; b.style.transform= j<i?'scaleX(1)':'scaleX(0)'; if(j===i){ void b.offsetWidth; b.style.transition=`transform ${IN.DUR[i]}ms linear`; b.style.transform='scaleX(1)'; } });
+  $('inPrev').disabled = i===0;
+  const last=i===IN_SCENES.length-1;
+  $('inNext').textContent = last ? '지점 선택하러 가기 →' : '다음 →';
+  const c=$('inCur'); c.style.transition='none'; IN_SCENES[i](); void c.offsetWidth; c.style.transition='';
+  if(!last) inAt(IN.DUR[i]+500, ()=>inShow(i+1));
+}
+function inFit(){ const w=$('inStage').clientWidth; IN.k=w/800; $('inInner').style.transform=`scale(${IN.k})`; }
+function openIntro(){
+  try{ localStorage.setItem('supplyIntroSeen','1'); }catch(e){}
+  const o=$('intro'); o.hidden=false; requestAnimationFrame(()=>o.classList.add('show'));
+  inFit(); inShow(0); document.body.style.overflow='hidden';
+}
+function closeIntro(){
+  IN.timers.forEach(clearTimeout); IN.timers=[];
+  const o=$('intro'); o.classList.remove('show'); setTimeout(()=>{ o.hidden=true; },350); document.body.style.overflow='';
+}
+(function initIntro(){
+  $('inBar').innerHTML=IN_SCENES.map((_,j)=>`<i data-j="${j}"><b></b></i>`).join('');
+  $('inBar').querySelectorAll('i').forEach(el=>el.onclick=()=>inShow(+el.dataset.j));
+  $('inPrev').onclick=()=>{ if(IN.i>0) inShow(IN.i-1); };
+  $('inNext').onclick=()=>{ if(IN.i<IN_SCENES.length-1) inShow(IN.i+1); else closeIntro(); };
+  $('inReplay').onclick=()=>inShow(IN.i);
+  $('inSkip').onclick=closeIntro;
+  $('introBtn').onclick=openIntro;
+  window.addEventListener('resize',()=>{ if(!$('intro').hidden) inFit(); });
+  document.addEventListener('keydown',e=>{ if($('intro').hidden) return; if(e.key==='Escape') closeIntro(); else if(e.key==='ArrowRight') $('inNext').click(); else if(e.key==='ArrowLeft') $('inPrev').click(); });
+})();
+
 route();
+try{ if(!localStorage.getItem('supplyIntroSeen') && !location.hash) openIntro(); }catch(e){}
 </script>
 <style>
 .paste:empty::before{content:attr(data-placeholder);color:#9aa3af}
