@@ -81,6 +81,16 @@ textarea.msg{width:100%;min-height:300px;border:1px solid var(--line);border-rad
 .kv b{font-variant-numeric:tabular-nums}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2328;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.2s;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.tabs{display:flex;gap:6px;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:10px 14px;font:inherit;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;margin-bottom:-1px}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tabnote{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.sel{height:32px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font:inherit;font-size:13px;background:#fff}
+table.sum td,table.sum th{text-align:right}
+table.sum td:first-child,table.sum th:first-child{text-align:left}
+tr.hrow{cursor:pointer}
+tr.hrow:hover td{background:#f6f8fa}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:var(--accent-soft);color:var(--accent)}
 footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
 .empty{color:var(--muted);font-size:14px;padding:18px 0;text-align:center}
 </style>
@@ -93,11 +103,10 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
       <p>장바구니를 붙여넣으면 보고용 엑셀과 입금요청 멘트가 나옵니다.</p>
     </div>
     <div class="settings">
-      <label>매장 <input id="store" list="stores" value="구월점"></label>
-      <datalist id="stores">
-        <option>구월점</option><option>인천연수점</option><option>인천논현점</option><option>부천상동점</option><option>부천중동점</option>
-        <option>구월로데오점</option><option>구월길병원점</option><option>인천공항점</option><option>인천검단점</option><option>인천계산점</option>
-      </datalist>
+      <label>지점 <select id="store">
+        <option>구월로데오점</option><option>구월길병원점</option><option>인천연수점</option><option>인천논현점</option><option>부천상동점</option>
+        <option>부천중동점</option><option>인천공항점</option><option>인천검단점</option><option>인천계산점</option>
+      </select></label>
       <label>주문월 <input id="month" type="number" min="1" max="12" style="min-width:70px"></label>
       <label>주문일 <input id="date" type="date"></label>
       <label>지출증빙 매장 <input id="evName" value="연수점" style="min-width:90px"></label>
@@ -105,6 +114,9 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
     </div>
   </header>
 
+  <nav class="tabs"><button class="tab on" data-tab="write">작성</button><button class="tab" data-tab="history">이력</button><span class="tabnote" id="apiNote"></span></nav>
+
+  <div id="view-write">
   <!-- STEP 1 -->
   <section class="card">
     <div class="step"><div class="num">1</div><h2>장바구니 붙여넣기</h2><span class="hint">쿠팡 장바구니 페이지에서 Ctrl+A → Ctrl+C 후 아래 칸에 Ctrl+V</span></div>
@@ -151,6 +163,7 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
             <span>입금 합계</span><b id="kvPayTotal">0원</b>
           </div>
           <div><button class="btn primary big" id="dlXlsx" disabled>엑셀 다운로드</button></div>
+          <div id="saveState"></div>
         </div>
       </div>
       <div>
@@ -162,6 +175,24 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
     </div>
   </section>
 
+  </div><!-- /view-write -->
+
+  <div id="view-history" hidden>
+    <section class="card">
+      <div class="step"><div class="num">▤</div><h2>지점별 월 합계</h2><span class="hint">엑셀을 내려받을 때마다 자동으로 쌓입니다</span></div>
+      <div id="sumWrap" class="empty">불러오는 중…</div>
+    </section>
+    <section class="card">
+      <div class="step"><div class="num">≡</div><h2>주문 내역</h2>
+        <span class="hint" style="display:flex;gap:8px;align-items:center">
+          <select id="hMonth" class="sel"></select>
+          <select id="hStore" class="sel"><option value="">전체 지점</option></select>
+          <button class="btn" id="hReload" style="height:32px">새로고침</button>
+        </span></div>
+      <div id="listWrap" class="empty">불러오는 중…</div>
+    </section>
+  </div>
+
   <footer>
     We Vape — 비품 주문 보고<br>
     Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>
@@ -172,7 +203,9 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
 
 <script>
 /* ---------- 상태 ---------- */
-const S = { items: [], pays: [], cartExpected: null, appendMode: false };
+const API_URL = 'https://script.google.com/macros/s/AKfycbwmRvA_JapXa3XGdUw8XoUtrH5qhYuwgcPE7dxOW0Nm9AdP9PJ9IAV81ya5kU7077jj/exec'; // Apps Script 웹앱 URL
+const S = { items: [], pays: [], cartExpected: null, appendMode: false, orderId: null, saveState: '' };
+const STORES = ['구월로데오점','구월길병원점','인천연수점','인천논현점','부천상동점','부천중동점','인천공항점','인천검단점','인천계산점'];
 const REASONS = ['매장 비품 보충','고객 서비스 제공용','매장 정비 비품','프린터 잉크 보충','기타'];
 const $ = id => document.getElementById(id);
 const won = n => (Number(n)||0).toLocaleString('ko-KR') + '원';
@@ -298,7 +331,7 @@ $('cartPaste').addEventListener('paste', e=>{
   const { items, expected } = parseCart(text);
   if(!items.length){ setStatus('cartStatus','상품 링크를 찾지 못했습니다. 장바구니 페이지에서 Ctrl+A로 전체 선택 후 복사했는지 확인해 주세요.','bad'); return; }
   if(S.appendMode){ S.items = S.items.concat(items); if(expected) S.cartExpected = (S.cartExpected||0) + expected; }
-  else { S.items = items; S.cartExpected = expected; }
+  else { S.items = items; S.cartExpected = expected; S.orderId=null; S.saveState=''; }
   const box = $('cartPaste'); box.classList.add('filled');
   box.textContent = `${S.items.length}개 품목을 읽었습니다.` + (expected ? ` (쿠팡 주문 예상 금액 ${won(expected)})` : '');
   box.blur();
@@ -321,7 +354,7 @@ $('payPaste').addEventListener('paste', e=>{
   el.addEventListener('keydown',e=>{ if(!(e.ctrlKey||e.metaKey) && e.key.length===1) e.preventDefault(); });
 });
 $('cartAppend').onclick = ()=>{ S.appendMode=!S.appendMode; $('cartAppend').textContent = `추가 붙여넣기 모드: ${S.appendMode?'켬':'끔'}`; $('cartAppend').classList.toggle('primary',S.appendMode); if(S.appendMode){ const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; } };
-$('cartClear').onclick = ()=>{ S.items=[]; S.cartExpected=null; const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','비웠습니다.'); render(); };
+$('cartClear').onclick = ()=>{ S.items=[]; S.cartExpected=null; S.orderId=null; S.saveState=''; const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','비웠습니다.'); render(); };
 $('addRow').onclick = ()=>{ S.items.push({on:true,name:'',opt:'',qty:1,price:0,url:'',reason:'매장 비품 보충'}); render(); };
 $('payAdd').onclick = ()=>{ S.pays.push({label:'',bank:'',acc:'',holder:'',amount:0}); render(); };
 $('copyMsg').onclick = ()=> copyText($('msg').value, '멘트를 복사했습니다');
@@ -403,6 +436,7 @@ function renderOut(){
   else if(it===pt) hint.innerHTML='<span class="chip ok">품목 합계와 입금 합계 일치</span>';
   else hint.innerHTML=`<span class="chip bad">품목 합계 ${won(it)} ≠ 입금 합계 ${won(pt)} (차이 ${won(Math.abs(it-pt))})</span>`;
   $('msg').value = buildMsg();
+  renderSaveState();
   $('oneliners').innerHTML = S.pays.filter(p=>p.acc||p.amount).map((p,i)=>`<div class="oneliner"><code>${esc(p.bank)} ${esc(p.acc)} ${won(p.amount)}</code><button class="btn" data-ol="${i}">복사</button></div>`).join('');
   $('oneliners').querySelectorAll('[data-ol]').forEach(b=>b.onclick=()=>{ const p=S.pays[+b.dataset.ol]; copyText(`${p.bank} ${p.acc} ${won(p.amount)}`,'계좌 한 줄을 복사했습니다'); });
 }
@@ -461,6 +495,90 @@ async function buildXlsx(){
   const buf=await wb.xlsx.writeBuffer();
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); a.download=fileName(); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   toast('엑셀을 내려받았습니다');
+  saveOrder();
+}
+
+/* ---------- 이력 저장/조회 ---------- */
+function monthKey(){ const d=$('date').value||''; return d.slice(0,4)+'-'+mm(); }
+async function api(params, body){
+  if(!API_URL) throw new Error('API 미설정');
+  if(body){ const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(body)}); return r.json(); }
+  const u=new URL(API_URL); Object.entries(params).forEach(([k,v])=>v!=null&&v!==''&&u.searchParams.set(k,v));
+  const r=await fetch(u); return r.json();
+}
+async function saveOrder(){
+  if(!API_URL){ S.saveState='noapi'; renderOut(); return; }
+  S.saveState='saving'; renderOut();
+  try{
+    const order={ id:S.orderId, store:$('store').value, month:monthKey(), date:$('date').value, evName:$('evName').value, evNo:$('evNo').value,
+      items:activeItems(), pays:S.pays, cartExpected:S.cartExpected, msg:buildMsg() };
+    const res=await api(null,{action:'save',order});
+    if(!res.ok) throw new Error(res.error||'저장 실패');
+    S.orderId=res.id; S.saveState='ok'; toast('이력에 저장했습니다');
+  }catch(e){ S.saveState='err:'+e.message; }
+  renderOut();
+}
+function renderSaveState(){
+  const el=$('saveState'); if(!el) return;
+  const st=S.saveState;
+  if(st==='ok') el.innerHTML=`<span class="chip ok">이력 저장됨 · ${S.orderId}</span>`;
+  else if(st==='saving') el.innerHTML='<span class="chip">이력 저장 중…</span>';
+  else if(st==='noapi') el.innerHTML='<span class="chip warn">이력 저장 안 됨 — API 미설정</span>';
+  else if(st.startsWith('err:')) el.innerHTML=`<span class="chip bad">이력 저장 실패: ${esc(st.slice(4))}</span> <button class="btn" style="height:28px;padding:0 10px;font-size:12.5px" onclick="saveOrder()">다시 시도</button>`;
+  else el.innerHTML='';
+}
+/* 탭 */
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+  $('view-write').hidden = b.dataset.tab!=='write'; $('view-history').hidden = b.dataset.tab!=='history';
+  if(b.dataset.tab==='history') loadHistory();
+});
+(function initHistoryUI(){
+  const hs=$('hStore'); STORES.forEach(n=>{ const o=document.createElement('option'); o.textContent=n; hs.appendChild(o); });
+  const hm=$('hMonth'); const now=new Date();
+  const all=document.createElement('option'); all.value=''; all.textContent='전체 기간'; hm.appendChild(all);
+  for(let i=0;i<18;i++){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); const o=document.createElement('option'); o.value=k; o.textContent=d.getFullYear()+'년 '+(d.getMonth()+1)+'월'; hm.appendChild(o); }
+  hm.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  hm.onchange=hs.onchange=loadHistory; $('hReload').onclick=loadHistory;
+  $('apiNote').textContent = API_URL ? '' : '이력 저장 API가 아직 연결되지 않았습니다';
+})();
+async function loadHistory(){
+  if(!API_URL){ $('sumWrap').innerHTML='<div class="empty">이력 저장 API가 연결되지 않았습니다.</div>'; $('listWrap').innerHTML=''; return; }
+  $('sumWrap').textContent='불러오는 중…'; $('listWrap').textContent='불러오는 중…';
+  try{
+    const now=new Date(); const from=new Date(now.getFullYear(),now.getMonth()-11,1); const fk=from.getFullYear()+'-'+String(from.getMonth()+1).padStart(2,'0');
+    const [sum,list]=await Promise.all([api({action:'summary',from:fk}), api({action:'list',month:$('hMonth').value,store:$('hStore').value})]);
+    if(!sum.ok||!list.ok) throw new Error(sum.error||list.error);
+    renderSummary(sum.rows); renderList(list.rows);
+  }catch(e){ $('sumWrap').innerHTML=`<div class="empty" style="color:var(--bad)">불러오기 실패: ${esc(e.message)}</div>`; $('listWrap').innerHTML=''; }
+}
+function renderSummary(rows){
+  if(!rows.length){ $('sumWrap').innerHTML='<div class="empty">아직 저장된 주문이 없습니다.</div>'; return; }
+  const months=[...new Set(rows.map(r=>r.month))].sort(); const stores=[...new Set(rows.map(r=>r.store))].sort((a,b)=>STORES.indexOf(a)-STORES.indexOf(b));
+  const m={}; rows.forEach(r=>m[r.store+'|'+r.month]=r);
+  const colTot={}; let grand=0;
+  let h='<div style="overflow:auto"><table class="sum"><thead><tr><th>지점</th>'+months.map(k=>`<th>${k.slice(2).replace('-','.')}월</th>`).join('')+'<th>합계</th></tr></thead><tbody>';
+  stores.forEach(st=>{ let rowTot=0; h+=`<tr><td>${esc(st)}</td>`; months.forEach(k=>{ const v=m[st+'|'+k]; const n=v?v.itemTotal:0; rowTot+=n; colTot[k]=(colTot[k]||0)+n; h+=`<td>${n?won(n):'<span style="color:#c7ccd3">-</span>'}</td>`; }); grand+=rowTot; h+=`<td><b>${won(rowTot)}</b></td></tr>`; });
+  h+='</tbody><tfoot><tr class="tfoot"><td>전체</td>'+months.map(k=>`<td>${won(colTot[k]||0)}</td>`).join('')+`<td>${won(grand)}</td></tr></tfoot></table></div>`;
+  $('sumWrap').innerHTML=h;
+}
+function renderList(rows){
+  if(!rows.length){ $('listWrap').innerHTML='<div class="empty">해당 조건의 주문이 없습니다.</div>'; return; }
+  let h='<div style="overflow:auto"><table><thead><tr><th>주문일</th><th>지점</th><th>품목 수</th><th>품목 합계</th><th>입금</th><th>주문ID</th><th></th></tr></thead><tbody>';
+  rows.forEach(r=>{ h+=`<tr class="hrow" data-id="${esc(r.id)}"><td>${esc(String(r.date).slice(0,10))}</td><td>${esc(r.store)}</td><td>${r.count}</td><td class="amt">${won(r.itemTotal)}</td><td style="font-size:12.5px;color:var(--muted)">${esc(r.paySummary||'')}</td><td style="font-size:12px;color:var(--muted)">${esc(r.id)}</td><td><span class="badge">불러오기</span></td></tr>`; });
+  h+='</tbody></table></div>';
+  $('listWrap').innerHTML=h;
+  $('listWrap').querySelectorAll('tr.hrow').forEach(tr=>tr.onclick=()=>loadOrder(tr.dataset.id));
+}
+async function loadOrder(id){
+  try{
+    const res=await api({action:'get',id}); if(!res.ok||!res.order) throw new Error(res.error||'없음');
+    const o=res.order;
+    S.items=(o.items||[]).map(i=>({...i,on:true})); S.pays=o.pays||[]; S.cartExpected=o.cartExpected??null; S.orderId=o.id; S.saveState='';
+    if(o.store) $('store').value=o.store; if(o.date) $('date').value=o.date; if(o.month) $('month').value=Number(o.month.slice(5));
+    const b=$('cartPaste'); b.classList.add('filled'); b.textContent=`이력에서 불러옴 · ${o.id}`;
+    document.querySelector('.tab[data-tab="write"]').click(); render(); window.scrollTo({top:0,behavior:'smooth'}); toast('불러왔습니다');
+  }catch(e){ toast('불러오기 실패: '+e.message); }
 }
 </script>
 <style>
