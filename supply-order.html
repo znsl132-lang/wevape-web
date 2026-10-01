@@ -261,8 +261,10 @@ function clipboardToText(e){
   doc.querySelectorAll('a[href]').forEach(a=>{
     const href = a.getAttribute('href');
     const t = a.textContent.replace(/\s+/g,' ').trim();
-    if(/\/vp\/products\/|\/products\/\d+/.test(href) && t){
-      a.replaceWith(doc.createTextNode(`\n[${t}](${new URL(href, 'https://www.coupang.com').href})\n`));
+    if(/\/vp\/products\/|\/products\/\d+|\/sdp\/link\?/.test(href) && t){
+      let u; try{ u=new URL(href, 'https://www.coupang.com'); }catch(x){ return; }
+      if(/\/sdp\/link/.test(u.pathname) && u.searchParams.get('vendorItemId')) u = new URL('https://mc.coupang.com/ssr/sdp/link?vendorItemId='+u.searchParams.get('vendorItemId'));
+      a.replaceWith(doc.createTextNode(`\n[${t}](${u.href})\n`));
     }
   });
   // 블록 요소 뒤에는 줄바꿈, 인라인 요소 뒤에는 공백 (가격 숫자와 '원'이 떨어지지 않게)
@@ -272,9 +274,9 @@ function clipboardToText(e){
 }
 
 /* ---------- 장바구니 파서 ---------- */
-const PRODUCT_LINK = /\[([^\]]+?)\]\((https?:\/\/[^)\s]+?(?:\/vp\/products\/\d+|\/products\/\d+)[^)\s]*)\)/;
+const PRODUCT_LINK = /\[([^\]]+?)\]\((https?:\/\/[^)\s]+?(?:\/vp\/products\/\d+|\/products\/\d+|\/sdp\/link\?vendorItemId=\d+)[^)\s]*)\)/;
 const PRICE_RE = /(\d{1,3}(?:,\d{3})+|\d{4,})\s*원/g;
-const NOISE_SOURCE = /sourceType=(CART_ADS|cart_items_intended_to_buy|cart_also_bought)|rmdId=/;
+const NOISE_SOURCE = /sourceType=(CART_ADS|cart_items_intended_to_buy|cart_also_bought|recently_viewed\w*)|rmdId=/;
 
 function parseCart(text){
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
@@ -291,15 +293,21 @@ function parseCart(text){
       let name = full, opt = '';
       const oi = full.indexOf('옵션:');
       if(oi>=0){ name = full.slice(0,oi).trim(); opt = full.slice(oi+3).trim(); }
+      else { const ci = full.indexOf(', '); if(ci>0){ name = full.slice(0,ci).trim(); opt = full.slice(ci+2).trim(); } }
       cur = { on:true, name:cleanName(name), opt:cleanOpt(opt), qty:1, price:0, url:cleanUrl(m[2]), reason:guessReason(name+' '+opt), prices:[] };
       items.push(cur);
+      const rest = ln.slice(m.index + m[0].length);   // 같은 줄에 가격·수량이 붙어 있는 경우(주문상세)
+      for(const m3 of rest.replace(/\([^)]*당[^)]*\)/g,'').matchAll(PRICE_RE)) cur.prices.push(num(m3[1]));
+      const rq = rest.match(/원\s*(\d+)\s*개(?!입)/); if(rq) cur.qty = Number(rq[1]);
       continue;
     }
     if(!cur) continue;
     const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/) || ln.match(/^(\d+)\s*개$/) || ln.match(/^수량\s*(\d+)\s*개/); if(q){ cur.qty = Number(q[1]); continue; }
     if(/쿠폰할인 적용됨|배송비|적립/.test(ln)) continue;
     const clean = ln.replace(/\([^)]*당[^)]*\)/g,'');   // (100ml당 302원) 같은 단위가격 제거
+    const hadPrice = [...clean.matchAll(PRICE_RE)].length>0;
     for(const m2 of clean.matchAll(PRICE_RE)) cur.prices.push(num(m2[1]));
+    if(hadPrice){ const rq = clean.match(/원\s*(\d+)\s*개(?!입)/); if(rq) cur.qty = Number(rq[1]); }
   }
   // 최종가 = 블록 내 마지막 가격 (정가 → 할인가 순서로 나오므로)
   for(const it of items){ it.price = it.prices.length ? it.prices[it.prices.length-1] : 0; delete it.prices; }
@@ -320,6 +328,7 @@ function cleanOpt(o){ return o.replace(/\s*,\s*/g,' X ').replace(/_/g,' ').trim(
 function cleanUrl(u){
   try{
     const x = new URL(u);
+    if(/\/sdp\/link/.test(x.pathname)) return `https://mc.coupang.com/ssr/sdp/link?vendorItemId=${x.searchParams.get('vendorItemId')}`;
     if(/coupang\.com/.test(x.host)){
       const vid = x.searchParams.get('vendorItemId');
       return `https://www.coupang.com${x.pathname}` + (vid?`?vendorItemId=${vid}&sourceType=CART`:'');
@@ -342,6 +351,7 @@ function parsePay(text){
   // 환불계좌 블록은 제외 (입금계좌보다 뒤에 나올 때만)
   const refundAt = t.search(/환불\s*계좌/); const accAt = t.search(/\d{10,16}/);
   if(refundAt>0 && accAt>=0 && accAt<refundAt) t = t.slice(0,refundAt);
+  t = t.replace(/주문\s*번호\s*[:：]?\s*\d{8,}/g,'주문번호 X').replace(/\]\(https?:[^)]*\)/g,']').replace(/https?:\/\/\S+/g,' ');
   const one = t.replace(/\s*\n\s*/g,' ').replace(/\s{2,}/g,' ');
   const bankM = one.match(/(?:입금\s*은행|입금은행|은행명|은행)\s*[:：]?\s*([가-힣A-Za-z]+(?:은행|뱅크|금고|증권)?)\s*(?:\(([^)]+)\))?/);
   const accM  = one.match(/(?:입금\s*계좌|입금계좌|계좌번호|계좌)\s*[:：]?\s*([\d][\d-]{7,})/);
@@ -353,8 +363,9 @@ function parsePay(text){
     const n = one.match(/(?:^|[^\d,])(\d{10,16})(?!\d)/); if(n){ const b = one.slice(0, n.index).match(new RegExp('('+BANKS+')(?![\\s\\S]*('+BANKS+'))')); plainM = [n[0], b?b[1]:'', '', n[1]]; }
   }
   if(plainM) plainM[3] = String(plainM[3]).replace(/[\s-]/g,'');
-  let bank = bankM && new RegExp('^('+BANKS+')').test(bankM[1]) ? bankM[1] : (plainM ? plainM[1] : (bankM ? bankM[1] : ''));
   let acc = accM ? accM[1] : (plainM ? plainM[3] : '');
+  let bank = bankM && new RegExp('^('+BANKS+')').test(bankM[1]) ? bankM[1] : (plainM && plainM[1] ? plainM[1] : '');
+  if(!bank && acc){ const idx = one.indexOf(acc); const before = idx>0 ? one.slice(0,idx) : one; const lb = before.match(new RegExp('('+BANKS+')(?![\\s\\S]*('+BANKS+'))')); if(lb) bank = lb[1]; }
   let amount = amtM ? num(amtM[1]) : 0;
   if(!amount){ const all=[...one.matchAll(/(\d{1,3}(?:,\d{3})+|\d{4,})\s*원/g)].map(m=>num(m[1])).filter(n=>n>=1000); if(all.length) amount = all[0]; }
   if(!acc && !amount){ try{ localStorage.setItem('supplyLastPayText', text.slice(0,20000)); }catch(e){} return null; }
@@ -489,10 +500,12 @@ function buildMsg(){
     out += `\n${i+1}) ${p.label||'비품류'}\n입금 은행 : ${p.bank||''}\n계좌번호 : ${p.acc||''}\n예금주 : ${p.holder||''}\n입금 금액 : ${won(p.amount)}\n사업자 지출증빙 : ${ev}\n`;
   });
   out += `\n* 합계 금액 : ${won(pays.reduce((a,p)=>a+(Number(p.amount)||0),0))}`;
+  const lines = pays.filter(p=>p.acc).map(p=>`${p.bank} ${p.acc} ${won(p.amount)}`);
+  if(lines.length) out += `\n\n` + lines.join('\n');
   return out;
 }
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function linkLabel(u){ try{ const x=new URL(u); const id=(x.pathname.match(/\/products\/(\d+)/)||[])[1]||''; const site=/coupang/.test(x.host)?'쿠팡':/naver/.test(x.host)?'네이버':x.host.replace('www.',''); return `${site} ▸ ${id||'상품 보기'}`; }catch(e){ return '링크 열기'; } }
+function linkLabel(u){ try{ const x=new URL(u); const id=(x.pathname.match(/\/products\/(\d+)/)||[])[1]||x.searchParams.get('vendorItemId')||''; const site=/coupang/.test(x.host)?'쿠팡':/naver/.test(x.host)?'네이버':x.host.replace('www.',''); return `${site} ▸ ${id||'상품 보기'}`; }catch(e){ return '링크 열기'; } }
 function shortUrl(u){ try{ const x=new URL(u); return x.host.replace('www.','')+x.pathname; }catch(e){ return u; } }
 
 /* ---------- 엑셀 생성 (기존 양식 그대로) ---------- */
