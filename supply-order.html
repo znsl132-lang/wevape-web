@@ -119,11 +119,11 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
   <div id="view-write">
   <!-- STEP 1 -->
   <section class="card">
-    <div class="step"><div class="num">1</div><h2>장바구니 붙여넣기</h2><span class="hint">쿠팡 장바구니 페이지에서 Ctrl+A → Ctrl+C 후 아래 칸에 Ctrl+V</span></div>
+    <div class="step"><div class="num">1</div><h2>장바구니 붙여넣기</h2><span class="hint" id="autoNote">쿠팡 장바구니·주문상세 페이지에서 Ctrl+A → Ctrl+C 후 아래 칸에 Ctrl+V</span></div>
     <div class="paste-row">
       <div id="cartPaste" class="paste" contenteditable="true" data-placeholder="여기에 붙여넣기 (Ctrl+V)"></div>
       <button class="btn" id="cartAppend" title="다른 사이트 장바구니를 추가로 붙여넣을 때">추가 붙여넣기 모드: 끔</button>
-      <button class="btn ghost" id="cartClear">비우기</button>
+      <button class="btn ghost" id="cartClear" style="color:var(--bad)">전체 삭제</button>
     </div>
     <div class="status" id="cartStatus">붙여넣으면 자동으로 품목을 읽습니다. 네이버 스마트스토어 장바구니도 같은 방식으로 됩니다.</div>
     <div style="text-align:right;margin-top:-14px"><button class="btn ghost" id="dumpHtml" style="height:26px;font-size:11.5px;padding:0 8px" title="읽기가 잘못됐을 때 원본을 파일로 저장해 담당자에게 보내세요">읽기 오류 신고용 원본 저장</button></div>
@@ -225,10 +225,26 @@ const num = s => Number(String(s??'').replace(/[^\d]/g,'')) || 0;
     const saved = JSON.parse(localStorage.getItem('supplyReportSettings')||'{}');
     for(const k of ['store','evName','evNo']) if(saved[k]) $(k).value = saved[k];
   }catch(e){}
-  ['store','evName','evNo','month','date'].forEach(id=>$(id).addEventListener('input',()=>{saveSettings();render();}));
+  ['store','evName','evNo','month','date'].forEach(id=>$(id).addEventListener('input',()=>{saveSettings();render(); if(S.items.length) autoSaveSoon();}));
   fillReasonList();
+  restoreDraft();
   render();
 })();
+/* ---------- 초안 자동 저장 (이 PC) + 이력 자동 저장 (본사 시트) ---------- */
+function saveDraft(){
+  try{ localStorage.setItem('supplyDraft', JSON.stringify({items:S.items,pays:S.pays,cartExpected:S.cartExpected,orderId:S.orderId,store:$('store').value,date:$('date').value,month:$('month').value,at:Date.now()})); }catch(e){}
+}
+function restoreDraft(){
+  try{
+    const d=JSON.parse(localStorage.getItem('supplyDraft')||'null'); if(!d||!d.items||!d.items.length) return;
+    S.items=d.items; S.pays=d.pays||[]; S.cartExpected=d.cartExpected??null; S.orderId=d.orderId||null;
+    if(d.store) $('store').value=d.store; if(d.date) $('date').value=d.date; if(d.month) $('month').value=d.month;
+    const b=$('cartPaste'); b.classList.add('filled'); b.textContent=`이전 작업 복원됨 · ${S.items.length}개 품목` + (S.orderId?` · 이력 ${S.orderId}`:'');
+    setStatus('cartStatus','닫기 전 작업을 자동으로 복원했습니다. 새 주문이면 「전체 삭제」 후 붙여넣으세요.','ok');
+  }catch(e){}
+}
+let _autoT=null;
+function autoSaveSoon(){ saveDraft(); clearTimeout(_autoT); _autoT=setTimeout(()=>{ if(activeItems().length) saveOrder(true); }, 1500); }
 function saveSettings(){
   try{ localStorage.setItem('supplyReportSettings', JSON.stringify({store:$('store').value,evName:$('evName').value,evNo:$('evNo').value})); }catch(e){}
 }
@@ -267,7 +283,7 @@ function parseCart(text){
   let stop = false;
   for(const ln of lines){
     if(/^(같이 보면 좋은 상품|결제하려 했던 상품|위 상품을 구매한 고객|회사소개|상호명 및 호스팅)/.test(ln)) stop = true;
-    if(/^(전체 선택|선택삭제|주문 예상 금액|총 상품 가격|주문서|결제하기)/.test(ln) || stop) cur = null;
+    if(/^(전체 선택|선택삭제|주문 예상 금액|총 상품 가격|주문서|결제하기|결제 정보|결제정보|받는사람 정보|배송지 정보|총 결제|환불)/.test(ln) || stop) cur = null;
     const m = ln.match(PRODUCT_LINK);
     if(m && !stop){
       if(NOISE_SOURCE.test(m[2])) continue;
@@ -280,7 +296,7 @@ function parseCart(text){
       continue;
     }
     if(!cur) continue;
-    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/); if(q){ cur.qty = Number(q[1]); continue; }
+    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/) || ln.match(/^(\d+)\s*개$/) || ln.match(/^수량\s*(\d+)\s*개/); if(q){ cur.qty = Number(q[1]); continue; }
     if(/쿠폰할인 적용됨|배송비|적립/.test(ln)) continue;
     const clean = ln.replace(/\([^)]*당[^)]*\)/g,'');   // (100ml당 302원) 같은 단위가격 제거
     for(const m2 of clean.matchAll(PRICE_RE)) cur.prices.push(num(m2[1]));
@@ -292,6 +308,9 @@ function parseCart(text){
   for(let i=0;i<lines.length;i++){
     if(/^총\s*\d+개 상품 구매하기/.test(lines[i])){
       for(let j=i-1;j>=Math.max(0,i-6);j--){ const all=[...lines[j].matchAll(PRICE_RE)]; if(all.length){ expected = num(all[all.length-1][1]); break; } }
+    }
+    if(expected==null && /총\s*결제\s*금액|최종\s*결제\s*금액|결제\s*예정\s*금액/.test(lines[i])){
+      for(let j=i;j<Math.min(lines.length,i+4);j++){ const all=[...lines[j].matchAll(PRICE_RE)]; if(all.length){ expected = num(all[all.length-1][1]); break; } }
     }
   }
   return { items, expected };
@@ -319,21 +338,26 @@ function guessReason(s){
 /* ---------- 입금대기 파서 ---------- */
 const BANKS = '우리은행|KB국민은행|국민은행|신한은행|하나은행|NH농협은행|농협은행|농협|IBK기업은행|기업은행|카카오뱅크|토스뱅크|케이뱅크|새마을금고|우체국|SC제일은행|씨티은행|iM뱅크|대구은행|부산은행|경남은행|광주은행|전북은행|제주은행|수협은행|수협|신협|산업은행';
 function parsePay(text){
-  let t = text.replace(/\u00a0/g,' ');
-  // 환불계좌·배송지 등 아래쪽 정보는 무시
-  const cut = t.search(/환불\s*계좌|환불계좌|배송지|주문자\s*정보/); if(cut>0) t = t.slice(0,cut);
-  const one = t.replace(/\s*\n\s*/g,' ');
+  let t = text.replace(/[\u00a0\u200b\u2009\u202f]/g,' ');
+  // 환불계좌 블록은 제외 (입금계좌보다 뒤에 나올 때만)
+  const refundAt = t.search(/환불\s*계좌/); const accAt = t.search(/\d{10,16}/);
+  if(refundAt>0 && accAt>=0 && accAt<refundAt) t = t.slice(0,refundAt);
+  const one = t.replace(/\s*\n\s*/g,' ').replace(/\s{2,}/g,' ');
   const bankM = one.match(/(?:입금\s*은행|입금은행|은행명|은행)\s*[:：]?\s*([가-힣A-Za-z]+(?:은행|뱅크|금고|증권)?)\s*(?:\(([^)]+)\))?/);
   const accM  = one.match(/(?:입금\s*계좌|입금계좌|계좌번호|계좌)\s*[:：]?\s*([\d][\d-]{7,})/);
   const amtM  = one.match(/(?:입금\s*대기\s*금액|입금대기금액|입금\s*금액|입금금액|총\s*결제\s*금액|결제\s*금액|최종\s*결제\s*금액)\s*[:：]?\s*([\d,]+)\s*원/);
   const holdM = one.match(/예금주\s*[:：]?\s*([^\s|]+)/);
   // 키워드 없이 "우리은행 47971831118141 222,060원" 형식
-  const plainM = one.match(new RegExp('('+BANKS+')\\s*(?:\\(([^)]*)\\))?\\s*[:：]?\\s*(\\d[\\d-]{8,})'));
+  let plainM = one.match(new RegExp('('+BANKS+')\\s*(?:\\(([^)]*)\\))?\\s*[:：]?\\s*(\\d[\\d-]{8,}\\d)'));
+  if(!plainM){ // 은행명이 없거나 떨어져 있으면 10~16자리 숫자만으로
+    const n = one.match(/(?:^|[^\d,])(\d{10,16})(?!\d)/); if(n){ const b = one.slice(0, n.index).match(new RegExp('('+BANKS+')(?![\\s\\S]*('+BANKS+'))')); plainM = [n[0], b?b[1]:'', '', n[1]]; }
+  }
+  if(plainM) plainM[3] = String(plainM[3]).replace(/[\s-]/g,'');
   let bank = bankM && new RegExp('^('+BANKS+')').test(bankM[1]) ? bankM[1] : (plainM ? plainM[1] : (bankM ? bankM[1] : ''));
   let acc = accM ? accM[1] : (plainM ? plainM[3] : '');
   let amount = amtM ? num(amtM[1]) : 0;
   if(!amount){ const all=[...one.matchAll(/(\d{1,3}(?:,\d{3})+|\d{4,})\s*원/g)].map(m=>num(m[1])).filter(n=>n>=1000); if(all.length) amount = all[0]; }
-  if(!acc && !amount) return null;
+  if(!acc && !amount){ try{ localStorage.setItem('supplyLastPayText', text.slice(0,20000)); }catch(e){} return null; }
   let holder = holdM ? holdM[1] : (bankM && bankM[2] ? bankM[2] : (plainM && plainM[2] ? plainM[2] : ''));
   if(!holder && (/쿠팡/.test(one) || (bank==='우리은행' && /^4797/.test(acc)))) holder = '쿠팡';
   return { label: holder==='쿠팡' ? '일반 비품류 ( 음료 & 기타비품 )' : '', bank, acc, holder, amount };
@@ -351,17 +375,17 @@ $('cartPaste').addEventListener('paste', e=>{
   box.textContent = `${S.items.length}개 품목을 읽었습니다.` + (expected ? ` (쿠팡 주문 예상 금액 ${won(expected)})` : '');
   box.blur();
   setStatus('cartStatus', `${items.length}개 품목 인식 완료. 아래 2단계에서 옵션·수량·사유를 확인해 주세요.`, 'ok');
-  render();
+  render(); autoSaveSoon();
 });
 $('payPaste').addEventListener('paste', e=>{
   e.preventDefault();
   const text = clipboardToText(e);
   const p = parsePay(text);
-  if(!p){ setStatus('payStatus','계좌번호나 금액을 찾지 못했습니다. "직접 입력"으로 넣어 주세요.','bad'); return; }
+  if(!p){ setStatus('payStatus','계좌번호나 금액을 찾지 못했습니다. "직접 입력"으로 넣고, 1단계의 「읽기 오류 신고용 원본 저장」 파일을 담당자에게 보내 주세요.','bad'); return; }
   S.pays.push(p);
   const box = $('payPaste'); box.textContent=''; box.blur();
   setStatus('payStatus', `${p.bank||'은행 미확인'} ${p.acc} ${won(p.amount)} 추가됨. 결제가 더 있으면 이어서 붙여넣으세요.`, 'ok');
-  render();
+  render(); autoSaveSoon();
 });
 ['cartPaste','payPaste'].forEach(id=>{
   const el=$(id);
@@ -369,12 +393,12 @@ $('payPaste').addEventListener('paste', e=>{
   el.addEventListener('keydown',e=>{ if(!(e.ctrlKey||e.metaKey) && e.key.length===1) e.preventDefault(); });
 });
 $('cartAppend').onclick = ()=>{ S.appendMode=!S.appendMode; $('cartAppend').textContent = `추가 붙여넣기 모드: ${S.appendMode?'켬':'끔'}`; $('cartAppend').classList.toggle('primary',S.appendMode); if(S.appendMode){ const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; } };
-$('cartClear').onclick = ()=>{ S.items=[]; S.cartExpected=null; S.orderId=null; S.saveState=''; const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','비웠습니다.'); render(); };
+$('cartClear').onclick = ()=>{ if(S.items.length && !confirm('화면의 품목·입금 정보를 모두 지웁니다. (이미 자동 저장된 이력은 「이력」 탭에 남습니다)')) return; S.items=[]; S.pays=[]; S.cartExpected=null; S.orderId=null; S.saveState=''; try{ localStorage.removeItem('supplyDraft'); }catch(e){} const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','모두 지웠습니다. 새 주문을 붙여넣으세요.'); $('payStatus').textContent=''; render(); };
 $('addRow').onclick = ()=>{ S.items.push({on:true,name:'',opt:'',qty:1,price:0,url:'',reason:'매장 비품 보충'}); render(); };
 $('payAdd').onclick = ()=>{ S.pays.push({label:'',bank:'',acc:'',holder:'',amount:0}); render(); };
 $('copyMsg').onclick = ()=> copyText($('msg').value, '멘트를 복사했습니다');
 $('dlXlsx').onclick = buildXlsx;
-$('dumpHtml').onclick = ()=>{ let h=''; try{ h=localStorage.getItem('supplyLastHtml')||''; }catch(e){} if(!h){ toast('저장된 원본이 없습니다. 먼저 붙여넣기를 해주세요'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([h],{type:'text/html'})); a.download='장바구니_원본.html'; a.click(); toast('원본을 저장했습니다'); };
+$('dumpHtml').onclick = ()=>{ let h=''; try{ h=(localStorage.getItem('supplyLastHtml')||'') + '\n<!-- PAYTEXT -->\n<pre id="paytext">' + (localStorage.getItem('supplyLastPayText')||'').replace(/</g,'&lt;') + '</pre>'; }catch(e){} if(!h){ toast('저장된 원본이 없습니다. 먼저 붙여넣기를 해주세요'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([h],{type:'text/html'})); a.download='장바구니_원본.html'; a.click(); toast('원본을 저장했습니다'); };
 
 function setStatus(id,msg,cls){ const el=$(id); el.textContent=msg; el.className='status '+(cls||''); }
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
@@ -415,10 +439,11 @@ function renderItems(){
       const it=S.items[+el.dataset.i], k=el.dataset.k;
       if(k==='on') it.on=el.checked; else if(k==='qty') it.qty=Number(el.value)||0; else if(k==='price') it.price=num(el.value); else it[k]=el.value;
       if(el.type==='checkbox'||el.tagName==='SELECT'||k==='url') render(); else { updateTotalsOnly(); }
+      autoSaveSoon();
     });
     el.addEventListener('blur',()=>{ if(el.dataset.k==='price'||el.dataset.k==='qty') render(); });
   });
-  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.items.splice(+b.dataset.del,1); render(); });
+  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.items.splice(+b.dataset.del,1); render(); autoSaveSoon(); });
   const n=activeItems().length, nolink=S.items.filter(i=>i.on&&!i.url).length;
   let chips=`<span class="chip">${n}개 선택</span>`;
   if(S.cartExpected!=null){ const ok=S.cartExpected===itemTotal(); chips+=` <span class="chip ${ok?'ok':'warn'}">쿠팡 예상금액 ${won(S.cartExpected)} ${ok?'일치':'불일치 (체크 해제된 상품이 있는지 확인)'}</span>`; }
@@ -439,8 +464,8 @@ function renderPays(){
       <label>입금 금액</label><input value="${(Number(p.amount)||0).toLocaleString('ko-KR')}" data-i="${i}" data-k="amount" style="text-align:right">
       <button class="del" data-del="${i}">삭제</button>
     </div>`).join('');
-  w.querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{ const p=S.pays[+el.dataset.i], k=el.dataset.k; p[k]= k==='amount'?num(el.value):el.value; renderOut(); }));
-  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.pays.splice(+b.dataset.del,1); render(); });
+  w.querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{ const p=S.pays[+el.dataset.i], k=el.dataset.k; p[k]= k==='amount'?num(el.value):el.value; renderOut(); autoSaveSoon(); }));
+  w.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ S.pays.splice(+b.dataset.del,1); render(); autoSaveSoon(); });
 }
 function renderOut(){
   const items=activeItems(), it=itemTotal(), pt=payTotal();
@@ -524,22 +549,24 @@ async function api(params, body){
   const u=new URL(API_URL); Object.entries(params).forEach(([k,v])=>v!=null&&v!==''&&u.searchParams.set(k,v));
   const r=await fetch(u); return r.json();
 }
-async function saveOrder(){
+async function saveOrder(silent){
   if(!API_URL){ S.saveState='noapi'; renderOut(); return; }
+  if(S._saving){ S._again=true; return; } S._saving=true;
   S.saveState='saving'; renderOut();
   try{
     const order={ id:S.orderId, store:$('store').value, month:monthKey(), date:$('date').value, evName:$('evName').value, evNo:$('evNo').value,
       items:activeItems(), pays:S.pays, cartExpected:S.cartExpected, msg:buildMsg() };
     const res=await api(null,{action:'save',order});
     if(!res.ok) throw new Error(res.error||'저장 실패');
-    S.orderId=res.id; S.saveState='ok'; toast('이력에 저장했습니다');
+    S.orderId=res.id; S.saveState='ok'; if(!silent) toast('이력에 저장했습니다'); saveDraft();
   }catch(e){ S.saveState='err:'+e.message; }
-  renderOut();
+  S._saving=false; renderOut();
+  if(S._again){ S._again=false; saveOrder(true); }
 }
 function renderSaveState(){
   const el=$('saveState'); if(!el) return;
   const st=S.saveState;
-  if(st==='ok') el.innerHTML=`<span class="chip ok">이력 저장됨 · ${S.orderId}</span>`;
+  if(st==='ok') el.innerHTML=`<span class="chip ok">이력 자동 저장됨 · ${S.orderId}</span>`;
   else if(st==='saving') el.innerHTML='<span class="chip">이력 저장 중…</span>';
   else if(st==='noapi') el.innerHTML='<span class="chip warn">이력 저장 안 됨 — API 미설정</span>';
   else if(st.startsWith('err:')) el.innerHTML=`<span class="chip bad">이력 저장 실패: ${esc(st.slice(4))}</span> <button class="btn" style="height:28px;padding:0 10px;font-size:12.5px" onclick="saveOrder()">다시 시도</button>`;
