@@ -499,10 +499,7 @@ function buildMsg(){
   pays.forEach((p,i)=>{
     out += `\n${i+1}) ${p.label||'비품류'}\n입금 은행 : ${p.bank||''}\n계좌번호 : ${p.acc||''}\n예금주 : ${p.holder||''}\n입금 금액 : ${won(p.amount)}\n사업자 지출증빙 : ${ev}\n`;
   });
-  out += `\n* 합계 금액 : ${won(pays.reduce((a,p)=>a+(Number(p.amount)||0),0))}`;
-  const lines = pays.filter(p=>p.acc).map(p=>`${p.bank} ${p.acc} ${won(p.amount)}`);
-  if(lines.length) out += `\n\n` + lines.join('\n');
-  return out;
+  return out.trimEnd();
 }
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 function linkLabel(u){ try{ const x=new URL(u); const id=(x.pathname.match(/\/products\/(\d+)/)||[])[1]||x.searchParams.get('vendorItemId')||''; const site=/coupang/.test(x.host)?'쿠팡':/naver/.test(x.host)?'네이버':x.host.replace('www.',''); return `${site} ▸ ${id||'상품 보기'}`; }catch(e){ return '링크 열기'; } }
