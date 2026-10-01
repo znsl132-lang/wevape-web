@@ -126,6 +126,7 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
       <button class="btn ghost" id="cartClear">비우기</button>
     </div>
     <div class="status" id="cartStatus">붙여넣으면 자동으로 품목을 읽습니다. 네이버 스마트스토어 장바구니도 같은 방식으로 됩니다.</div>
+    <div style="text-align:right;margin-top:-14px"><button class="btn ghost" id="dumpHtml" style="height:26px;font-size:11.5px;padding:0 8px" title="읽기가 잘못됐을 때 원본을 파일로 저장해 담당자에게 보내세요">읽기 오류 신고용 원본 저장</button></div>
   </section>
 
   <!-- STEP 2 -->
@@ -233,7 +234,9 @@ function clipboardToText(e){
   const plain = e.clipboardData.getData('text/plain');
   if(!html) return plain;
   const doc = new DOMParser().parseFromString(html,'text/html');
-  doc.querySelectorAll('script,style').forEach(n=>n.remove());
+  try{ localStorage.setItem('supplyLastHtml', html.slice(0,400000)); }catch(x){}
+  doc.querySelectorAll('script,style,noscript,svg,img').forEach(n=>n.remove());
+  doc.querySelectorAll('input').forEach(i=>{ const v=i.getAttribute('value'); if(v && /^\d+$/.test(v)) i.replaceWith(doc.createTextNode('\n수량 '+v+'\n')); else i.remove(); });
   doc.querySelectorAll('a[href]').forEach(a=>{
     const href = a.getAttribute('href');
     const t = a.textContent.replace(/\s+/g,' ').trim();
@@ -241,16 +244,15 @@ function clipboardToText(e){
       a.replaceWith(doc.createTextNode(`\n[${t}](${new URL(href, 'https://www.coupang.com').href})\n`));
     }
   });
-  // 블록 요소 뒤에 줄바꿈
-  doc.querySelectorAll('div,p,li,tr,br,h1,h2,h3,h4,span,strong,em,td,th').forEach(n=>{
-    n.after(doc.createTextNode('\n'));
-  });
+  // 블록 요소 뒤에는 줄바꿈, 인라인 요소 뒤에는 공백 (가격 숫자와 '원'이 떨어지지 않게)
+  doc.querySelectorAll('span,strong,em,b,i,del,s,label,button').forEach(n=>n.after(doc.createTextNode(' ')));
+  doc.querySelectorAll('div,p,li,ul,tr,br,h1,h2,h3,h4,h5,td,th,section,article,dl,dt,dd').forEach(n=>n.after(doc.createTextNode('\n')));
   return doc.body.textContent;
 }
 
 /* ---------- 장바구니 파서 ---------- */
 const PRODUCT_LINK = /\[([^\]]+?)\]\((https?:\/\/[^)\s]+?(?:\/vp\/products\/\d+|\/products\/\d+)[^)\s]*)\)/;
-const PRICE_LINE = /^(?:와우할인|쿠폰할인|할인가|판매가)?\s*([\d,]{3,})\s*원$/;
+const PRICE_RE = /(\d{1,3}(?:,\d{3})+|\d{4,})\s*원/g;
 const NOISE_SOURCE = /sourceType=(CART_ADS|cart_items_intended_to_buy|cart_also_bought)|rmdId=/;
 
 function parseCart(text){
@@ -273,10 +275,10 @@ function parseCart(text){
       continue;
     }
     if(!cur) continue;
-    const p = ln.match(PRICE_LINE);
-    if(p && !/^\(/.test(ln)) cur.prices.push(num(p[1]));
-    // 수량 표기가 있으면 (예: "수량 2" / "2개") — 쿠팡 텍스트에는 보통 없음
-    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/); if(q) cur.qty = Number(q[1]);
+    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/); if(q){ cur.qty = Number(q[1]); continue; }
+    if(/쿠폰할인 적용됨|배송비|적립/.test(ln)) continue;
+    const clean = ln.replace(/\([^)]*당[^)]*\)/g,'');   // (100ml당 302원) 같은 단위가격 제거
+    for(const m2 of clean.matchAll(PRICE_RE)) cur.prices.push(num(m2[1]));
   }
   // 최종가 = 블록 내 마지막 가격 (정가 → 할인가 순서로 나오므로)
   for(const it of items){ it.price = it.prices.length ? it.prices[it.prices.length-1] : 0; delete it.prices; }
@@ -284,7 +286,7 @@ function parseCart(text){
   let expected = null;
   for(let i=0;i<lines.length;i++){
     if(/^총\s*\d+개 상품 구매하기/.test(lines[i])){
-      for(let j=i-1;j>=Math.max(0,i-4);j--){ const mm = lines[j].match(/^([\d,]+)원$/); if(mm){ expected = num(mm[1]); break; } }
+      for(let j=i-1;j>=Math.max(0,i-6);j--){ const all=[...lines[j].matchAll(PRICE_RE)]; if(all.length){ expected = num(all[all.length-1][1]); break; } }
     }
   }
   return { items, expected };
@@ -359,6 +361,7 @@ $('addRow').onclick = ()=>{ S.items.push({on:true,name:'',opt:'',qty:1,price:0,u
 $('payAdd').onclick = ()=>{ S.pays.push({label:'',bank:'',acc:'',holder:'',amount:0}); render(); };
 $('copyMsg').onclick = ()=> copyText($('msg').value, '멘트를 복사했습니다');
 $('dlXlsx').onclick = buildXlsx;
+$('dumpHtml').onclick = ()=>{ let h=''; try{ h=localStorage.getItem('supplyLastHtml')||''; }catch(e){} if(!h){ toast('저장된 원본이 없습니다. 먼저 붙여넣기를 해주세요'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([h],{type:'text/html'})); a.download='장바구니_원본.html'; a.click(); toast('원본을 저장했습니다'); };
 
 function setStatus(id,msg,cls){ const el=$(id); el.textContent=msg; el.className='status '+(cls||''); }
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
@@ -451,6 +454,7 @@ function buildMsg(){
   return out;
 }
 function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function linkLabel(u){ try{ const x=new URL(u); const id=(x.pathname.match(/\/products\/(\d+)/)||[])[1]||''; const site=/coupang/.test(x.host)?'쿠팡':/naver/.test(x.host)?'네이버':x.host.replace('www.',''); return `${site} ▸ ${id||'상품 보기'}`; }catch(e){ return '링크 열기'; } }
 function shortUrl(u){ try{ const x=new URL(u); return x.host.replace('www.','')+x.pathname; }catch(e){ return u; } }
 
 /* ---------- 엑셀 생성 (기존 양식 그대로) ---------- */
@@ -481,7 +485,7 @@ async function buildXlsx(){
     r.getCell(7).value={formula:`C${3+i}*F${3+i}`};
     if(it){
       r.getCell(1).value=it.name; r.getCell(2).value=it.opt; r.getCell(3).value=Number(it.qty)||0;
-      r.getCell(4).value = it.url ? {text:it.url,hyperlink:it.url} : '';
+      if(it.url){ const c4=r.getCell(4); c4.value={text:linkLabel(it.url),hyperlink:it.url,tooltip:it.url}; c4.font={name:'맑은 고딕',size:11,bold:true,underline:true,color:{argb:'FF1155CC'}}; } else r.getCell(4).value='';
       r.getCell(5).value=it.reason; r.getCell(6).value=Number(it.price)||0;
       r.height=Math.max(36, 16*Math.ceil(Math.max(String(it.opt).length/16, String(it.name).length/30)) + 6);
     }
