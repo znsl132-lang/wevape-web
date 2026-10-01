@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>상품 페이지로 이동</title>
+<style>body{margin:0;font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;background:#f4f5f7;color:#1f2328;display:grid;place-items:center;min-height:100vh}.b{background:#fff;border:1px solid #e3e6eb;border-radius:14px;padding:28px 30px;text-align:center;max-width:460px}a{color:#2f6f4e;font-weight:700;word-break:break-all}p{color:#6b7280;font-size:14px}</style></head>
+<body><div class="b"><div id="m">상품 페이지로 이동 중…</div><p id="l"></p></div>
+<script>
+/* 엑셀 링크 중계 — 엑셀이 쿠팡 주소를 직접 열면 차단되므로 여기서 브라우저로 넘김. 쿠팡·네이버 주소만 허용 */
+(function(){
+  var u=new URLSearchParams(location.search).get('u')||'', ok=false;
+  try{ var x=new URL(u); ok = x.protocol==='https:' && /(^|\.)(coupang\.com|naver\.com)$/.test(x.hostname); }catch(e){}
+  if(ok){ document.getElementById('l').innerHTML='자동으로 안 넘어가면 <a></a>'; var a=document.querySelector('#l a'); a.href=u; a.textContent='여기를 누르세요'; location.replace(u); }
+  else document.getElementById('m').textContent='열 수 없는 주소입니다.';
+})();
+</script></body></html>

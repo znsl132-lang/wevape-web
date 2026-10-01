@@ -210,6 +210,15 @@ tr.hrow:hover td{background:#f6f8fa}
 .m-msg{border:1px solid var(--line);border-radius:10px;background:#fafbfc;padding:12px 14px;line-height:1.75;font-size:12.5px;height:228px;overflow:hidden}
 .m-msg div{opacity:0;transition:opacity .3s}
 .m-msg div.in{opacity:1}
+.m-xl{margin-top:12px;border:1px solid #cfd8d3;border-radius:6px;overflow:hidden;font-size:10.5px;position:relative}
+.m-xl .xh{background:#e2efda;font-weight:800;text-align:center;padding:4px;font-size:11px}
+.m-xl .xr{display:grid;grid-template-columns:1fr 32px 48px 52px;border-top:1px solid #e5e7eb;opacity:0;transition:opacity .25s}
+.m-xl .xr.hd{background:#fce4d6;font-weight:700;opacity:1}
+.m-xl .xr.in{opacity:1;animation:inRow .3s both}
+.m-xl .xr span{padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-xl .xr span:nth-child(n+2){text-align:center}
+.m-xl .lk{color:#1155cc;text-decoration:underline}
+.m-badge{position:absolute;right:14px;top:12px;z-index:3;background:var(--accent);color:#fff;border-radius:999px;padding:7px 12px;font-weight:700;font-size:12px;text-align:center;animation:inPop .45s both;box-shadow:0 8px 18px rgba(47,111,78,.25)}
 .m-kakao{position:absolute;right:16px;bottom:16px;width:250px;background:#bacee0;border-radius:14px;padding:12px;box-shadow:0 16px 30px rgba(15,23,42,.18);animation:inDrop .55s both;z-index:4}
 .m-kakao .who{font-size:11px;color:#334155;margin-bottom:6px;font-weight:700}
 .m-kakao .bb{background:#fee500;border-radius:10px;padding:8px 10px;font-size:11.5px;line-height:1.5;margin-left:auto;width:fit-content;max-width:210px}
@@ -225,7 +234,7 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
     <div class="home-head home-top"><div><h1>비품 주문 보고</h1><p>지점을 선택하세요. 지점마다 작성 중인 주문과 지난 주문 내역이 따로 보관됩니다.</p></div><button class="btn" id="introBtn">▶ 사용법 보기</button></div>
     <div class="store-grid" id="storeGrid"></div>
     <section class="card" style="margin-top:24px">
-      <div class="step"><div class="num">▤</div><h2>전 지점 월 합계</h2><span class="hint">주문을 붙여넣거나 엑셀을 받을 때 자동으로 쌓입니다</span></div>
+      <div class="step"><div class="num">▤</div><h2>전 지점 월 합계</h2><span class="hint">「주문 완료 처리」한 주문만 들어갑니다</span></div>
       <div id="sumWrap" class="empty">불러오는 중…</div>
     </section>
   </div>
@@ -296,6 +305,7 @@ footer{margin-top:40px;text-align:center;color:var(--muted);font-size:12px;line-
             <span>입금 합계</span><b id="kvPayTotal">0원</b>
           </div>
           <div><button class="btn primary big" id="dlXlsx" disabled>엑셀 다운로드</button></div>
+          <div><button class="btn big" id="doneBtn" disabled>✓ 주문 완료 처리</button></div>
           <div id="saveState"></div>
         </div>
       </div>
@@ -372,22 +382,22 @@ function draftKey(st){ return 'supplyDraft:' + (st || $('store').value); }
 function migrateDraft(){ // 예전(지점 구분 없던) 초안을 그 지점 칸으로 옮김 — 지우지 않음
   try{ const old=JSON.parse(localStorage.getItem('supplyDraft')||'null'); if(old && old.items && old.items.length && old.store && !localStorage.getItem(draftKey(old.store))) localStorage.setItem(draftKey(old.store), JSON.stringify(old)); }catch(e){}
 }
-function hasDraft(st){ try{ const d=JSON.parse(localStorage.getItem(draftKey(st))||'null'); return !!(d && d.items && d.items.length); }catch(e){ return false; } }
+function hasDraft(st){ try{ const d=JSON.parse(localStorage.getItem(draftKey(st))||'null'); return !!(d && d.items && d.items.length && !d.done); }catch(e){ return false; } }
 function saveDraft(){
   if(!$('store').value) return;
-  try{ localStorage.setItem(draftKey(), JSON.stringify({items:S.items,pays:S.pays,cartExpected:S.cartExpected,orderId:S.orderId,store:$('store').value,date:$('date').value,month:$('month').value,at:Date.now()})); }catch(e){}
+  try{ localStorage.setItem(draftKey(), JSON.stringify({items:S.items,pays:S.pays,cartExpected:S.cartExpected,orderId:S.orderId,done:!!S.done,store:$('store').value,date:$('date').value,month:$('month').value,at:Date.now()})); }catch(e){}
 }
 function restoreDraft(){
   try{
     const d=JSON.parse(localStorage.getItem(draftKey())||'null'); if(!d||!d.items||!d.items.length) return;
-    S.items=d.items; S.pays=d.pays||[]; S.cartExpected=d.cartExpected??null; S.orderId=d.orderId||null;
+    S.items=d.items; S.pays=d.pays||[]; S.cartExpected=d.cartExpected??null; S.orderId=d.orderId||null; S.done=!!(d.done&&d.orderId);
     if(d.date) $('date').value=d.date; if(d.month) $('month').value=d.month;
     const b=$('cartPaste'); b.classList.add('filled'); b.textContent=`이전 작업 복원됨 · ${S.items.length}개 품목` + (S.orderId?` · 이력 ${S.orderId}`:'');
     setStatus('cartStatus','닫기 전 작업을 자동으로 복원했습니다. 새 주문이면 「전체 삭제」 후 붙여넣으세요.','ok');
   }catch(e){}
 }
 let _autoT=null;
-function autoSaveSoon(){ saveDraft(); clearTimeout(_autoT); _autoT=setTimeout(()=>{ _autoT=null; if(activeItems().length) saveOrder(true); }, 1500); }
+function autoSaveSoon(){ saveDraft(); clearTimeout(_autoT); if(!S.done) { _autoT=null; renderSaveState(); return; } _autoT=setTimeout(()=>{ _autoT=null; if(activeItems().length) saveOrder(true); }, 1500); } // 시트에는 「주문 완료」 이후 변경분만
 function saveSettings(){
   try{ localStorage.setItem('supplyReportSettings', JSON.stringify({evName:$('evName').value,evNo:$('evNo').value})); }catch(e){}
 }
@@ -474,12 +484,17 @@ function cleanUrl(u){
     if(/\/sdp\/link/.test(x.pathname)) return `https://mc.coupang.com/ssr/sdp/link?vendorItemId=${x.searchParams.get('vendorItemId')}`;
     if(/coupang\.com/.test(x.host)){
       const vid = x.searchParams.get('vendorItemId');
-      return `https://www.coupang.com${x.pathname}` + (vid?`?vendorItemId=${vid}&sourceType=CART`:'');
+      return `https://www.coupang.com${x.pathname}` + (vid?`?vendorItemId=${vid}`:'');
     }
     if(/smartstore\.naver\.com|brand\.naver\.com/.test(x.host)) return `https://${x.host}${x.pathname}`;
     return u;
   }catch(e){ return u; }
 }
+/* 상품 원래 페이지 주소 (장바구니 꼬리표 제거) */
+function productUrl(u){ return cleanUrl(String(u||'')); }
+/* 엑셀용: 엑셀이 쿠팡 주소를 직접 열면 쿠팡이 막아서 «열 수 없습니다»가 뜸 → 우리 중계 페이지를 거쳐 브라우저에서 열림 */
+const GO_URL = 'https://znsl132-lang.github.io/wevape-web/go.html?u=';
+function excelLink(u){ const pu=productUrl(u); return /^https:\/\/([\w-]+\.)*(coupang\.com|naver\.com)\//.test(pu) ? GO_URL+encodeURIComponent(pu) : pu; }
 function guessReason(s){
   if(/음료|커피|캔|사이다|콜라|이온|아이스티|에너지|제로|탄산|생수|물\b|ml|차\b|주스|우유|라떼|화이바|핫식스|레쓰비|트레비|스프라이트|펩시|립톤|비타|맥스웰/i.test(s)) return '고객 서비스 제공용';
   if(/전구|LED|조명|램프|PAR30|형광|등\b|전선|멀티탭|배터리|건전지|공구|드릴|접착|실리콘|페인트/i.test(s)) return '매장 정비 비품';
@@ -524,7 +539,7 @@ $('cartPaste').addEventListener('paste', e=>{
   const { items, expected } = parseCart(text);
   if(!items.length){ setStatus('cartStatus','상품 링크를 찾지 못했습니다. 장바구니 페이지에서 Ctrl+A로 전체 선택 후 복사했는지 확인해 주세요.','bad'); return; }
   if(S.appendMode){ S.items = S.items.concat(items); if(expected) S.cartExpected = (S.cartExpected||0) + expected; }
-  else { S.items = items; S.cartExpected = expected; S.orderId=null; S.saveState=''; }
+  else { if(S.done){ S.orderId=null; S.done=false; } S.items = items; S.cartExpected = expected; S.saveState=''; }
   const box = $('cartPaste'); box.classList.add('filled');
   box.textContent = `${S.items.length}개 품목을 읽었습니다.` + (expected ? ` (쿠팡 주문 예상 금액 ${won(expected)})` : '');
   box.blur();
@@ -547,7 +562,7 @@ $('payPaste').addEventListener('paste', e=>{
   el.addEventListener('keydown',e=>{ if(!(e.ctrlKey||e.metaKey) && e.key.length===1) e.preventDefault(); });
 });
 $('cartAppend').onclick = ()=>{ S.appendMode=!S.appendMode; $('cartAppend').textContent = `추가 붙여넣기 모드: ${S.appendMode?'켬':'끔'}`; $('cartAppend').classList.toggle('primary',S.appendMode); if(S.appendMode){ const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; } };
-$('cartClear').onclick = ()=>{ if(S.items.length && !confirm('화면의 품목·입금 정보를 모두 지웁니다. (이미 자동 저장된 이력은 「이력」 탭에 남습니다)')) return; S.items=[]; S.pays=[]; S.cartExpected=null; S.orderId=null; S.saveState=''; try{ localStorage.removeItem(draftKey()); }catch(e){} const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','모두 지웠습니다. 새 주문을 붙여넣으세요.'); $('payStatus').textContent=''; render(); };
+$('cartClear').onclick = ()=>{ if(S.items.length && !confirm(S.done ? '화면만 비웁니다. 완료 처리한 주문은 「지난 주문」에 그대로 남습니다.' : '작성 중인 주문을 모두 지웁니다. (아직 주문 완료 전이라 기록에 남지 않습니다)')) return; clearTimeout(_autoT); _autoT=null; S.items=[]; S.pays=[]; S.cartExpected=null; S.orderId=null; S.done=false; S.saveState=''; try{ localStorage.removeItem(draftKey()); }catch(e){} const b=$('cartPaste'); b.classList.remove('filled'); b.textContent=''; setStatus('cartStatus','모두 지웠습니다. 새 주문을 붙여넣으세요.'); $('payStatus').textContent=''; render(); };
 $('addRow').onclick = ()=>{ S.items.push({on:true,name:'',opt:'',qty:1,price:0,url:'',reason:'매장 비품 보충'}); render(); };
 $('payAdd').onclick = ()=>{ S.pays.push({label:'',bank:'',acc:'',holder:'',amount:0}); render(); };
 $('copyMsg').onclick = ()=> copyText($('msg').value, '멘트를 복사했습니다');
@@ -580,7 +595,7 @@ function renderItems(){
       <td style="width:110px"><input class="num" value="${(Number(it.price)||0).toLocaleString('ko-KR')}" data-i="${i}" data-k="price"></td>
       <td class="amt">${won((it.qty||0)*(it.price||0))}</td>
       <td style="min-width:175px"><input list="reasonList" value="${esc(it.reason)}" data-i="${i}" data-k="reason" placeholder="사유 입력 (클릭하면 자주 쓰는 사유)" autocomplete="off"></td>
-      <td class="link" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.url?`<a href="${esc(it.url)}" target="_blank" rel="noopener" title="${esc(it.url)}">${esc(shortUrl(it.url))}</a>`:`<input value="" placeholder="링크 없음 — 직접 입력" data-i="${i}" data-k="url" style="color:var(--bad)">`}</td>
+      <td class="link" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${it.url?`<a href="${esc(productUrl(it.url))}" target="_blank" rel="noopener" title="${esc(productUrl(it.url))}">${esc(shortUrl(it.url))}</a>`:`<input value="" placeholder="링크 없음 — 직접 입력" data-i="${i}" data-k="url" style="color:var(--bad)">`}</td>
       <td style="width:34px"><button class="btn ghost" style="height:28px;padding:0 8px" data-del="${i}" title="삭제">✕</button></td>
     </tr>`).join('');
   w.innerHTML = `<div style="overflow:auto"><table>
@@ -624,7 +639,7 @@ function renderPays(){
 function renderOut(){
   const items=activeItems(), it=itemTotal(), pt=payTotal();
   $('fname').textContent=fileName(); $('kvCount').textContent=items.length; $('kvItemTotal').textContent=won(it); $('kvPayTotal').textContent=won(pt);
-  $('dlXlsx').disabled = !items.length;
+  $('dlXlsx').disabled = !items.length; $('doneBtn').disabled = !items.length || !!S.done; $('doneBtn').textContent = S.done ? '✓ 주문 완료됨' : '✓ 주문 완료 처리'; $('doneBtn').classList.toggle('primary', !S.done && !!items.length);
   const hint=$('checkHint');
   if(!items.length) hint.textContent='';
   else if(!S.pays.length) hint.innerHTML='<span class="chip warn">입금 정보가 아직 없습니다 — 멘트에 계좌가 빈칸으로 들어갑니다</span>';
@@ -656,7 +671,7 @@ async function buildXlsx(){
   const items=activeItems(); if(!items.length) return;
   await makeXlsx({ items, store:$('store').value, date:$('date').value });
   rememberReasons(items);
-  saveOrder();
+  if(S.done) autoSaveSoon();
 }
 async function makeXlsx({items, store, date}){
   const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('비품주문보고',{views:[{showGridLines:true}]});
@@ -684,7 +699,7 @@ async function makeXlsx({items, store, date}){
     r.getCell(7).value={formula:`C${3+i}*F${3+i}`};
     if(it){
       r.getCell(1).value=it.name; r.getCell(2).value=it.opt; r.getCell(3).value=Number(it.qty)||0;
-      if(it.url){ const c4=r.getCell(4); c4.value={text:linkLabel(it.url),hyperlink:it.url,tooltip:it.url}; c4.font={name:'맑은 고딕',size:11,bold:true,underline:true,color:{argb:'FF1155CC'}}; } else r.getCell(4).value='';
+      if(it.url){ const c4=r.getCell(4); c4.value={text:linkLabel(it.url),hyperlink:excelLink(it.url),tooltip:productUrl(it.url)}; c4.font={name:'맑은 고딕',size:11,bold:true,underline:true,color:{argb:'FF1155CC'}}; } else r.getCell(4).value='';
       r.getCell(5).value=it.reason; r.getCell(6).value=Number(it.price)||0;
       r.height=Math.max(36, 16*Math.ceil(Math.max(String(it.opt).length/16, String(it.name).length/30)) + 6);
     }
@@ -725,10 +740,22 @@ async function saveOrder(silent){
   S._saving=false; renderOut();
   if(S._again){ S._again=false; if(gen===S.gen) saveOrder(true); }
 }
+async function completeOrder(){
+  if(!activeItems().length || S.done) return;
+  if(!S.pays.length && !confirm('입금 정보가 아직 없습니다. 이대로 주문 완료 처리할까요?')) return;
+  if(!confirm(`${$('store').value} ${mm()}월 주문으로 완료 처리합니다.\n품목 ${activeItems().length}개 · ${won(itemTotal())}\n\n완료한 주문만 「지난 주문」과 월 합계에 들어갑니다.`)) return;
+  S.done=true; saveDraft();
+  await saveOrder();
+  if(S.saveState!=='ok'){ S.done=false; saveDraft(); }
+  render();
+}
+$('doneBtn').onclick=completeOrder;
 function renderSaveState(){
   const el=$('saveState'); if(!el) return;
   const st=S.saveState;
-  if(st==='ok') el.innerHTML=`<span class="chip ok">이력 자동 저장됨 · ${S.orderId}</span>`;
+  if(!S.done && st!=='saving'){ el.innerHTML = activeItems().length ? '<span class="chip warn">아직 주문 완료 전 — 결제·멘트 전송 후 「주문 완료 처리」를 눌러야 이번 달 내역에 들어갑니다</span>' : ''; if(st.startsWith('err:')) el.innerHTML=`<span class="chip bad">완료 저장 실패: ${esc(st.slice(4))}</span> <button class="btn" style="height:28px;padding:0 10px;font-size:12.5px" onclick="completeOrder()">다시 시도</button>`; return; }
+  if(st==='ok') el.innerHTML=`<span class="chip ok">주문 완료 · 지난 주문에 저장됨</span>`;
+  else if(st==='' && S.done) el.innerHTML=`<span class="chip ok">주문 완료 · 지난 주문에 저장됨</span>`;
   else if(st==='saving') el.innerHTML='<span class="chip">이력 저장 중…</span>';
   else if(st==='noapi') el.innerHTML='<span class="chip warn">이력 저장 안 됨 — API 미설정</span>';
   else if(st.startsWith('err:')) el.innerHTML=`<span class="chip bad">이력 저장 실패: ${esc(st.slice(4))}</span> <button class="btn" style="height:28px;padding:0 10px;font-size:12.5px" onclick="saveOrder()">다시 시도</button>`;
@@ -748,7 +775,7 @@ $('apiNote').textContent = API_URL ? '' : '이력 저장 API가 아직 연결되
 /* ---------- 화면 이동: #지점명 ---------- */
 S.gen=0;
 function leaveStore(){ // 대기 중인 자동 저장은 지금 바로 보냄
-  if(_autoT){ clearTimeout(_autoT); _autoT=null; if($('store').value && activeItems().length) saveOrder(true); }
+  if(_autoT){ clearTimeout(_autoT); _autoT=null; if($('store').value && S.done && activeItems().length) saveOrder(true); }
   S.gen++;
 }
 function route(){
@@ -760,7 +787,7 @@ function enterStore(st){
   if($('store').value!==st) leaveStore();
   $('store').value=st; $('storeTitle').textContent=st;
   try{ localStorage.setItem('supplyLastStore', st); }catch(e){}
-  Object.assign(S,{items:[],pays:[],cartExpected:null,orderId:null,saveState:'',appendMode:false,_saving:false,_again:false});
+  Object.assign(S,{items:[],pays:[],cartExpected:null,orderId:null,done:false,saveState:'',appendMode:false,_saving:false,_again:false});
   $('cartAppend').textContent='추가 붙여넣기 모드: 끔'; $('cartAppend').classList.remove('primary');
   ['cartPaste','payPaste'].forEach(id=>{ const el=$(id); el.classList.remove('filled'); el.textContent=''; });
   setStatus('cartStatus','붙여넣으면 자동으로 품목을 읽습니다. 네이버 스마트스토어 장바구니도 같은 방식으로 됩니다.'); setStatus('payStatus','');
@@ -840,8 +867,8 @@ function renderList(rows){
     h+=`<div class="mon"><div class="mon-head"><b>${monLabel(k)}</b><span>${rs.length}건</span><span class="tot">${won(tot)}</span></div>
       <div style="overflow:auto"><table class="ord"><thead><tr><th>주문일</th><th>품목 수</th><th style="text-align:right">품목 합계</th><th>입금</th><th></th></tr></thead><tbody>`;
     rs.forEach(r=>{ const cur=r.id===S.orderId;
-      h+=`<tr><td>${esc(String(r.date).slice(0,10))}${cur?' <span class="chip ok" style="font-size:11.5px;padding:2px 8px">작성 중</span>':''}</td><td>${r.count}개</td><td class="amt">${won(r.itemTotal)}</td><td style="font-size:12.5px;color:var(--muted)">${esc(r.paySummary||'입금 정보 없음')}</td>
-        <td><div class="acts"><button class="btn primary" data-x="${esc(r.id)}">엑셀 받기</button><button class="btn" data-m="${esc(r.id)}">멘트 복사</button><button class="btn" data-l="${esc(r.id)}">불러오기</button></div></td></tr>`; });
+      h+=`<tr><td>${esc(String(r.date).slice(0,10))}${cur?' <span class="chip ok" style="font-size:11.5px;padding:2px 8px">화면에 열림</span>':''}</td><td>${r.count}개</td><td class="amt">${won(r.itemTotal)}</td><td style="font-size:12.5px;color:var(--muted)">${esc(r.paySummary||'입금 정보 없음')}</td>
+        <td><div class="acts"><button class="btn primary" data-x="${esc(r.id)}">엑셀 받기</button><button class="btn" data-m="${esc(r.id)}">멘트 복사</button><button class="btn" data-l="${esc(r.id)}">불러오기</button><button class="btn ghost" style="color:var(--bad)" data-d="${esc(r.id)}" data-t="${esc(String(r.date).slice(0,10))} · ${won(r.itemTotal)}">삭제</button></div></td></tr>`; });
     h+='</tbody></table></div></div>';
   });
   $('listWrap').innerHTML=h;
@@ -849,6 +876,17 @@ function renderList(rows){
   w.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>histXlsx(b.dataset.x, b));
   w.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>histMsg(b.dataset.m));
   w.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>loadOrder(b.dataset.l));
+  w.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>deleteOrder(b.dataset.d, b.dataset.t, b));
+}
+async function deleteOrder(id, label, btn){
+  if(!confirm(`이 주문을 완전히 삭제합니다.\n${$('store').value} · ${label}\n\n지난 주문과 월 합계에서 빠지고 되돌릴 수 없습니다.`)) return;
+  btn.disabled=true; btn.textContent='삭제 중…';
+  try{
+    const res=await api(null,{action:'delete',id}); if(!res.ok) throw new Error(res.error||'삭제 실패');
+    delete ORDER_CACHE[id];
+    if(S.orderId===id){ S.orderId=null; S.done=false; S.saveState=''; saveDraft(); render(); }
+    toast('삭제했습니다'); loadHistory();
+  }catch(e){ btn.disabled=false; btn.textContent='삭제'; toast('삭제 실패: '+e.message); }
 }
 async function histXlsx(id, btn){
   const t=btn.textContent; btn.disabled=true; btn.textContent='만드는 중…';
@@ -864,23 +902,23 @@ async function histMsg(id){
   }catch(e){ toast('불러오기 실패: '+e.message); }
 }
 async function loadOrder(id){
-  if(S.items.length && S.orderId!==id && !confirm('지금 작성 중인 주문 대신 이 주문을 불러옵니다. (작성 중이던 것은 「지난 주문」에 이미 저장돼 있습니다)')) return;
+  if(S.items.length && S.orderId!==id && !confirm(S.done ? '화면의 주문 대신 이 주문을 불러옵니다.' : '작성 중인(아직 완료 전) 주문을 지우고 이 주문을 불러옵니다.')) return;
   try{
     const o=await getOrder(id);
-    S.items=(o.items||[]).map(i=>({...i,on:true})); S.pays=o.pays||[]; S.cartExpected=o.cartExpected??null; S.orderId=o.id; S.saveState='';
+    S.items=(o.items||[]).map(i=>({...i,on:true})); S.pays=o.pays||[]; S.cartExpected=o.cartExpected??null; S.orderId=o.id; S.done=true; S.saveState='';
     if(o.date) $('date').value=String(o.date).slice(0,10); if(o.month) $('month').value=Number(String(o.month).slice(5));
     const b=$('cartPaste'); b.classList.add('filled'); b.textContent=`지난 주문에서 불러옴 · ${String(o.date).slice(0,10)} · ${(o.items||[]).length}개 품목`;
     saveDraft(); showTab('write'); render(); window.scrollTo({top:0,behavior:'smooth'}); toast('불러왔습니다');
   }catch(e){ toast('불러오기 실패: '+e.message); }
 }
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「▶ 사용법 보기」로 다시) ---------- */
-const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,6800],
+const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,8200],
   T:['지점 선택','장바구니 복사','붙여넣기','입금 정보','엑셀 · 카톡 멘트'],
   C:['첫 화면에서 <b>우리 지점</b>을 누릅니다',
      '쿠팡 장바구니 화면에서 <b>Ctrl+A</b> → <b>Ctrl+C</b> (화면 전체 복사)',
      '도구 1번 칸에 <b>Ctrl+V</b> — 품목·옵션·수량·단가·링크가 자동으로 채워집니다',
      '결제 후 <b>주문완료 화면</b>도 똑같이 복사해서 3번 칸에 붙여넣기',
-     '<b>엑셀 받기</b> + <b>멘트 복사</b> → 카톡으로 보내면 끝. 지난 주문은 「지난 주문」 탭에 자동 보관' ] };
+     '보고용 엑셀에는 <b>품목이 자동기입</b> 됩니다! <b>멘트 복사</b> → 카톡 전송 후 <b>주문 완료 처리</b>까지 누르면 끝' ] };
 function inAt(ms,fn){ IN.timers.push(setTimeout(fn,ms)); }
 function inQ(s){ return $('inScene').querySelector(s); }
 function inPos(el,dx=0,dy=0){ const r=el.getBoundingClientRect(), b=$('inInner').getBoundingClientRect(); return [(r.left-b.left)/IN.k + r.width/IN.k/2 + dx, (r.top-b.top)/IN.k + r.height/IN.k/2 + dy]; }
@@ -937,10 +975,14 @@ const IN_SCENES=[
     $('inScene').querySelectorAll('.m-msg div').forEach((d,i)=>inAt(150+i*120,()=>d.classList.add('in')));
     inCur(400,430); inAt(300,()=>inCurTo('#inXl',10,6));
     inAt(1150,()=>{ inClick(); $('inXl').classList.add('press'); inAt(180,()=>$('inXl').classList.remove('press')); });
-    inAt(1450,()=>{ $('inFile').innerHTML='<div class="m-file"><div class="ic">X</div><div><div style="font-weight:700">비품주문보고용(26.10.01).xlsx</div><div style="color:var(--muted);font-size:11.5px">대표님 보고용 양식 그대로 · 링크 클릭 가능</div></div></div>'; });
-    inAt(2500,()=>inCurTo('#inCp',10,6));
-    inAt(3350,()=>{ inClick(); $('inCp').classList.add('press'); inAt(180,()=>$('inCp').classList.remove('press')); inToast('멘트를 복사했습니다'); });
-    inAt(4300,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>입금 금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
+    inAt(1450,()=>{ $('inFile').innerHTML='<div class="m-file"><div class="ic">X</div><div><div style="font-weight:700">비품주문보고용(26.10.01).xlsx</div><div style="color:var(--muted);font-size:11.5px">대표님 보고용 양식 그대로 · 링크 누르면 상품 페이지</div></div></div>'
+      + '<div class="m-xl"><div class="xh">구월길병원점 비품 주문서</div><div class="xr hd"><span>품목명</span><span>수량</span><span>링크</span><span>금액</span></div>'
+      + IN_ITEMS.slice(0,4).map(it=>`<div class="xr"><span>${it[0]}</span><span>${it[2]}</span><span class="lk">쿠팡 ▸</span><span>${it[3].toLocaleString('ko-KR')}</span></div>`).join('') + '</div>';
+      $('inFile').querySelectorAll('.xr:not(.hd)').forEach((r,i)=>inAt(500+i*220,()=>r.classList.add('in')));
+      inAt(1500,()=>{ const b=document.createElement('div'); b.className='m-badge'; b.textContent='보고용 엑셀에는 품목이 자동기입 됩니다!'; $('inFile').closest('.m-panel').appendChild(b); }); });
+    inAt(3900,()=>inCurTo('#inCp',10,6));
+    inAt(4750,()=>{ inClick(); $('inCp').classList.add('press'); inAt(180,()=>$('inCp').classList.remove('press')); inToast('멘트를 복사했습니다'); });
+    inAt(5700,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>입금 금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
   }
 ];
 function inShow(i){
