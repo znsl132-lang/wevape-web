@@ -114,6 +114,7 @@ main{padding:14px 14px calc(env(safe-area-inset-bottom) + 30px);max-width:640px;
 #biScene{position:absolute;inset:0}
 #biCur{position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:rgba(255,212,0,.55);border:2px solid #fff;z-index:20;transition:transform .8s cubic-bezier(.22,.8,.25,1);pointer-events:none;margin:-17px 0 0 -17px}
 #biCur.clk{animation:ripple .5s}
+@keyframes dropIn{0%{opacity:0;transform:translateY(-80px)}100%{opacity:1;transform:none}}
 .bi .cap{color:#e5e7eb;font-size:14px;text-align:center;max-width:420px;min-height:40px;line-height:1.5}
 .bi .cap b{color:var(--y)}
 .bi .bar2{display:flex;gap:4px;width:min(360px,90vw)}
@@ -124,7 +125,9 @@ main{padding:14px 14px calc(env(safe-area-inset-bottom) + 30px);max-width:640px;
 .bi .nav button#biNext{background:var(--y);color:#111}
 .bi .nav button:disabled{opacity:.4}
 .kk{display:none;background:#fff7d6;border-bottom:1px solid #f3e3a1;padding:12px 16px;font-size:14px;line-height:1.55}
-.kk.show{display:block}.kk b{color:#111}.kk span{display:block;color:#4b5563}.kk a{display:inline-block;margin-top:6px;color:#1d4ed8;font-weight:700;text-decoration:none}
+.kk.show{display:block}.kk button{display:block;width:100%;height:46px;margin:8px 0 6px;border:none;border-radius:12px;background:#111;color:#fff;font:inherit;font-weight:800;font-size:15px}.kk .sm{font-size:12.5px}
+.ib{display:none;align-items:center;gap:10px;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 16px;font-size:13px;line-height:1.45}.ib.show{display:flex}.ib div{flex:1}.ib b{display:block;font-size:14px}.ib span{color:#6b7280}
+.ib button{flex:none;height:42px;padding:0 14px;border:none;border-radius:12px;background:var(--y);font:inherit;font-weight:800;font-size:14px}.kk b{color:#111}.kk span{display:block;color:#4b5563}.kk a{display:inline-block;margin-top:6px;color:#1d4ed8;font-weight:700;text-decoration:none}
 .pw a.guide{display:block;text-align:center;margin:14px 0 2px;color:#1d4ed8;font-weight:700;text-decoration:none;font-size:14.5px}
 .top .bell{position:relative;margin-left:6px;font-size:15px}
 .top .help{margin-left:6px}
@@ -146,7 +149,8 @@ footer{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.7;pad
   <div class="sum"><b id="sumAmt">-</b><span id="sumTxt">불러오는 중…</span></div>
   <div class="tabs"><button class="on" data-t="wait">입금 대기<span class="n" id="nWait">0</span></button><button data-t="done">입금 완료<span class="n" id="nDone">0</span></button></div>
 </div>
-<div class="kk" id="kk"><b>카톡 안에서는 설치·알림이 안 됩니다</b><span>오른쪽 아래 <b>⋮</b> → 「다른 브라우저로 열기」를 눌러 주세요</span><a href="boss-install.html">설치 안내 보기 →</a></div>
+<div class="kk" id="kk"><b>카톡 안에서는 설치·알림이 안 됩니다</b><span>아래 버튼으로 인터넷 앱에서 다시 열어 주세요</span><button id="kkOpen">인터넷 앱으로 열기</button><span class="sm">버튼이 안 되면 오른쪽 아래 <b>⋮</b> → 「다른 브라우저로 열기」 · <a href="boss-install.html">그림 안내</a></span></div>
+<div class="ib" id="inst"><div><b>앱으로 설치하면 상단바 알림을 받습니다</b><span>처음 한 번만 하면 됩니다</span></div><button id="instBtn">📲 앱 설치</button></div>
 <main id="list"><div class="empty">불러오는 중…</div></main>
 <main style="padding-top:0"><footer>We Vape — 입금 요청 (비품 · 관리비 · 택배비)<br>Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>내부 운영 자료 · 외부 공유를 금합니다</footer></main>
 
@@ -161,7 +165,7 @@ footer{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.7;pad
   <div class="bs"><button id="pinNo" style="background:#f1f2f4">취소</button><button id="pinOk" style="background:var(--y)">확인</button></div>
 </div></div>
 <div class="zoom" id="zoom"><img id="zoomImg" alt=""><button id="zoomX">✕</button></div>
-<div class="bi" id="bi"><div class="hd"><small id="biStep">1 / 6</small><b>입금 요청 앱 사용법</b></div>
+<div class="bi" id="bi"><div class="hd"><small id="biStep">1 / 9</small><b>입금 요청 앱 사용법</b></div>
   <div class="stage" id="biStage"><div class="in" id="biIn"><div id="biScene"></div><div id="biCur"></div></div></div>
   <div class="cap" id="biCap"></div><div class="bar2" id="biBar"></div>
   <div class="nav"><button id="biPrev">← 이전</button><button id="biSkip">건너뛰기</button><button id="biNext">다음 →</button></div></div>
@@ -385,6 +389,19 @@ function openPush(){
   $('sheet').classList.add('show'); document.body.style.overflow='hidden';
 }
 const inKakao=/KAKAOTALK/i.test(navigator.userAgent); if(inKakao) $('kk').classList.add('show');
+const isAndroid=/Android/i.test(navigator.userAgent), isMobile=isAndroid||isIOS;
+$('kkOpen').onclick=()=>{ if(isAndroid) location.href='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end'; else toast('오른쪽 아래 ⋯ → 「다른 브라우저로 열기」를 눌러 주세요'); };
+/* 앱 설치 버튼 — 크롬·삼성 인터넷이 주는 설치 창(beforeinstallprompt)을 그대로 띄움. 아이폰은 그림 안내로 */
+let INST=null;
+function instBar(){ $('inst').classList.toggle('show', !inKakao && isMobile && !isStandalone()); $('instBtn').textContent = INST ? '📲 앱 설치' : '설치 방법 보기'; }
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); INST=e; instBar(); });
+window.addEventListener('appinstalled', ()=>{ INST=null; $('inst').classList.remove('show'); toast('설치했습니다 — 앱스 화면의 ₩ 입금요청으로 여세요'); });
+$('instBtn').onclick=async()=>{
+  if(!INST){ location.href='boss-install.html#manual'; return; }
+  INST.prompt(); try{ const r=await INST.userChoice; if(r.outcome!=='accepted') toast('설치를 취소했습니다'); }catch(e){}
+  INST=null; instBar();
+};
+instBar();
 $('bell').onclick=async()=>{ await refreshPush(); openPush(); };
 refreshPush();
 
@@ -454,9 +471,12 @@ async function makeXlsx({items, store, date}){
 
 
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「?」로 다시) ---------- */
-const BI={ i:0, k:1, timers:[], DUR:[5600,4600,6400,6400,6200,4200],
-  T:['홈 화면에 추가','입금 대기 보기','계좌 복사 → 송금','입금 완료','사진 · 엑셀 보기','계좌가 바뀌면'],
-  C:['처음 한 번: 사파리 <b>공유</b> → <b>홈 화면에 추가</b> (갤럭시는 크롬 ⋮ → 홈 화면에 추가) → 노란 아이콘으로 앱처럼 열립니다',
+const BI={ i:0, k:1, timers:[], DUR:[5200,6200,7600,5600,4600,6400,6400,6200,4200],
+  T:['카톡에서 열기','앱 설치','상단바 알림 켜기','알림이 오면','입금 대기 보기','계좌 복사 → 송금','입금 완료','사진 · 엑셀 보기','계좌가 바뀌면'],
+  C:['카톡으로 받은 링크는 카톡 안에서 열립니다 — 노란 줄의 <b>[인터넷 앱으로 열기]</b>를 누르세요',
+     '<b>[📲 앱 설치]</b> → <b>설치</b> 한 번이면 앱스 화면에 <b>₩ 입금요청</b>이 생깁니다 (아이폰은 사파리 공유 → 홈 화면에 추가)',
+     '앱에서 <b>🔔</b> → <b>이 폰에서 알림 받기</b> → <b>허용</b> → 비밀번호. 처음 한 번만 하면 됩니다',
+     '지점이 입금 요청을 올리면 <b>상단바에 바로</b> 뜹니다 — 눌러서 앱으로 들어가세요',
      '지점에서 청구하면 <b>입금 대기</b>에 쌓입니다 — 비품·관리비·택배비 표시, 납기가 가까운 건이 위로',
      '<b>[계좌 복사]</b> → 은행 앱을 열면 복사한 계좌·금액이 바로 잡힙니다 → 보내기',
      '송금 후 카드를 눌러 <b>✓ 입금 완료</b> → 비밀번호 → 「입금 완료」 탭으로. 그 지점 화면에도 알림이 뜹니다',
@@ -475,11 +495,28 @@ function biHead(sum,n,tab){ return `<div style="background:#111;color:#fff;paddi
 function biCard(k,amt,line,extra,id){ const cls={'비품':'k-비품','관리비':'k-관리비','택배비':'k-택배비'}[k];
   return `<div class="card" ${id?`id="${id}"`:''} style="margin:10px 10px 0;padding:12px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span class="kb ${cls}">${k}</span>${extra||''}</div><div class="h"><span class="st" style="font-size:16px">구월길병원점</span></div><div class="amt" style="font-size:20px;margin-top:4px">${won(amt)}</div><div class="pay" style="margin-top:8px"><div class="t" style="font-size:13px">${line}</div><button class="cp" style="height:38px;font-size:13px">계좌 복사</button></div></div>`; }
 const BI_SCENES=[
-  ()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:#fff"><div style="padding:22px 16px;color:#6b7280;font-size:13px">znsl132-lang.github.io/wevape-web/boss.html</div>
-      <div style="margin:10px 16px;height:300px;border-radius:14px;background:#f2f3f5;display:grid;place-items:center;color:#9ca3af">입금 요청 화면</div>
-      <div id="bSh" style="position:absolute;left:0;right:0;bottom:0;height:58px;background:#f7f7f8;border-top:1px solid #e5e7eb;display:flex;justify-content:space-around;align-items:center;font-size:22px;color:#2563eb"><span>‹</span><span>›</span><span id="bShare">⬆︎</span><span>📖</span><span>⧉</span></div></div>`;
-    biCur(300,560); biAt(300,()=>biTo('#bShare')); biAt(1100,()=>{ biClick(); biQ('div').insertAdjacentHTML('beforeend',`<div id="bSheet" style="position:absolute;left:0;right:0;bottom:0;background:#f2f2f7;border-radius:16px 16px 0 0;padding:14px;animation:fadeIn .3s both"><div style="background:#fff;border-radius:12px;overflow:hidden">${['복사','즐겨찾기 추가','홈 화면에 추가','인쇄'].map((t,i)=>`<div ${i===2?'id="bAdd"':''} style="padding:13px 14px;border-bottom:1px solid #eee;font-size:15px">${t}</div>`).join('')}</div></div>`); });
-    biAt(1800,()=>biTo('#bAdd')); biAt(2600,()=>{ biClick(); $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(160deg,#1e3a8a,#7c3aed);padding:60px 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;align-content:start">${['📷','📞','💬','🏦','🗓','🗺','⚙️'].map(e=>`<div style="text-align:center"><div style="width:56px;height:56px;margin:auto;border-radius:14px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:26px">${e}</div></div>`).join('')}<div style="text-align:center;animation:pop .6s .2s both"><img src="boss/boss-192.png" style="width:56px;height:56px;border-radius:14px;display:block;margin:auto;box-shadow:0 0 0 3px #ffd400"><div style="color:#fff;font-size:11px;margin-top:4px;font-weight:700">입금요청</div></div></div>`; biCur(250,150); });
+  ()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:var(--bg)"><div style="background:#fff;padding:14px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#374151;border-bottom:1px solid #e5e7eb"><b style="font-size:18px">✕</b><span style="flex:1;background:#f2f3f5;border-radius:10px;padding:7px 10px">🔒 znsl132-lang.github.io</span><span style="width:26px;height:26px;border-radius:50%;background:#FEE500;display:grid;place-items:center">💬</span></div>
+      ${biHead('225,420원',1)}<div style="background:#fff7d6;padding:12px 14px;font-size:13px;line-height:1.5;animation:fadeIn .4s .3s both"><b>카톡 안에서는 설치·알림이 안 됩니다</b><div style="color:#4b5563">아래 버튼으로 인터넷 앱에서 다시 열어 주세요</div><div id="bK" style="margin-top:8px;height:42px;border-radius:12px;background:#111;color:#fff;display:grid;place-items:center;font-weight:800">인터넷 앱으로 열기</div></div>${biCard('비품',225420,'우리은행 ••••••••<b>225,420원</b>')}</div>`;
+    biCur(300,600); biAt(900,()=>biTo('#bK')); biAt(1800,()=>{ biClick(); });
+    biAt(2300,()=>{ $('biScene').insertAdjacentHTML('beforeend',`<div style="position:absolute;inset:0;background:#fff;display:grid;place-items:center;animation:fadeIn .3s both"><div style="text-align:center;color:#6b7280;font-size:14px"><div style="width:58px;height:58px;margin:0 auto 12px;border-radius:50%;background:conic-gradient(#ea4335 0 33%,#fbbc04 0 66%,#34a853 0);box-shadow:inset 0 0 0 14px #fff, inset 0 0 0 22px #4285f4"></div>인터넷 앱으로 여는 중…</div></div>`); biCur(250,500); });
+  },
+  ()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:var(--bg)"><div style="background:#2b2b2b;padding:10px 12px"><div style="background:#444;border-radius:12px;padding:8px 12px;color:#e5e7eb;font-size:12px">🔒 znsl132-lang.github.io/wevape-web/boss.html</div></div>${biHead('225,420원',1)}<div style="display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 14px;font-size:12.5px;animation:fadeIn .4s both"><div style="flex:1"><b style="display:block;font-size:13.5px">앱으로 설치하면 상단바 알림을 받습니다</b><span style="color:#6b7280">처음 한 번만 하면 됩니다</span></div><div id="bI" style="height:38px;padding:0 12px;border-radius:12px;background:var(--y);display:grid;place-items:center;font-weight:800;font-size:13px">📲 앱 설치</div></div>${biCard('비품',225420,'우리은행 ••••••••<b>225,420원</b>')}</div>`;
+    biCur(300,600); biAt(500,()=>biTo('#bI')); biAt(1300,()=>{ biClick(); $('biScene').insertAdjacentHTML('beforeend',`<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);animation:fadeIn .25s both"><div style="position:absolute;left:10px;right:10px;bottom:14px;background:#fff;border-radius:22px;padding:18px;animation:pop .4s both"><div style="display:flex;gap:12px;align-items:center"><img src="boss/boss-192.png" style="width:48px;height:48px;border-radius:12px"><div><b style="font-size:17px">앱 설치</b><div style="color:#6b7280;font-size:12.5px">입금요청 · znsl132-lang.github.io</div></div></div><div style="display:flex;justify-content:flex-end;gap:22px;margin-top:20px;font-weight:800;color:#1a73e8;font-size:15px"><span>취소</span><span id="bIn">설치</span></div></div></div>`); });
+    biAt(2200,()=>biTo('#bIn')); biAt(3000,()=>{ biClick(); });
+    biAt(3500,()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(160deg,#0f172a,#334155);padding:60px 22px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px;align-content:start">${['📷','📞','💬','🏦','🗓','🗺','⚙️'].map(e=>`<div style="text-align:center"><div style="width:56px;height:56px;margin:auto;border-radius:16px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:26px">${e}</div></div>`).join('')}<div style="text-align:center;animation:pop .6s .2s both"><img src="boss/boss-192.png" style="width:56px;height:56px;border-radius:16px;display:block;margin:auto;box-shadow:0 0 0 3px #ffd400"><div style="color:#fff;font-size:11px;margin-top:4px;font-weight:700">입금요청</div></div></div>`; biCur(250,150); biToast('입금요청을 앱스에 추가했어요'); });
+  },
+  ()=>{ const head=`<div style="background:#111;color:#fff;padding:18px 14px 14px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px"><span class="logo" style="width:24px;height:24px;font-size:14px">₩</span>입금 요청<span id="bBell" style="margin-left:auto;position:relative;width:34px;height:34px;border-radius:50%;background:#2a2a2a;display:grid;place-items:center;font-size:15px">🔔<i style="position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid #111"></i></span></div>`;
+    $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:var(--bg)">${head}${biCard('비품',225420,'우리은행 ••••••••<b>225,420원</b>')}</div>`;
+    biCur(300,600); biAt(400,()=>biTo('#bBell')); biAt(1200,()=>{ biClick(); $('biScene').insertAdjacentHTML('beforeend',`<div id="bPw" style="position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:22px 22px 0 0;padding:16px;box-shadow:0 -10px 30px rgba(0,0,0,.25);animation:fadeIn .3s both"><b style="font-size:18px">🔔 상단바 알림</b><div id="bSt" style="background:#fff;border-radius:14px;padding:12px 14px;margin:12px 0;font-size:13px;line-height:1.5"><b style="font-size:14px">아직 이 폰은 알림을 받지 않습니다</b><div style="color:#6b7280">아래 버튼을 누르고 「허용」을 눌러 주세요.</div></div><div id="bOn" style="height:48px;border-radius:14px;background:var(--y);display:grid;place-items:center;font-weight:800">이 폰에서 알림 받기</div></div>`); });
+    biAt(2000,()=>biTo('#bOn')); biAt(2800,()=>{ biClick(); $('biScene').insertAdjacentHTML('beforeend',`<div id="bPm" style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;animation:fadeIn .2s both"><div style="background:#fff;border-radius:24px;padding:20px;width:280px;text-align:center"><div style="font-size:22px">🔔</div><b style="font-size:15px;display:block;margin:6px 0 16px">입금요청에서 알림을 보내도록 허용하시겠습니까?</b><div id="bAl" style="background:#e8f0fe;color:#1a73e8;border-radius:999px;padding:11px;font-weight:800;margin-bottom:8px">허용</div><div style="color:#1a73e8;padding:8px;font-weight:700">허용 안함</div></div></div>`); });
+    biAt(3500,()=>biTo('#bAl')); biAt(4300,()=>{ biClick(); $('bPm').innerHTML=`<div style="background:#fff;border-radius:18px;padding:20px;width:260px;text-align:center;animation:pop .3s both"><b style="font-size:17px">사장님 비밀번호</b><div style="color:#6b7280;font-size:12px;margin:4px 0 10px">처음 한 번 숫자 4~8자리로 정합니다</div><div id="bDots2" style="font-size:26px;letter-spacing:10px;height:34px"></div></div>`; });
+    [1,2,3,4].forEach(n=>biAt(4500+n*220,()=>{ const d=$('bDots2'); if(d) d.textContent='●'.repeat(n); }));
+    biAt(5700,()=>{ const pm=$('bPm'); if(pm) pm.remove(); $('bSt').innerHTML='<b style="font-size:14px;color:#15803d">✓ 이 폰에서 알림을 받고 있습니다</b><div style="color:#6b7280">지점이 입금 요청을 올리면 상단바에 바로 뜹니다.</div>'; $('bSt').style.animation='pop .4s both'; const o=$('bOn'); o.textContent='테스트 알림 보내기'; o.style.background='#e5e7eb'; biCur(300,560); });
+  },
+  ()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:linear-gradient(160deg,#0f172a,#334155)"><div style="color:#fff;text-align:center;padding-top:90px;font-size:54px;font-weight:300">10:24</div><div style="color:#cbd5e1;text-align:center;font-size:14px">10월 16일 목요일</div></div>`;
+    biCur(300,600); biAt(700,()=>{ $('biScene').insertAdjacentHTML('beforeend',`<div id="bN" style="position:absolute;left:10px;right:10px;top:12px;background:rgba(255,255,255,.96);border-radius:20px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:dropIn .5s cubic-bezier(.2,.9,.3,1.2) both"><div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6b7280"><img src="boss/boss-192.png" style="width:16px;height:16px;border-radius:4px">입금요청 · 지금</div><b style="display:block;font-size:15px;margin-top:4px">입금 요청 · 구월길병원점</b><div style="font-size:14px;color:#374151">비품 225,420원</div></div>`); });
+    biAt(1900,()=>biTo('#bN')); biAt(2700,()=>{ biClick(); });
+    biAt(3200,()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:var(--bg);animation:fadeIn .3s both">${biHead('225,420원',1)}${biCard('비품',225420,'우리은행 ••••••••<b>225,420원</b>')}</div>`; biCur(300,600); });
   },
   ()=>{ $('biScene').innerHTML=`<div style="position:absolute;inset:0;background:var(--bg)">${biHead('0원',0)}<div id="bL"></div></div>`;
     biCur(320,600);
@@ -515,14 +552,14 @@ function biShow(i){
   if(!last) biAt(BI.DUR[i]+500,()=>biShow(i+1));
 }
 function biFit(){ const st=$('biStage'); const maxH=window.innerHeight-210, w=Math.min(360, maxH*360/640, window.innerWidth-40); st.style.width=w+'px'; st.style.height=(w*640/360)+'px'; BI.k=w/360; $('biIn').style.transform=`scale(${BI.k})`; }
-function openBI(){ try{ localStorage.setItem('bossIntroSeen','1'); }catch(e){} $('bi').classList.add('show'); biFit(); biShow(0); }
+function openBI(){ try{ localStorage.setItem('bossIntroSeen2','1'); }catch(e){} $('bi').classList.add('show'); biFit(); biShow(0); }
 function closeBI(){ BI.timers.forEach(clearTimeout); BI.timers=[]; $('bi').classList.remove('show'); }
 (function(){
   $('biBar').innerHTML=BI_SCENES.map((_,j)=>`<i data-j="${j}"><b></b></i>`).join('');
   $('biBar').querySelectorAll('i').forEach(el=>el.onclick=()=>biShow(+el.dataset.j));
   $('biPrev').onclick=()=>{ if(BI.i>0) biShow(BI.i-1); }; $('biNext').onclick=()=>{ if(BI.i<BI_SCENES.length-1) biShow(BI.i+1); else closeBI(); };
   $('biSkip').onclick=closeBI; $('help').onclick=openBI; window.addEventListener('resize',()=>{ if($('bi').classList.contains('show')) biFit(); });
-  try{ if(!localStorage.getItem('bossIntroSeen')) setTimeout(openBI,300); }catch(e){}
+  try{ if(/[?&]intro=1/.test(location.search) || !localStorage.getItem('bossIntroSeen2')) setTimeout(openBI,300); }catch(e){}
 })();
 
 load();
