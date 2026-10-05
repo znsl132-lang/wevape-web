@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>입금 요청</title>
+<link rel="manifest" href="boss.webmanifest">
+<link rel="apple-touch-icon" href="boss/boss-apple.png">
+<link rel="icon" href="boss/boss-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="비품입금">
+<meta name="theme-color" content="#111111">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{--bg:#f2f3f5;--card:#fff;--line:#e5e7eb;--text:#111827;--muted:#6b7280;--y:#ffd400;--green:#15803d;--green-soft:#e8f5ec;--red:#b91c1c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.45}
+button{font:inherit;cursor:pointer}
+.top{position:sticky;top:0;z-index:5;background:#111;color:#fff;padding:calc(env(safe-area-inset-top) + 14px) 18px 0}
+.top .row{display:flex;align-items:center;gap:10px}
+.top .logo{width:30px;height:30px;border-radius:8px;background:var(--y);color:#111;font-weight:900;display:grid;place-items:center;font-size:17px}
+.top h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.3px}
+.top .rf{margin-left:auto;background:#2a2a2a;border:none;color:#fff;border-radius:999px;height:34px;padding:0 14px;font-size:14px}
+.sum{margin:16px 0 0;display:flex;align-items:baseline;gap:8px}
+.sum b{font-size:28px;font-weight:800;color:var(--y);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.sum span{color:#cbd5e1;font-size:14px}
+.tabs{display:flex;gap:4px;margin-top:14px}
+.tabs button{flex:1;background:none;border:none;color:#9ca3af;font-weight:700;font-size:15px;padding:12px 0;border-bottom:3px solid transparent}
+.tabs button.on{color:#fff;border-bottom-color:var(--y)}
+.tabs .n{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:#333;color:#fff;font-size:12px;margin-left:4px}
+.tabs button.on .n{background:var(--y);color:#111}
+main{padding:14px 14px calc(env(safe-area-inset-bottom) + 30px);max-width:640px;margin:0 auto}
+.card{background:var(--card);border-radius:18px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card .h{display:flex;align-items:center;gap:8px}
+.card .st{font-weight:800;font-size:18px;letter-spacing:-.3px}
+.card .dt{margin-left:auto;color:var(--muted);font-size:13px}
+.card .meta{color:var(--muted);font-size:14px;margin-top:2px}
+.card .amt{font-size:24px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.pay{display:flex;align-items:center;gap:10px;margin-top:10px;background:#f7f7f8;border-radius:12px;padding:10px 10px 10px 14px}
+.pay .t{flex:1;min-width:0;font-size:14.5px;font-variant-numeric:tabular-nums;word-break:keep-all;overflow-wrap:anywhere}
+.pay .t b{display:block;font-size:16px}
+.pay .t small{display:block;color:var(--muted);font-size:12px}
+.cp{background:var(--y);border:none;border-radius:10px;height:44px;padding:0 16px;font-weight:800;font-size:15px;color:#111;white-space:nowrap}
+.cp.done{background:#111;color:#fff}
+.more{display:flex;gap:8px;margin-top:12px}
+.more button{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px}
+.badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--green-soft);color:var(--green)}
+.empty{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
+.empty .big{font-size:40px;margin-bottom:8px}
+/* 상세 시트 */
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s}
+.sheet.show{opacity:1;pointer-events:auto}
+.sheet .in{background:var(--bg);width:100%;max-width:640px;margin:0 auto;max-height:92vh;border-radius:22px 22px 0 0;overflow:auto;transform:translateY(30px);transition:transform .25s;padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
+.sheet.show .in{transform:none}
+.sheet .bar{position:sticky;top:0;background:var(--bg);padding:12px 16px 8px;display:flex;align-items:center;gap:10px;z-index:1}
+.sheet .bar .grip{position:absolute;left:50%;top:6px;width:40px;height:4px;border-radius:4px;background:#d1d5db;transform:translateX(-50%)}
+.sheet .bar h2{margin:8px 0 0;font-size:20px}
+.sheet .bar .x{margin-left:auto;margin-top:8px;background:#e5e7eb;border:none;border-radius:999px;width:34px;height:34px;font-size:16px}
+.sec{background:#fff;border-radius:16px;margin:8px 14px;padding:12px 14px}
+.sec h3{margin:0 0 6px;font-size:14px;color:var(--muted);font-weight:700}
+.it{display:flex;gap:10px;padding:10px 0;border-top:1px solid #f1f2f4}
+.it:first-of-type{border-top:none}
+.it .nm{font-weight:700;font-size:15px}
+.it .op{color:var(--muted);font-size:13px}
+.it .r{margin-left:auto;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.it .r b{display:block;font-size:15px}
+.it .r small{color:var(--muted);font-size:12px}
+.it a{font-size:13px;color:#1d4ed8;text-decoration:none;font-weight:600}
+.tot{display:flex;justify-content:space-between;font-weight:800;font-size:17px;padding-top:10px;border-top:2px solid var(--line);margin-top:4px}
+.acts{display:flex;gap:8px;margin:12px 14px 4px}
+.acts button{flex:1;height:52px;border-radius:14px;border:none;font-weight:800;font-size:16px}
+.b-xl{background:#fff;border:1px solid var(--line)!important;color:var(--text)}
+.b-paid{background:var(--green);color:#fff}
+.b-undo{background:#fff;border:1px solid var(--line)!important;color:var(--red)}
+/* PIN */
+.pin{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
+.pin.show{display:flex}
+.pin .box{background:#fff;border-radius:20px;padding:22px 20px;width:100%;max-width:340px;text-align:center}
+.pin h3{margin:0 0 4px;font-size:19px}
+.pin p{margin:0 0 14px;color:var(--muted);font-size:14px}
+.pin input::placeholder{letter-spacing:0;font-size:16px}
+.pin input{width:100%;height:54px;border:1px solid var(--line);border-radius:12px;font-size:24px;text-align:center;letter-spacing:8px;margin-bottom:8px}
+.pin label{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px;color:var(--muted);margin:4px 0 12px}
+.pin .bs{display:flex;gap:8px}
+.pin .bs button{flex:1;height:48px;border-radius:12px;border:none;font-weight:800;font-size:16px}
+.pin .err{color:var(--red);font-size:13px;min-height:18px;margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(20px);background:#111;color:#fff;padding:12px 18px;border-radius:999px;font-size:14.5px;opacity:0;transition:.2s;pointer-events:none;z-index:40;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.kb{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.k-비품{background:#e6f2ec;color:#2f6f4e}.k-관리비{background:#e0ecff;color:#1d4ed8}.k-택배비{background:#fdf0dc;color:#b45309}
+.due{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#f3f4f6;color:#374151}
+.due.soon{background:#fde8e8;color:var(--red)}
+.warn{margin-top:8px;background:#fde8e8;color:var(--red);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700}
+.shots{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.shots img{height:220px;border-radius:10px;border:1px solid var(--line);background:#f3f4f6}
+.shots .ld{width:160px;height:220px;border-radius:10px;background:#f3f4f6;display:grid;place-items:center;color:var(--muted);font-size:13px;flex:none}
+.zoom{position:fixed;inset:0;z-index:35;background:#000;display:none;overflow:auto}
+.zoom.show{display:block}
+.zoom img{width:100%;display:block}
+.zoom button{position:fixed;top:calc(env(safe-area-inset-top) + 12px);right:12px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.85);font-size:18px}
+footer{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.7;padding:20px 0 6px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="row"><div class="logo">₩</div><h1>입금 요청</h1><button class="rf" id="rf">↻ 새로고침</button></div>
+  <div class="sum"><b id="sumAmt">-</b><span id="sumTxt">불러오는 중…</span></div>
+  <div class="tabs"><button class="on" data-t="wait">입금 대기<span class="n" id="nWait">0</span></button><button data-t="done">입금 완료<span class="n" id="nDone">0</span></button></div>
+</div>
+<main id="list"><div class="empty">불러오는 중…</div></main>
+<main style="padding-top:0"><footer>We Vape — 입금 요청 (비품 · 관리비 · 택배비)<br>Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>내부 운영 자료 · 외부 공유를 금합니다</footer></main>
+
+<div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
+
+<div class="pin" id="pin"><div class="box">
+  <h3 id="pinTitle">사장님 비밀번호</h3><p id="pinSub">입금 완료 처리는 사장님만 할 수 있습니다</p>
+  <input id="pinIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
+  <input id="pinIn2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="한 번 더" style="display:none">
+  <div class="err" id="pinErr"></div>
+  <label><input type="checkbox" id="pinKeep" checked style="width:auto;height:auto;margin:0"> 이 폰에서는 다시 묻지 않기</label>
+  <div class="bs"><button id="pinNo" style="background:#f1f2f4">취소</button><button id="pinOk" style="background:var(--y)">확인</button></div>
+</div></div>
+<div class="zoom" id="zoom"><img id="zoomImg" alt=""><button id="zoomX">✕</button></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbwmRvA_JapXa3XGdUw8XoUtrH5qhYuwgcPE7dxOW0Nm9AdP9PJ9IAV81ya5kU7077jj/exec';
+const STORES = ['구월로데오점','구월길병원점','인천연수점','인천논현점','부천상동점','부천중동점','인천공항점','인천검단점','인천계산점'];
+const $ = id => document.getElementById(id);
+const won = n => (Number(n)||0).toLocaleString('ko-KR') + '원';
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const B = { rows:[], tab:'wait', cache:{} };
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1900); }
+async function api(params, body){
+  if(body){ const r=await fetch(API_URL,{method:'POST',body:JSON.stringify(body)}); return r.json(); }
+  const u=new URL(API_URL); Object.entries(params).forEach(([k,v])=>v!=null&&v!==''&&u.searchParams.set(k,v)); const r=await fetch(u); return r.json();
+}
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); }catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); ta.remove(); } }
+function payHtml(l){ const m=String(l).match(/^(.*?)\s+([\d,]+원)$/); return m ? `${esc(m[1])}<b>${esc(m[2])}</b>` : esc(l); }
+function payLines(r){ return String(r.paySummary||'').split(' / ').map(s=>s.trim()).filter(Boolean); }
+function kindOf(r){ return r.kind||'비품'; }
+function dday(d){ if(!d) return null; const t=new Date(); t.setHours(0,0,0,0); return Math.round((new Date(String(d).slice(0,10)+'T00:00:00')-t)/86400000); }
+function accDigits(l){ const m=String(l||'').match(/\d[\d-]{8,}\d/); return m?m[0].replace(/-/g,''):''; }
+function accChanged(r){ if(kindOf(r)==='비품') return false; const prev=B.rows.filter(x=>x.id!==r.id && x.store===r.store && kindOf(x)===kindOf(r) && String(x.savedAt)<String(r.savedAt)).sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt)))[0];
+  if(!prev) return false; const a=accDigits(payLines(prev)[0]), b=accDigits(payLines(r)[0]); return !!(a && b && a!==b); }
+function mmdd(d){ const s=String(d||'').slice(0,10).split('-'); return s.length===3 ? `${Number(s[1])}월 ${Number(s[2])}일` : ''; }
+
+/* ---------- 목록 ---------- */
+async function load(silent){
+  if(!silent) $('sumTxt').textContent='불러오는 중…';
+  try{
+    const res=await api({action:'list'}); if(!res.ok) throw new Error(res.error);
+    B.rows=res.rows; render();
+  }catch(e){ $('sumTxt').textContent='불러오기 실패 — 새로고침을 눌러주세요'; if(!silent) toast('불러오기 실패: '+e.message); }
+}
+function render(){
+  const wait=B.rows.filter(r=>!r.paid).sort((a,b)=>{ const da=dday(a.dueDate), db=dday(b.dueDate); if(da!=null||db!=null) return (da??999)-(db??999); return String(b.savedAt).localeCompare(String(a.savedAt)); }), done=B.rows.filter(r=>r.paid).sort((a,b)=>String(b.paidAt).localeCompare(String(a.paidAt)));
+  $('nWait').textContent=wait.length; $('nDone').textContent=done.length;
+  const wsum=wait.reduce((a,r)=>a+(Number(r.payTotal)||Number(r.itemTotal)||0),0);
+  $('sumAmt').textContent = wait.length ? won(wsum) : '0원';
+  $('sumTxt').textContent = wait.length ? `입금 대기 ${wait.length}건` : '대기 중인 입금이 없습니다';
+  const rows = B.tab==='wait' ? wait : done;
+  if(!rows.length){ $('list').innerHTML = B.tab==='wait' ? '<div class="empty"><div class="big">✓</div>입금할 건이 없습니다</div>' : '<div class="empty">아직 입금 완료한 건이 없습니다</div>'; return; }
+  $('list').innerHTML = rows.map(r=>{
+    const lines=payLines(r);
+    return `<div class="card">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span class="kb k-${esc(kindOf(r))}">${esc(kindOf(r))}</span>${kindOf(r)!=='비품'?`<span style="color:var(--muted);font-size:13px">${Number(String(r.month).slice(5))}월분</span>`:''}${(!r.paid && r.dueDate)?(()=>{ const n=dday(r.dueDate); return `<span class="due ${n<=3?'soon':''}">납기 ${esc(String(r.dueDate).slice(5).replace('-','/'))}${n!=null?(n<0?' · 지남':n===0?' · 오늘':' · D-'+n):''}</span>`; })():''}</div>
+      <div class="h"><span class="st">${esc(r.store)}</span>${r.paid?`<span class="badge">입금완료 ${esc(String(r.paidAt).slice(5,16).replace('-','/'))}</span>`:''}<span class="dt">${mmdd(r.date)} ${kindOf(r)==='비품'?'주문':'청구'}</span></div>
+      <div class="meta">${kindOf(r)==='비품' ? '품목 '+r.count+'개' : kindOf(r)==='택배비' ? (r.billCount||0)+'건'+(r.photoCount?' · 사진 '+r.photoCount+'장':'') : (r.photoCount?'고지서 사진 '+r.photoCount+'장':'')}</div>
+      <div class="amt">${won(r.payTotal||r.itemTotal)}</div>
+      ${lines.length ? lines.map(l=>`<div class="pay"><div class="t">${payHtml(l)}</div>${r.paid?'':`<button class="cp" data-cp="${esc(l)}">계좌 복사</button>`}</div>`).join('') : '<div class="pay"><div class="t" style="color:var(--red)">입금 정보 없음 — 지점에 확인해 주세요</div></div>'}
+      ${accChanged(r)?'<div class="warn">⚠ 지난번 청구와 받는 계좌가 다릅니다 — 확인 후 입금하세요</div>':''}
+      <div class="more"><button data-open="${esc(r.id)}">${kindOf(r)==='비품'?'품목 · 엑셀 보기':'사진 · 내용 보기'}</button></div>
+    </div>`; }).join('');
+}
+document.addEventListener('click', async e=>{
+  const cp=e.target.closest('[data-cp]');
+  if(cp){ await copyText(cp.dataset.cp); cp.textContent='복사됨 ✓'; cp.classList.add('done'); toast('복사했습니다 — 은행 앱을 열어 송금하세요'); setTimeout(()=>{ cp.textContent='계좌 복사'; cp.classList.remove('done'); },2500); return; }
+  const op=e.target.closest('[data-open]'); if(op){ openDetail(op.dataset.open); return; }
+});
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ B.tab=b.dataset.t; document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b)); render(); window.scrollTo(0,0); });
+$('rf').onclick=()=>load();
+
+/* ---------- 상세 ---------- */
+async function getOrder(id){ if(B.cache[id]) return B.cache[id]; const r=await api({action:'get',id}); if(!r.ok||!r.order) throw new Error(r.error||'주문을 찾지 못했습니다'); return B.cache[id]=r.order; }
+async function openDetail(id){
+  const r=B.rows.find(x=>x.id===id); if(!r) return;
+  $('sheetIn').innerHTML=`<div class="bar"><span class="grip"></span><h2>${esc(r.store)} · ${mmdd(r.date)}</h2><button class="x" id="sx">✕</button></div><div class="sec"><div class="empty" style="padding:30px 0">불러오는 중…</div></div>`;
+  $('sheet').classList.add('show'); document.body.style.overflow='hidden'; $('sx').onclick=closeDetail;
+  try{
+    const o=await getOrder(id);
+    if(kindOf(r)!=='비품'){ renderBillDetail(r,o); return; }
+    const items=o.items||[];
+    const total=items.reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0);
+    const lines=payLines(r);
+    $('sheetIn').innerHTML=`<div class="bar"><span class="grip"></span><h2>${esc(r.store)} · ${mmdd(r.date)}</h2><button class="x" id="sx">✕</button></div>
+      <div class="sec"><h3>입금 정보</h3>${lines.length? lines.map(l=>`<div class="pay" style="margin-top:6px"><div class="t">${payHtml(l)}</div><button class="cp" data-cp="${esc(l)}">계좌 복사</button></div>`).join('') : '<div style="color:var(--red)">입금 정보 없음</div>'}
+        ${(o.pays||[]).map(p=>p.holder?`<div style="color:var(--muted);font-size:13px;margin-top:6px">예금주 ${esc(p.holder)}${p.label?' · '+esc(p.label):''}</div>`:'').join('')}
+        ${r.paid?`<div style="margin-top:10px"><span class="badge">입금완료 · ${esc(r.paidAt)}</span></div>`:''}</div>
+      <div class="sec"><h3>품목 ${items.length}개</h3>
+        ${items.map(i=>`<div class="it"><div style="min-width:0"><div class="nm">${esc(i.name)}</div><div class="op">${esc(i.opt)}${i.reason?' · '+esc(i.reason):''}</div>${i.url?`<a href="${esc(productUrl(i.url))}" target="_blank" rel="noopener">상품 보기 ›</a>`:''}</div><div class="r"><b>${won((Number(i.qty)||0)*(Number(i.price)||0))}</b><small>${(Number(i.price)||0).toLocaleString('ko-KR')} × ${i.qty}</small></div></div>`).join('')}
+        <div class="tot"><span>합계</span><span>${won(total)}</span></div></div>
+      <div class="acts"><button class="b-xl" id="dx">엑셀 받기</button>${r.paid?'<button class="b-undo" id="dp">입금 대기로 되돌리기</button>':'<button class="b-paid" id="dp">✓ 입금 완료</button>'}</div>`;
+    $('sx').onclick=closeDetail;
+    $('dx').onclick=async()=>{ const b=$('dx'); b.disabled=true; b.textContent='만드는 중…'; try{ await makeXlsx({items, store:o.store, date:o.date}); }catch(e){ toast('엑셀 실패: '+e.message); } b.disabled=false; b.textContent='엑셀 받기'; };
+    $('dp').onclick=()=>markPaid(r, !r.paid);
+  }catch(e){ $('sheetIn').querySelector('.sec').innerHTML=`<div class="empty" style="padding:30px 0;color:var(--red)">불러오기 실패: ${esc(e.message)}</div>`; }
+}
+function renderBillDetail(r,o){
+  const lines=payLines(r), k=kindOf(r);
+  $('sheetIn').innerHTML=`<div class="bar"><span class="grip"></span><h2>${esc(r.store)} · ${esc(k)} ${Number(String(r.month).slice(5))}월분</h2><button class="x" id="sx">✕</button></div>
+    <div class="sec"><h3>입금 정보</h3>${lines.map(l=>`<div class="pay" style="margin-top:6px"><div class="t">${payHtml(l)}</div><button class="cp" data-cp="${esc(l)}">계좌 복사</button></div>`).join('')}
+      ${(o.pays||[]).map(p=>p.holder?`<div style="color:var(--muted);font-size:13px;margin-top:6px">예금주 ${esc(p.holder)}</div>`:'').join('')}
+      ${accChanged(r)?'<div class="warn">⚠ 지난번 청구와 받는 계좌가 다릅니다 — 확인 후 입금하세요</div>':''}
+      ${r.paid?`<div style="margin-top:10px"><span class="badge">입금완료 · ${esc(r.paidAt)}</span></div>`:''}</div>
+    <div class="sec"><h3>청구 내용</h3>
+      <div class="it"><div class="nm">금액</div><div class="r"><b>${won(o.amount)}</b></div></div>
+      ${k==='관리비'?`<div class="it"><div class="nm">납기일</div><div class="r"><b>${esc(String(o.dueDate||'-').replace(/-/g,'.'))}</b></div></div>`:''}
+      ${k==='택배비'?`<div class="it"><div class="nm">건수</div><div class="r"><b>${esc(o.count||0)}건</b></div></div><div class="it"><div class="nm">택배사</div><div class="r"><b>${esc(o.carrier||'')}</b></div></div>`:''}
+      <div class="it"><div class="nm">청구일</div><div class="r"><b>${esc(String(o.date||'').replace(/-/g,'.'))}</b></div></div></div>
+    <div class="sec"><h3>${k==='관리비'?'고지서':'정산현황'} 사진</h3><div class="shots" id="shots">${(o.photos||[]).length ? (o.photos||[]).map(()=>'<div class="ld">불러오는 중…</div>').join('') : '<div style="color:var(--muted);font-size:14px">첨부된 사진이 없습니다</div>'}</div></div>
+    <div class="acts">${r.paid?'<button class="b-undo" id="dp">입금 대기로 되돌리기</button>':'<button class="b-paid" id="dp">✓ 입금 완료</button>'}</div>`;
+  $('sx').onclick=closeDetail; $('dp').onclick=()=>markPaid(r, !r.paid);
+  (o.photos||[]).forEach(async (pid,i)=>{ try{ const res=await api({action:'photo',id:pid}); const box=$('shots'); if(!box||!res.ok) return; const img=document.createElement('img'); img.src=res.data; img.onclick=()=>{ $('zoomImg').src=res.data; $('zoom').classList.add('show'); }; box.children[i].replaceWith(img); }catch(e){} });
+}
+$('zoomX').onclick=()=>$('zoom').classList.remove('show');
+function closeDetail(){ $('sheet').classList.remove('show'); document.body.style.overflow=''; }
+$('sheet').addEventListener('click',e=>{ if(e.target===$('sheet')) closeDetail(); });
+
+/* ---------- 입금 완료 (PIN) ---------- */
+function savedPin(){ try{ return localStorage.getItem('bossPin')||''; }catch(e){ return ''; } }
+function askPin(setMode){
+  return new Promise(res=>{
+    $('pinTitle').textContent = setMode ? '사장님 비밀번호 만들기' : '사장님 비밀번호';
+    $('pinSub').textContent = setMode ? '입금 완료 처리에 쓸 숫자 4~8자리를 정해 주세요' : '입금 완료 처리는 사장님만 할 수 있습니다';
+    $('pinIn2').style.display = setMode ? '' : 'none';
+    $('pinIn').value=''; $('pinIn2').value=''; $('pinErr').textContent='';
+    $('pin').classList.add('show'); setTimeout(()=>$('pinIn').focus(),50);
+    $('pinNo').onclick=()=>{ $('pin').classList.remove('show'); res(null); };
+    $('pinOk').onclick=()=>{
+      const v=$('pinIn').value.trim();
+      if(!/^\d{4,8}$/.test(v)){ $('pinErr').textContent='숫자 4~8자리로 입력해 주세요'; return; }
+      if(setMode && v!==$('pinIn2').value.trim()){ $('pinErr').textContent='두 번 입력한 숫자가 다릅니다'; return; }
+      $('pin').classList.remove('show'); res(v);
+    };
+  });
+}
+async function markPaid(r, paid){
+  if(!paid && !confirm('입금 완료를 취소하고 「입금 대기」로 되돌릴까요?')) return;
+  let pin=savedPin();
+  if(!pin){
+    let st={set:true}; try{ st=await api({action:'pinstate'}); }catch(e){}
+    if(!st.set){ const np=await askPin(true); if(!np) return; const s=await api(null,{action:'setpin',pin:np}); if(!s.ok){ toast(s.error||'설정 실패'); return; } pin=np; toast('비밀번호를 만들었습니다'); }
+    else { pin=await askPin(false); if(!pin) return; }
+  }
+  const btn=$('dp'); if(btn){ btn.disabled=true; btn.textContent='처리 중…'; }
+  const res=await api(null,{action:'paid',id:r.id,pin,paid}).catch(e=>({ok:false,error:e.message}));
+  if(!res.ok){
+    try{ localStorage.removeItem('bossPin'); }catch(e){}
+    if(btn){ btn.disabled=false; btn.textContent= paid?'✓ 입금 완료':'입금 대기로 되돌리기'; }
+    toast(/Error: /.test(res.error||'') ? res.error.replace(/^Error: /,'') : (res.error||'처리 실패')); return;
+  }
+  try{ if($('pinKeep').checked) localStorage.setItem('bossPin',pin); }catch(e){}
+  r.paid=paid; r.paidAt= paid ? new Date().toISOString().slice(0,16).replace('T',' ') : '';
+  closeDetail(); render(); toast(paid?'입금 완료로 옮겼습니다':'입금 대기로 되돌렸습니다'); load(true);
+}
+
+/* ---------- 엑셀 · 링크 (지점 화면과 같은 양식) ---------- */
+function fileName(date){ const [y,m,dd]=String(date||'').slice(0,10).split('-'); return `비품주문보고용(${(y||'').slice(2)}.${m||''}.${dd||''}).xlsx`; }
+function cleanUrl(u){
+  try{
+    const x = new URL(u);
+    if(/\/sdp\/link/.test(x.pathname)) return `https://mc.coupang.com/ssr/sdp/link?vendorItemId=${x.searchParams.get('vendorItemId')}`;
+    if(/coupang\.com/.test(x.host)){
+      const vid = x.searchParams.get('vendorItemId');
+      return `https://www.coupang.com${x.pathname}` + (vid?`?vendorItemId=${vid}`:'');
+    }
+    if(/smartstore\.naver\.com|brand\.naver\.com/.test(x.host)) return `https://${x.host}${x.pathname}`;
+    return u;
+  }catch(e){ return u; }
+}
+/* 상품 원래 페이지 주소 (장바구니 꼬리표 제거) */
+function productUrl(u){ return cleanUrl(String(u||'')); }
+/* 엑셀용: 엑셀이 쿠팡 주소를 직접 열면 쿠팡이 막아서 «열 수 없습니다»가 뜸 → 우리 중계 페이지를 거쳐 브라우저에서 열림 */
+const GO_URL = 'https://znsl132-lang.github.io/wevape-web/go.html?u=';
+function excelLink(u){ const pu=productUrl(u); return /^https:\/\/([\w-]+\.)*(coupang\.com|naver\.com)\//.test(pu) ? GO_URL+encodeURIComponent(pu) : pu; }
+
+function linkLabel(u){ try{ const x=new URL(u); const id=(x.pathname.match(/\/products\/(\d+)/)||[])[1]||x.searchParams.get('vendorItemId')||''; const site=/coupang/.test(x.host)?'쿠팡':/naver/.test(x.host)?'네이버':x.host.replace('www.',''); return `${site} ▸ ${id||'상품 보기'}`; }catch(e){ return '링크 열기'; } }
+
+async function makeXlsx({items, store, date}){
+  const wb=new ExcelJS.Workbook(); const ws=wb.addWorksheet('비품주문보고',{views:[{showGridLines:true}]});
+  ws.columns=[{width:43.5},{width:24.75},{width:9.875},{width:29.5},{width:46.375},{width:13.25},{width:13.875}];
+  const thin={style:'thin',color:{argb:'FF000000'}}; const border={top:thin,left:thin,bottom:thin,right:thin};
+  const center={horizontal:'center',vertical:'middle',wrapText:true};
+  store=store||'매장';
+  // 1행 제목
+  ws.mergeCells('A1:D1'); ws.mergeCells('E1:G1');
+  ws.getCell('A1').value=`${store} 비품 주문서`;
+  const dp=(String(date||'').slice(0,10)||new Date().toISOString().slice(0,10)).split('-').map(Number); const d=new Date(Date.UTC(dp[0],dp[1]-1,dp[2]));
+  ws.getCell('E1').value=d; ws.getCell('E1').numFmt='yyyy"년" m"월" d"일"';
+  ['A1','E1'].forEach(a=>{ const c=ws.getCell(a); c.font={name:'맑은 고딕',size:a==='A1'?20:14,bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE2EFDA'}}; c.alignment=center; });
+  for(let c=1;c<=7;c++) ws.getRow(1).getCell(c).border=border;
+  ws.getRow(1).height=49.35;
+  // 2행 헤더
+  const heads=['품목명','구매 옵션','수량','링크','구매 사유','단가','구매 금액'];
+  heads.forEach((h,i)=>{ const c=ws.getRow(2).getCell(i+1); c.value=h; c.font={name:'맑은 고딕',size:11,bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFCE4D6'}}; c.alignment=center; c.border=border; });
+  ws.getRow(2).height=30;
+  // 품목
+  const nRows=Math.max(25,items.length);
+  for(let i=0;i<nRows;i++){
+    const r=ws.getRow(3+i), it=items[i];
+    for(let c=1;c<=7;c++){ const cell=r.getCell(c); cell.border=border; cell.alignment=center; cell.font={name:'맑은 고딕',size:11,bold:c<=5}; if(c>=6) cell.numFmt='#,##0_);[Red]\\(#,##0\\)'; }
+    r.getCell(7).value={formula:`C${3+i}*F${3+i}`};
+    if(it){
+      r.getCell(1).value=it.name; r.getCell(2).value=it.opt; r.getCell(3).value=Number(it.qty)||0;
+      if(it.url){ const c4=r.getCell(4); c4.value={text:linkLabel(it.url),hyperlink:excelLink(it.url),tooltip:productUrl(it.url)}; c4.font={name:'맑은 고딕',size:11,bold:true,underline:true,color:{argb:'FF1155CC'}}; } else r.getCell(4).value='';
+      r.getCell(5).value=it.reason; r.getCell(6).value=Number(it.price)||0;
+      r.height=Math.max(36, 16*Math.ceil(Math.max(String(it.opt).length/16, String(it.name).length/30)) + 6);
+    }
+  }
+  // 합계
+  const tr=3+nRows+1; ws.mergeCells(`F${tr}:G${tr}`);
+  const lab=ws.getCell(`D${tr}`); lab.value='총 구매 금액 :'; lab.font={name:'맑은 고딕',size:12,bold:true}; lab.alignment={horizontal:'right',vertical:'middle'}; lab.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+  ws.getCell(`E${tr}`).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFD9D9D9'}};
+  const tot=ws.getCell(`F${tr}`); tot.value={formula:`SUM(G3:G${2+nRows})`}; tot.font={name:'맑은 고딕',size:16,bold:true}; tot.alignment={horizontal:'center',vertical:'middle'}; tot.numFmt='#,##0_);[Red]\\(#,##0\\)';
+  ws.getRow(tr).height=30;
+  const buf=await wb.xlsx.writeBuffer();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})); a.download=fileName(date); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  toast('엑셀을 내려받았습니다');
+}
+
+
+load();
+setInterval(()=>{ if(!document.hidden && !$('sheet').classList.contains('show')) load(true); }, 60000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(true); });
+</script>
+</body>
+</html>
