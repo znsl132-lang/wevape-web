@@ -877,10 +877,12 @@ function seenPaid(){ try{ return JSON.parse(localStorage.getItem('supplySeenPaid
 async function checkPaid(){
   const st=$('store').value; if(!st || !API_URL) return;
   try{
-    const res=await api({action:'paidfeed', store:st, days:14}); if(!res.ok || $('store').value!==st) return;
+    const res=await api({action:'paidfeed', store:st, days:30, pending:1}); if(!res.ok || $('store').value!==st) return;
     const seen=seenPaid(), fresh=(res.rows||[]).filter(r=>!seen.includes(r.id));
-    $('paidBanner').innerHTML = fresh.map(r=>`<div class="paid-banner" data-pid="${esc(r.id)}"><div class="ic">✓</div><div><b>${esc(r.kind||'비품')} 입금 완료 · ${(r.kind&&r.kind!=='비품') ? Number(String(r.month).slice(5))+'월분' : Number(String(r.date).slice(5,7))+'월 '+Number(String(r.date).slice(8,10))+'일 주문'} ${won(r.payTotal||r.itemTotal)}</b><span>사장님이 ${esc(String(r.paidAt).slice(5,16).replace('-','/'))}에 입금 처리했습니다</span></div><button class="btn">확인</button></div>`).join('');
-    $('paidBanner').querySelectorAll('[data-pid] .btn').forEach(b=>b.onclick=()=>{ const id=b.closest('[data-pid]').dataset.pid; const s2=seenPaid(); s2.push(id); try{ localStorage.setItem('supplySeenPaid', JSON.stringify(s2.slice(-200))); }catch(e){} b.closest('[data-pid]').remove(); });
+    $('paidBanner').innerHTML = fresh.map(r=>`<div class="paid-banner" data-pid="${esc(r.id)}"><div class="ic">✓</div><div><b>${esc(r.kind||'비품')} 입금 완료 · ${(r.kind&&r.kind!=='비품') ? Number(String(r.month).slice(5))+'월분' : Number(String(r.date).slice(5,7))+'월 '+Number(String(r.date).slice(8,10))+'일 주문'} ${won(r.payTotal||r.itemTotal)}</b><span>사장님이 ${esc(String(r.paidAt).slice(5,16).replace('-','/'))}에 입금 처리했습니다</span></div><button class="btn primary">확인 완료</button></div>`).join('');
+    $('paidBanner').querySelectorAll('[data-pid] .btn').forEach(b=>b.onclick=async()=>{ const box=b.closest('[data-pid]'), id=box.dataset.pid; b.disabled=true; b.textContent='처리 중…';
+      try{ const r=await api(null,{action:'ack', id, by:'지점 화면'}); if(!r.ok) throw new Error(r.error); }catch(e){ b.disabled=false; b.textContent='확인 완료'; toast('확인 처리 실패: '+e.message); return; }
+      const s2=seenPaid(); s2.push(id); try{ localStorage.setItem('supplySeenPaid', JSON.stringify(s2.slice(-200))); }catch(e){} box.remove(); toast('확인 완료 — 사장님 앱에 「지점 확인」으로 표시됩니다'); });
   }catch(e){}
 }
 setInterval(()=>{ if(!$('view-store').hidden && !document.hidden) checkPaid(); }, 120000);
