@@ -123,12 +123,23 @@ main{padding:14px 14px calc(env(safe-area-inset-bottom) + 30px);max-width:640px;
 .bi .nav button{flex:1;height:42px;border-radius:12px;border:none;font-weight:800;font-size:14px;background:#2a2a2a;color:#fff}
 .bi .nav button#biNext{background:var(--y);color:#111}
 .bi .nav button:disabled{opacity:.4}
+.top .bell{position:relative;margin-left:6px;font-size:15px}
+.top .help{margin-left:6px}
+.bell i{position:absolute;top:2px;right:2px;width:9px;height:9px;border-radius:50%;background:#ef4444;display:none;border:2px solid #111}
+.bell i.on{display:block}
+.pw{padding:4px 16px 8px}
+.pw .st{background:#fff;border-radius:16px;padding:14px 16px;margin:6px 0 12px;line-height:1.6;font-size:14.5px}
+.pw .st b{font-size:16px}
+.pw .ok{color:#15803d}.pw .bad{color:#dc2626}.pw .mut{color:var(--muted);font-size:13px}
+.pw button.big{width:100%;height:52px;border:none;border-radius:14px;font:inherit;font-weight:800;font-size:16px;margin-top:8px}
+.pw .y{background:var(--y)}.pw .g{background:#e5e7eb}
+.pw ol{margin:6px 0 0;padding-left:20px;font-size:13.5px;line-height:1.7}
 footer{text-align:center;color:var(--muted);font-size:11.5px;line-height:1.7;padding:20px 0 6px}
 </style>
 </head>
 <body>
 <div class="top">
-  <div class="row"><div class="logo">₩</div><h1>입금 요청</h1><button class="rf" id="rf">↻ 새로고침</button><button class="help" id="help" title="사용법">?</button></div>
+  <div class="row"><div class="logo">₩</div><h1>입금 요청</h1><button class="rf" id="rf">↻ 새로고침</button><button class="help bell" id="bell" title="알림 설정">🔔<i id="bellDot"></i></button><button class="help" id="help" title="사용법">?</button></div>
   <div class="sum"><b id="sumAmt">-</b><span id="sumTxt">불러오는 중…</span></div>
   <div class="tabs"><button class="on" data-t="wait">입금 대기<span class="n" id="nWait">0</span></button><button data-t="done">입금 완료<span class="n" id="nDone">0</span></button></div>
 </div>
@@ -274,14 +285,16 @@ function askPin(setMode){
     };
   });
 }
+async function getPin(){
+  let pin=savedPin(); if(pin) return pin;
+  let st={set:true}; try{ st=await api({action:'pinstate'}); }catch(e){}
+  if(!st.set){ const np=await askPin(true); if(!np) return null; const s=await api(null,{action:'setpin',pin:np}); if(!s.ok){ toast(s.error||'설정 실패'); return null; } toast('비밀번호를 만들었습니다'); return np; }
+  return await askPin(false);
+}
+function keepPin(pin, ok){ try{ if(!ok) localStorage.removeItem('bossPin'); else if($('pinKeep').checked) localStorage.setItem('bossPin',pin); }catch(e){} }
 async function markPaid(r, paid){
   if(!paid && !confirm('입금 완료를 취소하고 「입금 대기」로 되돌릴까요?')) return;
-  let pin=savedPin();
-  if(!pin){
-    let st={set:true}; try{ st=await api({action:'pinstate'}); }catch(e){}
-    if(!st.set){ const np=await askPin(true); if(!np) return; const s=await api(null,{action:'setpin',pin:np}); if(!s.ok){ toast(s.error||'설정 실패'); return; } pin=np; toast('비밀번호를 만들었습니다'); }
-    else { pin=await askPin(false); if(!pin) return; }
-  }
+  const pin=await getPin(); if(!pin) return;
   const btn=$('dp'); if(btn){ btn.disabled=true; btn.textContent='처리 중…'; }
   const res=await api(null,{action:'paid',id:r.id,pin,paid}).catch(e=>({ok:false,error:e.message}));
   if(!res.ok){
@@ -293,6 +306,81 @@ async function markPaid(r, paid){
   r.paid=paid; r.paidAt= paid ? new Date().toISOString().slice(0,16).replace('T',' ') : '';
   closeDetail(); render(); toast(paid?'입금 완료로 옮겼습니다':'입금 대기로 되돌렸습니다'); load(true);
 }
+
+/* ---------- 🔔 상단바 알림 (Firebase Cloud Messaging) ---------- */
+const FB_SDK='https://www.gstatic.com/firebasejs/10.14.1/';
+const PUSH={cfg:undefined, state:null};
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+const isStandalone=()=> (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true;
+const pushSupported=()=> 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function devName(){ const u=navigator.userAgent; return /iPhone/.test(u)?'아이폰':/iPad/.test(u)?'아이패드':/Android/.test(u)?'안드로이드':'PC'; }
+function myToken(){ try{ return localStorage.getItem('bossPushToken')||''; }catch(e){ return ''; } }
+function loadJs(src){ return new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>no(new Error('알림 모듈을 불러오지 못했습니다')); document.head.appendChild(s); }); }
+async function pushCfg(){ if(PUSH.cfg===undefined){ const r=await api({action:'pushconfig'}).catch(()=>({})); PUSH.cfg=(r&&r.ok&&r.config)||null; } return PUSH.cfg; }
+async function swReg(){
+  const reg=await navigator.serviceWorker.register('boss/sw.js',{scope:'boss/'});
+  if(!reg.active) await new Promise(res=>{ const w=reg.installing||reg.waiting; if(!w) return res(); w.addEventListener('statechange',()=>{ if(w.state==='activated') res(); }); setTimeout(res,8000); });
+  return reg;
+}
+async function fbToken(cfg){
+  if(!window.firebase){ await loadJs(FB_SDK+'firebase-app-compat.js'); await loadJs(FB_SDK+'firebase-messaging-compat.js'); }
+  if(!firebase.apps.length) firebase.initializeApp(cfg.web);
+  return firebase.messaging().getToken({vapidKey:cfg.vapid, serviceWorkerRegistration:await swReg()});
+}
+function bellDot(){ const on = pushSupported() && PUSH.cfg && (!myToken() || (typeof Notification!=='undefined' && Notification.permission!=='granted') || (PUSH.state&&PUSH.state.last&&PUSH.state.last.failed>0&&!PUSH.state.last.sent)); $('bellDot').classList.toggle('on', !!on); }
+async function refreshPush(){ await pushCfg(); try{ const r=await api({action:'pushstate'}); if(r.ok) PUSH.state=r; }catch(e){} bellDot(); }
+async function enablePush(){
+  const cfg=PUSH.cfg; if(!cfg){ toast('알림 서버 설정이 아직 안 됐습니다'); return; }
+  if(!pushSupported()){ toast(isIOS&&!isStandalone()?'홈 화면에 추가한 앱으로 열어야 알림을 받을 수 있습니다':'이 브라우저는 알림을 지원하지 않습니다'); return; }
+  const perm=await Notification.requestPermission();
+  if(perm!=='granted'){ toast('알림이 차단돼 있습니다. 폰 설정에서 이 앱 알림을 허용해 주세요'); openPush(); return; }
+  const pin=await getPin(); if(!pin) return;
+  const b=$('pwOn'); if(b){ b.disabled=true; b.textContent='등록 중…'; }
+  try{
+    const token=await fbToken(cfg); if(!token) throw new Error('알림 등록에 실패했습니다');
+    const r=await api(null,{action:'regpush', pin, token, name:devName()});
+    keepPin(pin, r.ok); if(!r.ok) throw new Error(String(r.error||'').replace(/^Error: /,'')||'등록 실패');
+    try{ localStorage.setItem('bossPushToken', token); }catch(e){}
+    toast('이 폰에서 알림을 받습니다'); await refreshPush(); openPush();
+  }catch(e){ toast(e.message||'알림 등록 실패'); if(b){ b.disabled=false; b.textContent='이 폰에서 알림 받기'; } }
+}
+async function testPush(){
+  const pin=await getPin(); if(!pin) return;
+  const b=$('pwTest'); if(b){ b.disabled=true; b.textContent='보내는 중…'; }
+  const r=await api(null,{action:'pushtest', pin}).catch(e=>({ok:false,error:e.message}));
+  keepPin(pin, !(r.error&&/비밀번호/.test(r.error)));
+  toast(r.ok?'테스트 알림을 보냈습니다 — 상단바를 확인해 주세요':'보내기 실패: '+String(r.error||'').replace(/^Error: /,'').slice(0,60));
+  await refreshPush(); openPush();
+}
+async function offPush(){
+  const t=myToken(); if(t) await api(null,{action:'unregpush', token:t}).catch(()=>{});
+  try{ localStorage.removeItem('bossPushToken'); }catch(e){}
+  toast('이 폰의 알림을 껐습니다'); await refreshPush(); openPush();
+}
+function openPush(){
+  const s=PUSH.state||{}, perm=(typeof Notification!=='undefined')?Notification.permission:'unsupported', mine=!!myToken();
+  let main;
+  if(!PUSH.cfg) main=`<b class="bad">알림 서버 준비 중</b><div class="mut">관리자가 설정을 마치면 여기서 켤 수 있습니다.</div>`;
+  else if(!pushSupported()) main= isIOS&&!isStandalone()
+      ? `<b class="bad">홈 화면 앱에서만 됩니다</b><ol><li>사파리 아래 공유 버튼(□↑) 누르기</li><li>「홈 화면에 추가」</li><li>홈 화면의 「입금요청」 아이콘으로 열고 🔔 다시 누르기</li></ol><div class="mut">아이폰은 iOS 16.4 이상이 필요합니다.</div>`
+      : `<b class="bad">이 브라우저는 알림을 지원하지 않습니다</b><div class="mut">안드로이드는 크롬, 아이폰은 홈 화면에 추가한 앱으로 열어 주세요.</div>`;
+  else if(perm==='denied') main=`<b class="bad">알림이 차단돼 있습니다</b><div class="mut">폰 설정 → 알림에서 이 앱(또는 크롬)의 알림을 허용한 뒤 다시 눌러 주세요.</div>`;
+  else if(mine && perm==='granted') main=`<b class="ok">✓ 이 폰에서 알림을 받고 있습니다</b><div class="mut">지점이 입금 요청을 올리면 상단바에 바로 뜹니다.</div>`;
+  else main=`<b>아직 이 폰은 알림을 받지 않습니다</b><div class="mut">아래 버튼을 누르고 「허용」을 눌러 주세요.</div>`;
+  const last=s.last ? `<div class="st"><div class="mut">마지막 알림 · ${esc(s.last.at)}</div>${esc(s.last.title)} — ${esc(s.last.body||'')}<br>${s.last.sent?`<span class="ok">✓ ${s.last.sent}대에 보냄</span>`:''}${s.last.failed?` <span class="bad">✕ ${s.last.failed}대 실패</span>`:''}${s.last.error?`<div class="mut">${esc(String(s.last.error).slice(0,140))}</div>`:''}</div>` : '';
+  const dev=(s.devices||[]).length ? `<div class="mut" style="margin:4px 2px 0">알림 받는 기기 ${s.devices.length}대 · ${s.devices.map(d=>esc(d.name)).join(', ')}</div>` : '';
+  const can=PUSH.cfg && pushSupported() && perm!=='denied';
+  $('sheetIn').innerHTML=`<div class="bar"><div class="grip"></div><h2>🔔 상단바 알림</h2><button class="x" onclick="closeDetail()">✕</button></div>
+   <div class="pw"><div class="st">${main}</div>${dev}
+   ${can && !(mine&&perm==='granted') ? `<button class="big y" id="pwOn">이 폰에서 알림 받기</button>`:''}
+   ${PUSH.cfg && (s.devices||[]).length ? `<button class="big g" id="pwTest">테스트 알림 보내기</button>`:''}
+   ${mine ? `<button class="big g" id="pwOff" style="color:#dc2626">이 폰 알림 끄기</button>`:''}
+   ${last}</div>`;
+  if($('pwOn')) $('pwOn').onclick=enablePush; if($('pwTest')) $('pwTest').onclick=testPush; if($('pwOff')) $('pwOff').onclick=offPush;
+  $('sheet').classList.add('show'); document.body.style.overflow='hidden';
+}
+$('bell').onclick=async()=>{ await refreshPush(); openPush(); };
+refreshPush();
 
 /* ---------- 엑셀 · 링크 (지점 화면과 같은 양식) ---------- */
 function fileName(date){ const [y,m,dd]=String(date||'').slice(0,10).split('-'); return `비품주문보고용(${(y||'').slice(2)}.${m||''}.${dd||''}).xlsx`; }
