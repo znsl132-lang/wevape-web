@@ -223,6 +223,23 @@ tr.hrow:hover td{background:#f6f8fa}
 .m-kakao .who{font-size:11px;color:#334155;margin-bottom:6px;font-weight:700}
 .m-kakao .bb{background:#fee500;border-radius:10px;padding:8px 10px;font-size:11.5px;line-height:1.5;margin-left:auto;width:fit-content;max-width:210px}
 .m-kakao .tm{font-size:10px;color:#475569;text-align:right;margin-top:4px}
+.m-kinds{display:flex;gap:6px;margin-bottom:10px}
+.m-kinds span{border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-weight:700;font-size:12.5px;color:var(--muted);background:#fff;transition:.25s}
+.m-kinds span.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.m-fg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.m-fg div{font-size:11px;color:var(--muted)}
+.m-fg div b{display:block;height:30px;border:1px solid var(--line);border-radius:7px;padding:5px 9px;color:var(--text);font-size:13.5px;margin-top:3px;white-space:nowrap;overflow:hidden}
+.m-fg div b.hl{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,78,.12)}
+.m-thumb{width:74px;height:74px;border-radius:8px;border:1px solid var(--line);overflow:hidden;background:#fff;animation:inPop .4s both}
+.m-doc{width:100%;height:100%;padding:5px}
+.m-doc i{display:block;height:6px;border-radius:2px;background:#dcfce7;margin-bottom:3px}
+.m-doc i:first-child{height:11px;background:#bbf7d0}
+.m-doc.lg i{background:#f3f4f6}.m-doc.lg i:first-child{background:#e5e7eb}
+.m-ms{white-space:pre-wrap;background:#fff9c4;border:1px solid #f0e39a;border-radius:9px;padding:7px 10px;font-size:12px;line-height:1.5;margin-top:6px;animation:inRow .35s both}
+.m-ban{display:flex;gap:12px;align-items:center;background:#e8f5ec;border:1px solid #9fd3b1;border-radius:12px;padding:12px 14px;margin-bottom:10px;animation:inDrop .5s both}
+.m-ban .ic{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.m-ban b{display:block;font-size:14px}.m-ban span{font-size:12px;color:var(--muted)}
+.m-ban .ok{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px}
 @media (prefers-reduced-motion: reduce){#inCur,.m-sel,.m-br,.m-tool{transition:none}}
 .paid-banner{display:flex;align-items:center;gap:12px;background:#e8f5ec;border:1px solid #9fd3b1;border-radius:14px;padding:14px 16px;margin-bottom:12px;animation:inPop .4s both}
 .paid-banner .ic{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
@@ -986,13 +1003,16 @@ async function loadOrder(id){
   }catch(e){ toast('불러오기 실패: '+e.message); }
 }
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「▶ 사용법 보기」로 다시) ---------- */
-const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,8200],
-  T:['지점 선택','장바구니 복사','붙여넣기','입금 정보','엑셀 · 카톡 멘트'],
+const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,8200,7200,6400,5600],
+  T:['지점 선택','장바구니 복사','붙여넣기','입금 정보','엑셀 · 카톡 멘트','관리비 청구','택배비 청구','입금 완료 알림'],
   C:['첫 화면에서 <b>우리 지점</b>을 누릅니다',
      '쿠팡 장바구니 화면에서 <b>Ctrl+A</b> → <b>Ctrl+C</b> (화면 전체 복사)',
      '도구 1번 칸에 <b>Ctrl+V</b> — 품목·옵션·수량·단가·링크가 자동으로 채워집니다',
      '결제 후 <b>주문완료 화면</b>도 똑같이 복사해서 3번 칸에 붙여넣기',
-     '보고용 엑셀에는 <b>품목이 자동기입</b> 됩니다! <b>멘트 복사</b> → 카톡 전송 후 <b>주문 완료 처리</b>까지 누르면 끝' ] };
+     '보고용 엑셀에는 <b>품목이 자동기입</b> 됩니다! <b>멘트 복사</b> → 카톡 전송 후 <b>주문 완료 처리</b>까지 누르면 끝',
+     '<b>관리비</b>: 고지서 사진 올리고 <b>금액·납기일</b>만 → 멘트 3줄 자동 → <b>청구 완료 처리</b>하면 사장님 앱으로',
+     '<b>택배비</b>: 정산표 사진, <b>금액·건수</b>만 → 「[구월점 로젠택배 요금정산]」 멘트 자동. 받는 계좌는 다음 달부터 자동',
+     '사장님이 입금하면 이 화면 위에 <b>「입금 완료」</b> 알림이 뜹니다 — 확인을 누르면 사라집니다' ] };
 function inAt(ms,fn){ IN.timers.push(setTimeout(fn,ms)); }
 function inQ(s){ return $('inScene').querySelector(s); }
 function inPos(el,dx=0,dy=0){ const r=el.getBoundingClientRect(), b=$('inInner').getBoundingClientRect(); return [(r.left-b.left)/IN.k + r.width/IN.k/2 + dx, (r.top-b.top)/IN.k + r.height/IN.k/2 + dy]; }
@@ -1042,6 +1062,37 @@ const IN_SCENES=[
       $('inPayWrap').innerHTML='<div style="display:flex;align-items:flex-start"><div class="m-pay"><div class="l">구분명</div><div class="v">일반 비품류 ( 음료 &amp; 기타비품 )</div><div class="l">입금 은행</div><div class="v">우리은행</div><div class="l">입금 금액</div><div class="v" style="text-align:right">222,060</div></div></div>'; inCur(760,440); });
     inAt(5300,()=>{ const c=document.createElement('span'); c.className='m-chip'; c.textContent='✓ 품목 합계와 입금 합계 일치'; inQ('#inPayWrap > div').appendChild(c); });
   },
+  ()=>{ // 6 관리비
+    $('inScene').innerHTML=`<div class="m-tool"><div class="m-kinds"><span>🛒 비품 주문</span><span class="on">🏢 관리비</span><span>📦 택배비</span></div>
+      <div class="m-fg"><div>청구월<b>2026년 9월분</b></div><div>금액<b id="iA"></b></div><div>납기일<b id="iB"></b></div><div>은행<b>신한은행</b></div><div>계좌번호<b>100-000-000000</b></div><div>예금주<b>○○관리사무소</b></div></div>
+      <div style="display:flex;gap:12px;align-items:center;margin:12px 0 4px"><div id="iTh" style="width:74px;height:74px;border:2px dashed #c9d0d9;border-radius:8px;display:grid;place-items:center;color:#9aa3af;font-size:11px">+ 사진</div><span style="color:var(--muted);font-size:12px">고지서 사진 — 사장님 앱에서 같이 보입니다</span></div>
+      <div id="iMs"></div><div style="margin-top:10px"><span class="m-btn" id="iDn" style="background:#fff;color:var(--text);border:1px solid var(--line)">✓ 청구 완료 처리</span></div></div>`;
+    inCur(700,420); inAt(300,()=>inCurTo('#iTh')); inAt(1100,()=>{ inClick(); $('iTh').outerHTML='<div class="m-thumb" id="iTh"><div class="m-doc"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'; });
+    inAt(1500,()=>{ inCurTo('#iA'); }); inAt(2200,()=>{ $('iA').classList.add('hl'); $('iA').textContent='497,890'; }); inAt(2700,()=>{ $('iA').classList.remove('hl'); $('iB').classList.add('hl'); $('iB').textContent='10월 30일'; });
+    inAt(3200,()=>{ $('iB').classList.remove('hl'); $('iMs').innerHTML='<div class="m-ms">■ 구월점 관리비 납부 · 금액: 497,890원 · 납기일 : 10월 30일</div><div class="m-ms" style="font-weight:700">신한은행 100-000-000000 497,890원</div><div class="m-ms">구월점 09월 관리비 청구건 입니다 확인 후 입금 부탁드립니다!</div>'; });
+    inAt(4600,()=>inCurTo('#iDn',10,4)); inAt(5400,()=>{ inClick(); const d=$('iDn'); d.style.background='var(--accent)'; d.style.color='#fff'; d.textContent='✓ 청구 완료됨'; inToast('청구 완료 — 사장님 앱 「입금 대기」에 올라갔습니다'); });
+  },
+  ()=>{ // 7 택배비
+    $('inScene').innerHTML=`<div class="m-tool"><div class="m-kinds"><span>🛒 비품 주문</span><span>🏢 관리비</span><span class="on">📦 택배비</span></div>
+      <div class="m-fg"><div>청구월<b>2026년 9월분</b></div><div>금액<b id="iA"></b></div><div>건수<b id="iB"></b></div><div>은행<b class="hl">카카오뱅크</b></div><div>계좌번호<b class="hl">3333000000000</b></div><div>예금주<b class="hl">홍길동</b></div></div>
+      <div style="font-size:12px;color:var(--accent);font-weight:700;margin-top:6px">✓ 받는 계좌는 지난달 청구에서 자동으로 채워졌습니다</div>
+      <div style="display:flex;gap:12px;align-items:center;margin:10px 0 4px"><div id="iTh" style="width:74px;height:74px;border:2px dashed #c9d0d9;border-radius:8px;display:grid;place-items:center;color:#9aa3af;font-size:11px">+ 사진</div><span style="color:var(--muted);font-size:12px">택배 정산현황 사진</span></div>
+      <div id="iMs"></div></div>`;
+    inCur(700,420); inAt(400,()=>inCurTo('#iTh')); inAt(1200,()=>{ inClick(); $('iTh').outerHTML='<div class="m-thumb" id="iTh"><div class="m-doc lg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'; });
+    inAt(1700,()=>inCurTo('#iA')); inAt(2300,()=>{ $('iA').textContent='144,000'; }); inAt(2800,()=>{ $('iB').textContent='32건'; });
+    inAt(3300,()=>{ $('iMs').innerHTML='<div class="m-ms">[구월점 로젠택배 요금정산]\n26년 09 144,000원 · 건수: 32건 · 확인 후 입금부탁드립니다</div><div class="m-ms" style="font-weight:700">카카오뱅크 3333000000000 144,000원 [ 홍길동 ]</div>'; inCur(760,440); });
+  },
+  ()=>{ // 8 입금 완료 배너
+    $('inScene').innerHTML=`<div class="m-tool"><div style="font-size:20px;font-weight:800;margin-bottom:12px">구월길병원점 비품 주문 보고</div><div id="iBn"></div>
+      <div class="m-kinds"><span class="on">🛒 비품 주문</span><span>🏢 관리비</span><span>📦 택배비</span></div>
+      <div style="border:1px solid var(--line);border-radius:12px;background:#fff;height:150px;padding:14px;color:var(--muted)">1 장바구니 붙여넣기 …</div></div>`;
+    inCur(700,420);
+    inAt(600,()=>{ $('iBn').innerHTML='<div class="m-ban"><div class="ic">✓</div><div><b>관리비 입금 완료 · 9월분 497,890원</b><span>사장님이 10/16 14:20에 입금 처리했습니다</span></div><span class="ok" id="iOk">확인</span></div>'; });
+    inAt(1300,()=>{ $('iBn').insertAdjacentHTML('beforeend','<div class="m-ban"><div class="ic">✓</div><div><b>택배비 입금 완료 · 9월분 144,000원</b><span>사장님이 10/16 14:22에 입금 처리했습니다</span></div><span class="ok">확인</span></div>'); });
+    inAt(2300,()=>inCurTo('#iOk')); inAt(3100,()=>{ inClick(); const b=$('iOk').closest('.m-ban'); b.style.transition='.3s'; b.style.opacity='0'; inAt(300,()=>b.remove()); });
+  }
+];
+const _IN5 = [
   ()=>{ // 5 엑셀 + 멘트
     const lines=['[구월길병원점] 10월 비품 주문건','&nbsp;','1) 일반 비품류 ( 음료 &amp; 기타비품 )','입금 은행 : 우리은행','계좌번호 : 1234567890123','예금주 : 쿠팡','입금 금액 : 222,060원','사업자 지출증빙 : 연수점 (1313632256)'];
     $('inScene').innerHTML=`<div class="m-out"><div class="m-panel"><h4>보고용 엑셀</h4><div style="color:var(--muted);font-size:12px;margin-bottom:14px">품목 14개 · 222,060원</div><span class="m-btn" id="inXl">엑셀 다운로드</span><div id="inFile"></div></div>
@@ -1059,9 +1110,10 @@ const IN_SCENES=[
     inAt(5700,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>입금 금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
   }
 ];
+IN_SCENES.splice(4,0,_IN5[0]); // 5번째 장면(엑셀·멘트)을 제자리에
 function inShow(i){
   IN.timers.forEach(clearTimeout); IN.timers=[]; IN.i=i;
-  $('inStep').textContent=`${i+1} / 5 · ${IN.T[i]}`; $('inCap').innerHTML=IN.C[i];
+  $('inStep').textContent=`${i+1} / ${IN_SCENES.length} · ${IN.T[i]}`; $('inCap').innerHTML=IN.C[i];
   const sc=$('inScene'); sc.style.animation='none'; void sc.offsetWidth; sc.style.animation='';
   $('inKeys').classList.remove('show');
   [...$('inBar').children].forEach((el,j)=>{ const b=el.firstChild; el.classList.toggle('done', j<i); b.style.transition='none'; b.style.transform= j<i?'scaleX(1)':'scaleX(0)'; if(j===i){ void b.offsetWidth; b.style.transition=`transform ${IN.DUR[i]}ms linear`; b.style.transform='scaleX(1)'; } });
@@ -1073,7 +1125,7 @@ function inShow(i){
 }
 function inFit(){ const w=$('inStage').clientWidth; IN.k=w/800; $('inInner').style.transform=`scale(${IN.k})`; }
 function openIntro(){
-  try{ localStorage.setItem('supplyIntroSeen','1'); }catch(e){}
+  try{ localStorage.setItem('supplyIntroSeen2','1'); }catch(e){}
   const o=$('intro'); o.hidden=false; requestAnimationFrame(()=>o.classList.add('show'));
   inFit(); inShow(0); document.body.style.overflow='hidden';
 }
@@ -1196,7 +1248,7 @@ async function loadBill(o){
 }
 
 route();
-try{ if(!localStorage.getItem('supplyIntroSeen') && !location.hash) openIntro(); }catch(e){}
+try{ if(!localStorage.getItem('supplyIntroSeen2') && !location.hash) openIntro(); }catch(e){}
 </script>
 <style>
 .paste:empty::before{content:attr(data-placeholder);color:#9aa3af}

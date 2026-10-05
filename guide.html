@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>청구·입금 자동화 시뮬레이션</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--bg:#eef0f3;--card:#fff;--line:#e3e6eb;--text:#1f2328;--muted:#6b7280;--accent:#2f6f4e;--accent-soft:#e6f2ec;--y:#ffd400;--kakao:#fee500;--red:#b91c1c;--blue:#1d4ed8}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,"Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 18px 40px}
+.top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.top h1{margin:0;font-size:24px;letter-spacing:-.4px}
+.top p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.ctl{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;min-width:92px}
+.btn.on{background:#1f2328;color:#fff;border-color:#1f2328}
+.stage{position:relative;width:100%;aspect-ratio:1200/660;background:linear-gradient(180deg,#f7f8fa,#eceef2);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.10)}
+.inner{position:absolute;left:0;top:0;width:1200px;height:660px;transform-origin:0 0;font-size:13px}
+.cap{margin:14px 0 10px;text-align:center;font-size:17px;min-height:26px}
+.cap b{color:var(--accent)}
+.steps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.steps button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:12.5px;color:var(--muted);cursor:pointer}
+.steps button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.steps button.done{color:var(--accent);border-color:#b7dcc6}
+.bar{height:5px;border-radius:5px;background:#dfe3e8;overflow:hidden;margin-top:12px}
+.bar b{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+footer{margin-top:26px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+/* ---- 무대 요소 ---- */
+.lbl{position:absolute;font-size:12px;font-weight:800;color:#64748b;letter-spacing:.3px}
+.date{position:absolute;left:20px;top:6px;background:#1f2328;color:#fff;border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px;z-index:6;transition:.3s}
+.date.pop{animation:pop .45s}
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+@keyframes ripple{from{opacity:.55;transform:scale(.2)}to{opacity:0;transform:scale(1.9)}}
+.pc{position:absolute;left:20px;top:58px;width:560px;height:430px;background:#fff;border:1px solid #d9dde3;border-radius:12px;overflow:hidden;box-shadow:0 10px 26px rgba(15,23,42,.08)}
+.pc .bb{height:30px;background:#f1f3f5;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;padding:0 10px}
+.pc .bb i{width:9px;height:9px;border-radius:50%;background:#d1d5db}
+.pc .bb span{margin-left:10px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:2px 12px;font-size:11px;color:#64748b}
+.pc .body{position:absolute;left:0;right:0;top:30px;bottom:0;padding:14px 16px;overflow:hidden}
+.kinds{display:flex;gap:6px;margin-bottom:10px}
+.kinds span{border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-weight:700;font-size:12px;color:var(--muted);transition:.25s}
+.kinds span.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.box h4{margin:0 0 6px;font-size:12.5px}
+.paste{height:42px;border:2px dashed #c9d0d9;border-radius:8px;display:flex;align-items:center;padding:0 12px;color:#9aa3af;transition:.3s;font-size:12px}
+.paste.fill{border-style:solid;border-color:var(--accent);background:var(--accent-soft);color:var(--text);font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+.tbl td,.tbl th{padding:4px 5px;border-bottom:1px solid #f1f3f5;text-align:left}
+.tbl th{color:var(--muted);font-weight:600;font-size:10.5px}
+.tbl .n{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tr.r{animation:slideIn .35s both}
+.lk{color:#1155cc;text-decoration:underline}
+.done-btn{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-weight:800;transition:.2s}
+.done-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent);animation:pop .4s both}
+.fgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 10px}
+.fgrid div{font-size:10.5px;color:var(--muted)}
+.fgrid div b{display:block;height:26px;border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden}
+.thumb{width:84px;height:84px;border-radius:8px;border:1px solid var(--line);overflow:hidden;animation:pop .4s both;background:#fff}
+.mmsg{white-space:pre-wrap;background:#fff9c4;border:1px solid #f0e39a;border-radius:8px;padding:7px 9px;font-size:11px;line-height:1.5;margin-top:6px}
+.banner{display:flex;gap:10px;align-items:center;background:var(--accent-soft);border:1px solid #9fd3b1;border-radius:10px;padding:9px 12px;margin-bottom:6px;animation:fadeUp .45s both}
+.banner .ic{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.banner b{display:block;font-size:12.5px}.banner span{font-size:11px;color:var(--muted)}
+/* 고지서·정산표 그림 */
+.doc{width:100%;height:100%;padding:5px;font-size:6px;color:#14532d;background:#fff}
+.doc .h{background:#bbf7d0;height:12px;border-radius:2px;margin-bottom:3px}
+.doc .g{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.doc .g i{height:7px;background:#dcfce7;border-radius:1px}
+.doc.lg .h{background:#e5e7eb}.doc.lg .g i{background:#f3f4f6}
+/* 카톡 */
+.kt{position:absolute;left:600px;top:58px;width:260px;height:572px;background:#b2c7da;border-radius:14px;overflow:hidden;box-shadow:0 10px 26px rgba(15,23,42,.08)}
+.kt .hd{height:40px;background:#a9bfd3;display:flex;align-items:center;padding:0 12px;font-weight:800;font-size:13px;color:#1f2937}
+.kt .ms{position:absolute;left:0;right:0;top:40px;bottom:0;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;overflow:hidden}
+.bub{align-self:flex-end;max-width:210px;background:var(--kakao);border-radius:10px;padding:6px 9px;font-size:10.5px;line-height:1.45;white-space:pre-wrap;animation:fadeUp .35s both;box-shadow:0 1px 1px rgba(0,0,0,.05)}
+.bub.img{padding:3px;width:120px;height:90px}
+.bub.line{background:#fff3a0;font-weight:700}
+.bub.sys{align-self:center;background:rgba(0,0,0,.18);color:#fff;font-size:10px;border-radius:999px;padding:3px 10px}
+/* 사장님 폰 */
+.ph{position:absolute;left:880px;top:30px;width:300px;height:610px;background:#111;border-radius:38px;padding:10px;box-shadow:0 18px 40px rgba(15,23,42,.25)}
+.ph .sc{position:absolute;left:10px;top:10px;right:10px;bottom:10px;border-radius:30px;overflow:hidden;background:#f2f3f5}
+.ph .notch{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:90px;height:20px;background:#111;border-radius:0 0 12px 12px;z-index:9}
+.ap .top2{background:#111;color:#fff;padding:30px 14px 0}
+.ap .t1{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px}
+.ap .t1 i{width:20px;height:20px;border-radius:6px;background:var(--y);color:#111;display:grid;place-items:center;font-style:normal;font-size:12px}
+.ap .sum{margin-top:8px;font-size:20px;font-weight:800;color:var(--y);font-variant-numeric:tabular-nums;transition:.3s}
+.ap .sum small{font-size:11px;color:#cbd5e1;font-weight:600;margin-left:4px}
+.ap .tb{display:flex;margin-top:8px}
+.ap .tb span{flex:1;text-align:center;font-size:12px;font-weight:700;color:#9ca3af;padding:8px 0;border-bottom:3px solid transparent}
+.ap .tb span.on{color:#fff;border-bottom-color:var(--y)}
+.ap .tb em{font-style:normal;display:inline-block;min-width:16px;border-radius:999px;background:#333;color:#fff;font-size:10px;margin-left:3px}
+.ap .tb span.on em{background:var(--y);color:#111}
+.ap .ls{padding:8px}
+.cd{background:#fff;border-radius:14px;padding:10px 11px;margin-bottom:7px;animation:slideIn .4s both;transition:.4s}
+.cd.out{opacity:0;transform:translateX(-40px);height:0;padding:0;margin:0;overflow:hidden}
+.cd .r1{display:flex;gap:5px;align-items:center;font-size:10px}
+.kb{padding:2px 7px;border-radius:999px;font-weight:800;font-size:9.5px}
+.k1{background:#e6f2ec;color:#2f6f4e}.k2{background:#e0ecff;color:#1d4ed8}.k3{background:#fdf0dc;color:#b45309}
+.due{padding:2px 7px;border-radius:999px;background:#f3f4f6;font-weight:700;font-size:9.5px}
+.cd .st{font-weight:800;font-size:13px;margin-top:3px}
+.cd .am{font-weight:800;font-size:17px;margin-top:2px}
+.cd .pl{display:flex;align-items:center;gap:6px;background:#f7f7f8;border-radius:9px;padding:6px 7px 6px 9px;margin-top:6px;font-size:10px}
+.cd .pl span{flex:1}
+.cp{background:var(--y);border-radius:7px;padding:6px 8px;font-weight:800;font-size:10.5px;white-space:nowrap;transition:.15s}
+.cp.press{transform:scale(.92);background:#111;color:#fff}
+.toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);background:#111;color:#fff;border-radius:999px;padding:7px 12px;font-size:10.5px;white-space:nowrap;animation:fadeUp .3s both;z-index:8}
+.ov{position:absolute;inset:0;z-index:7;animation:fadeUp .35s both}
+.bank{background:#fff;padding:40px 16px 0}
+.bank .bt{font-weight:800;font-size:15px}
+.bank .pr{margin-top:14px;background:#eef4ff;border:1px solid #c7dbff;border-radius:12px;padding:10px;font-size:11px}
+.bank .pr b{display:block;font-size:13px;margin-top:4px}
+.bank .go{margin-top:16px;background:#2563eb;color:#fff;text-align:center;border-radius:12px;padding:11px;font-weight:800;transition:.2s}
+.bank .ok{margin-top:40px;text-align:center;animation:pop .45s both}
+.bank .ok i{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 8px;border-radius:50%;background:#2563eb;color:#fff;font-size:26px;font-style:normal}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:120px;background:#f2f3f5;border-radius:18px 18px 0 0;padding:12px;z-index:7;animation:fadeUp .35s both;box-shadow:0 -10px 30px rgba(0,0,0,.2)}
+.sheet h5{margin:0 0 8px;font-size:13px}
+.sheet .ph2{height:180px;border-radius:10px;overflow:hidden;border:1px solid var(--line);margin-bottom:8px}
+.sheet .paid{background:#15803d;color:#fff;border-radius:12px;text-align:center;padding:11px;font-weight:800;transition:.2s}
+.pin{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:8;animation:fadeUp .25s both}
+.pin div{background:#fff;border-radius:16px;padding:16px;width:210px;text-align:center;font-weight:800;font-size:12px}
+.pin p{margin:10px 0 0;font-size:20px;letter-spacing:6px}
+/* 실장님 사이트 */
+.hub{position:absolute;left:20px;top:500px;width:560px;height:130px;background:#fff;border:1px solid #d9dde3;border-radius:12px;padding:10px 14px;box-shadow:0 10px 26px rgba(15,23,42,.06)}
+.hub h4{margin:0;font-size:12.5px;display:flex;align-items:center;gap:8px}
+.hub h4 em{font-style:normal;font-size:10.5px;color:var(--muted);font-weight:600}
+.hub .rows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.hub .c{border-radius:9px;background:#f7f8fa;padding:8px 10px;opacity:.35;transition:.4s}
+.hub .c.on{opacity:1;background:#eef7f1}
+.hub .c small{display:block;color:var(--muted);font-size:10.5px}
+.hub .c b{font-size:15px;font-variant-numeric:tabular-nums}
+.flow{position:absolute;height:3px;background:repeating-linear-gradient(90deg,var(--accent) 0 8px,transparent 8px 14px);background-size:28px 3px;animation:flow 0.8s linear infinite;opacity:0;transition:opacity .3s}
+.flow.on{opacity:1}
+@keyframes flow{to{background-position:28px 0}}
+#cur{position:absolute;left:0;top:0;width:22px;height:22px;z-index:20;transition:transform .8s cubic-bezier(.22,.8,.25,1);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
+#cur .rp{position:absolute;left:-14px;top:-14px;width:30px;height:30px;border-radius:50%;background:var(--accent);opacity:0}
+#cur.clk .rp{animation:ripple .55s ease-out}
+.title{position:absolute;inset:0;z-index:15;background:rgba(247,248,250,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;animation:fadeUp .5s both;text-align:center}
+.title h2{margin:0;font-size:34px;letter-spacing:-.6px}
+.title p{margin:0;color:var(--muted);font-size:16px}
+.title .ks{display:flex;gap:10px;margin-top:10px}
+.title .ks span{border-radius:999px;padding:7px 14px;font-weight:800;font-size:14px}
+.end .nums{display:grid;grid-template-columns:repeat(4,170px);gap:12px;margin-top:14px}
+.end .nums div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;animation:pop .45s both}
+.end .nums small{display:block;color:var(--muted);font-size:12px}
+.end .nums b{font-size:24px}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>청구 · 입금 자동화 — 한 달 시뮬레이션</h1><p>지점 PC · 카톡 · 사장님 폰 · 실장님 사이트가 어떻게 이어지는지 가상 데이터로 보여줍니다 (계좌·금액은 가짜)</p></div>
+    <div class="ctl"><button class="btn primary" id="play">⏸ 일시정지</button><button class="btn" id="restart">↺ 처음부터</button><button class="btn" data-sp="1">1×</button><button class="btn" data-sp="1.6">1.6×</button><button class="btn" data-sp="2.5">2.5×</button></div>
+  </div>
+  <div class="stage" id="stage"><div class="inner" id="inner">
+    <div class="date" id="date">2026년 10월</div>
+    <div class="lbl" style="left:24px;top:44px">① 지점 PC — 비품 주문 보고 도구</div>
+    <div class="lbl" style="left:604px;top:44px">② 카톡 — 대표님께 보고</div>
+    <div class="lbl" style="left:886px;top:14px">③ 사장님 폰 — 입금 요청 앱</div>
+    <div class="pc"><div class="bb"><i></i><i></i><i></i><span id="url">wevape · 비품 주문 보고 · 구월길병원점</span></div><div class="body" id="pc"></div></div>
+    <div class="kt"><div class="hd">대표님</div><div class="ms" id="kt"></div></div>
+    <div class="ph"><div class="notch"></div><div class="sc ap" id="ph"></div></div>
+    <div class="hub" id="hub"><h4>④ 실장님 관리 사이트 <em>— 주소 하나로 금액 자동 가져감 · 사람 손 안 탐</em></h4><div class="rows" id="hubRows"></div></div>
+    <div class="flow" id="f1" style="left:580px;top:240px;width:20px"></div>
+    <div class="flow" id="f2" style="left:860px;top:300px;width:20px"></div>
+    <div class="flow" id="f3" style="left:580px;top:565px;width:300px;transform:rotate(0)"></div>
+    <div id="cur"><span class="rp"></span><svg viewBox="0 0 22 22" width="22" height="22"><path d="M3 2 L3 18 L7.5 14 L10.5 20.5 L13 19.4 L10.1 13 L16 13 Z" fill="#111827" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+    <div id="ttl"></div>
+  </div></div>
+  <div class="cap" id="cap"></div>
+  <div class="steps" id="steps"></div>
+  <div class="bar"><b id="bar"></b></div>
+  <footer>We Vape — 청구·입금 자동화 시뮬레이션<br>Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>내부 운영 자료 · 외부 공유를 금합니다</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const won=n=>(Number(n)||0).toLocaleString('ko-KR')+'원';
+const DOC=(lg)=>`<div class="doc ${lg?'lg':''}"><div class="h"></div><div class="g">${'<i></i>'.repeat(lg?16:12)}</div></div>`;
+/* 가상 데이터 */
+const ITEMS=[['핫식스 제로','250ml X 30개',22660],['이오 소독용 알콜스왑','100개입 X 6개',8140],['니트릴장갑 100p','블랙 X M',6800],['맥스웰 콜롬비아나','240ml X 30개',17900],['스프라이트 제로','250ml X 30개',15970]];
+const SUP={amt:222060, line:'우리은행 1234567890123 222,060원'};
+const MGT={amt:497890, line:'신한은행 100-000-000000 497,890원'};
+const DLV={amt:144000, line:'카카오뱅크 3333000000000 144,000원 [ 홍길동 ]'};
+/* 상태 */
+const G={i:0, speed:1, playing:true, timers:[], instant:false, cards:[], done:[], banner:[], hub:{s:0,m:0,d:0}};
+function at(ms,fn){ if(G.instant){ fn(); return; } G.timers.push(setTimeout(fn, ms/G.speed)); }
+function clear(){ G.timers.forEach(clearTimeout); G.timers=[]; }
+/* 커서 */
+function curTo(el,dx=0,dy=0){ if(G.instant||!el) return; const r=el.getBoundingClientRect(), b=$('inner').getBoundingClientRect(), k=G.k; $('cur').style.transform=`translate(${(r.left-b.left)/k+r.width/k/2+dx}px,${(r.top-b.top)/k+r.height/k/2+dy}px)`; }
+function click(){ if(G.instant) return; const c=$('cur'); c.classList.remove('clk'); void c.offsetWidth; c.classList.add('clk'); }
+function setDate(t){ const d=$('date'); d.textContent=t; d.classList.remove('pop'); void d.offsetWidth; d.classList.add('pop'); }
+function flow(id,on){ $(id).classList.toggle('on',on); }
+/* 카톡 */
+function kt(type,content){ const b=document.createElement('div'); b.className='bub'+(type==='img'?' img':type==='line'?' line':type==='sys'?' sys':''); if(type==='img') b.innerHTML=content; else b.textContent=content; $('kt').appendChild(b); while($('kt').children.length>9) $('kt').firstChild.remove(); }
+/* 사장님 앱 */
+function renderPhone(extra){
+  const wait=G.cards.filter(c=>!G.done.includes(c.id)), tab=G.tab||'wait';
+  const list = tab==='wait' ? wait : G.cards.filter(c=>G.done.includes(c.id));
+  $('ph').innerHTML=`<div class="top2"><div class="t1"><i>₩</i>입금 요청</div><div class="sum">${won(wait.reduce((a,c)=>a+c.amt,0))}<small>입금 대기 ${wait.length}건</small></div>
+    <div class="tb"><span class="${tab==='wait'?'on':''}">입금 대기<em>${wait.length}</em></span><span class="${tab==='done'?'on':''}">입금 완료<em>${G.done.length}</em></span></div></div>
+    <div class="ls">${list.map(c=>`<div class="cd" id="cd-${c.id}"><div class="r1"><span class="kb ${c.k}">${c.kind}</span>${c.sub?`<span style="color:#6b7280">${c.sub}</span>`:''}${c.due&&tab==='wait'?`<span class="due">${c.due}</span>`:''}${tab==='done'?'<span class="kb k1">입금완료</span>':''}</div>
+      <div class="st">구월길병원점</div><div class="am">${won(c.amt)}</div>${tab==='wait'?`<div class="pl"><span>${c.line}</span><b class="cp" id="cp-${c.id}">계좌 복사</b></div>`:''}</div>`).join('') || '<div style="text-align:center;color:#6b7280;padding:40px 0;font-size:12px">✓ 입금할 건이 없습니다</div>'}</div>${extra||''}`;
+}
+function addCard(c){ G.cards.push(c); renderPhone(); }
+function phToast(t){ if(G.instant) return; const d=document.createElement('div'); d.className='toast'; d.textContent=t; $('ph').appendChild(d); at(1500,()=>d.remove()); }
+/* 지점 PC 화면들 */
+function pcSupply(){ $('pc').innerHTML=`<div class="kinds"><span class="on">🛒 비품 주문</span><span>🏢 관리비</span><span>📦 택배비</span></div>
+  <div class="box"><h4>1 장바구니 붙여넣기</h4><div class="paste" id="pp">쿠팡 장바구니에서 Ctrl+A → Ctrl+C 후 여기에 Ctrl+V</div></div>
+  <div class="box" style="padding-bottom:4px"><h4>2 품목 확인 <span style="font-weight:400;color:#6b7280">— 옵션·수량·단가·링크 자동</span></h4><table class="tbl"><thead><tr><th>품목명</th><th>옵션</th><th class="n">단가</th><th>링크</th></tr></thead><tbody id="tb"></tbody></table></div>
+  <div style="display:flex;gap:8px;align-items:center"><span class="done-btn" id="xl">엑셀 다운로드</span><span class="done-btn" id="dn">✓ 주문 완료 처리</span><span id="st"></span></div>`; }
+function pcBill(kind){
+  const m=kind==='관리비'; $('pc').innerHTML=`<div class="kinds"><span>🛒 비품 주문</span><span class="${m?'on':''}">🏢 관리비</span><span class="${m?'':'on'}">📦 택배비</span></div>
+  <div class="box"><h4>${kind} 청구 <span style="font-weight:400;color:#6b7280">— ${m?'고지서 보고 금액·납기일만':'월정산표 보고 금액·건수만'}</span></h4>
+    <div class="fgrid"><div>청구월<b>2026년 9월분</b></div><div>금액<b id="fa"></b></div><div>${m?'납기일':'건수'}<b id="fb"></b></div>
+    <div>받는 은행<b>${m?'신한은행':'카카오뱅크'}</b></div><div>계좌번호<b>${m?'100-000-000000':'3333000000000'}</b></div><div>예금주<b>${m?'○○관리사무소':'홍길동'}</b></div></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><div id="th" style="width:84px;height:84px;border:2px dashed #c9d0d9;border-radius:8px;display:grid;place-items:center;color:#9aa3af;font-size:10px">사진</div><div style="font-size:11px;color:#6b7280">받는 계좌는 지난달 것이 자동으로 채워집니다<br>사진은 사장님 앱에서도 보입니다</div></div></div>
+  <div class="box"><h4>카톡 멘트 <span style="font-weight:400;color:#6b7280">— 형식 그대로 자동 작성</span></h4><div id="mm"></div></div>
+  <div style="display:flex;gap:8px;align-items:center"><span class="done-btn" id="dn">✓ 청구 완료 처리</span><span id="st"></span></div>`; }
+function typeIn(el,text,ms){ if(G.instant){ el.textContent=text; return; } let i=0; const t=setInterval(()=>{ i++; el.textContent=text.slice(0,i); if(i>=text.length) clearInterval(t); }, Math.max(20,ms/text.length)/G.speed); G.timers.push(t); }
+function hub(){ const h=G.hub, on=G.hubOn||0; $('hubRows').innerHTML=[['비품',h.s],['관리비',h.m],['택배비',h.d],['10월 합계',h.s+h.m+h.d]].map(([k,v],i)=>`<div class="c ${i<on?'on':''}"><small>구월길병원점 · ${k}</small><b>${i<on?won(v):'-'}</b></div>`).join(''); }
+function pcBanner(list){ const b=list.map(x=>`<div class="banner"><div class="ic">✓</div><div><b>${x} 입금 완료</b><span>사장님이 입금 처리했습니다</span></div></div>`).join(''); const pc=$('pc'); const old=pc.querySelector('#bn'); if(old) old.remove(); const d=document.createElement('div'); d.id='bn'; d.innerHTML=b; pc.prepend(d); }
+
+/* ---------- 장면 ---------- */
+const S=[
+ {t:'시작', cap:'한 지점(구월길병원점)의 <b>한 달</b> — 비품 주문 · 관리비 · 택배비 청구가 사장님 입금까지 어떻게 흘러가는지', d:3600, run(){
+   $('ttl').innerHTML=`<div class="title"><h2>지점 청구 → 사장님 입금, 한 화면으로</h2><p>가상 데이터로 10월 한 달을 돌려봅니다</p><div class="ks"><span style="background:#e6f2ec;color:#2f6f4e">비품</span><span style="background:#e0ecff;color:#1d4ed8">관리비</span><span style="background:#fdf0dc;color:#b45309">택배비</span></div></div>`;
+   at(3000,()=>$('ttl').innerHTML=''); }},
+ {t:'비품 붙여넣기', cap:'<b>10/1</b> 지점: 쿠팡 장바구니를 복사해 붙여넣으면 품목·옵션·단가·링크가 <b>자동으로 표에</b> 채워집니다', d:5200, run(){
+   setDate('10월 1일 (목) · 비품 주문'); pcSupply();
+   at(300,()=>curTo($('pp'),-150,0)); at(1100,()=>{ click(); const p=$('pp'); p.classList.add('fill'); p.textContent='14개 품목을 읽었습니다 · 쿠팡 주문 예상 금액 222,060원'; });
+   ITEMS.forEach((it,i)=>at(1500+i*260,()=>{ $('tb').insertAdjacentHTML('beforeend',`<tr class="r"><td>${it[0]}</td><td>${it[1]}</td><td class="n">${it[2].toLocaleString('ko-KR')}</td><td class="lk">쿠팡 ▸</td></tr>`); }));
+   at(3200,()=>{ curTo($('xl')); }); at(3900,()=>{ click(); $('xl').classList.add('on'); $('st').innerHTML='<span class="chip">엑셀 자동 작성 · 보고 양식 그대로</span>'; }); }},
+ {t:'비품 완료 → 사장님 폰', cap:'결제 후 <b>주문 완료 처리</b> → 카톡 멘트 그대로 보내고, 같은 순간 <b>사장님 앱 「입금 대기」</b>에 올라갑니다', d:5000, run(){
+   at(200,()=>curTo($('dn'))); at(900,()=>{ click(); $('dn').classList.add('on'); $('st').innerHTML='<span class="chip">주문 완료 · 이력 저장</span>'; });
+   at(1300,()=>{ flow('f1',true); kt('text','[구월길병원점] 10월 비품 주문건\n\n1) 일반 비품류 ( 음료 & 기타비품 )\n입금 은행 : 우리은행\n계좌번호 : 1234567890123\n예금주 : 쿠팡\n입금 금액 : 222,060원'); });
+   at(2000,()=>kt('line',SUP.line));
+   at(2600,()=>{ flow('f2',true); addCard({id:'s',kind:'비품',k:'k1',amt:SUP.amt,line:SUP.line}); });
+   at(4300,()=>{ flow('f1',false); flow('f2',false); }); }},
+ {t:'택배비 청구', cap:'<b>10/3</b> 로젠 월정산 — 정산표 사진, <b>금액·건수</b>만 넣으면 「[구월점 로젠택배 요금정산]」 멘트 완성', d:5200, run(){
+   setDate('10월 3일 (토) · 택배 월정산'); pcBill('택배비');
+   at(300,()=>curTo($('th'))); at(1000,()=>{ click(); $('th').outerHTML=`<div class="thumb" id="th">${DOC(true)}</div>`; });
+   at(1400,()=>typeIn($('fa'),'144,000',400)); at(1900,()=>typeIn($('fb'),'32건',300));
+   at(2400,()=>{ $('mm').innerHTML=`<div class="mmsg">[구월점 로젠택배 요금정산]\n26년 09 144,000원 · 건수: 32건\n확인 후 입금부탁드립니다</div><div class="mmsg" style="font-weight:700">${DLV.line}</div>`; });
+   at(3300,()=>curTo($('dn'))); at(3900,()=>{ click(); $('dn').classList.add('on'); flow('f1',true); kt('img',DOC(true)); });
+   at(4300,()=>{ kt('line',DLV.line); flow('f2',true); addCard({id:'d',kind:'택배비',k:'k3',amt:DLV.amt,line:DLV.line,sub:'9월분 · 32건'}); });
+   at(5000,()=>{ flow('f1',false); flow('f2',false); }); }},
+ {t:'관리비 청구', cap:'<b>10/15</b> 관리비 고지서 도착 — 사진 올리고 <b>금액·납기일만</b> 넣으면 멘트 3줄이 그 형식 그대로 나옵니다', d:5600, run(){
+   setDate('10월 15일 (목) · 관리비 고지서'); pcBill('관리비');
+   at(400,()=>curTo($('th'))); at(1100,()=>{ click(); $('th').outerHTML=`<div class="thumb" id="th">${DOC()}</div>`; });
+   at(1500,()=>{ curTo($('fa')); }); at(2100,()=>typeIn($('fa'),'497,890',500)); at(2700,()=>typeIn($('fb'),'10월 30일',400));
+   at(3300,()=>{ $('mm').innerHTML=`<div class="mmsg">■ 구월점 관리비 납부\n금액: 497,890원 · 계좌 100-000-000000 · 납기일 : 10월 30일</div><div class="mmsg" style="font-weight:700">${MGT.line}</div><div class="mmsg">구월점 09월 관리비 청구건 입니다 확인 후 입금 부탁드립니다!</div>`; });
+   at(4300,()=>curTo($('dn'))); at(4900,()=>{ click(); $('dn').classList.add('on'); }); }},
+ {t:'관리비 → 사장님 폰', cap:'고지서 사진 + 멘트가 카톡으로, 사장님 앱에는 <b>납기일 D-day</b>와 함께 올라갑니다', d:4200, run(){
+   flow('f1',true); kt('img',DOC()); at(500,()=>kt('text','■ 구월점 관리비 납부\n\n금액: 497,890원\n계좌 100-000-000000\n은행: 신한은행\n납기일 : 10월 30일')); at(1000,()=>kt('line',MGT.line));
+   at(1500,()=>{ flow('f2',true); addCard({id:'m',kind:'관리비',k:'k2',amt:MGT.amt,line:MGT.line,sub:'9월분',due:'납기 10/30 · D-15'}); });
+   at(3400,()=>{ flow('f1',false); flow('f2',false); }); }},
+ {t:'사장님: 계좌 복사 → 송금', cap:'사장님은 <b>[계좌 복사]</b> 한 번 → 은행 앱을 열면 계좌·금액이 붙여넣기로 바로 잡힙니다', d:5600, run(){
+   setDate('10월 16일 (금) · 사장님 확인');
+   at(300,()=>curTo($('cp-m'))); at(1100,()=>{ click(); const b=$('cp-m'); if(b){ b.classList.add('press'); b.textContent='복사됨 ✓'; } phToast('복사했습니다 — 은행 앱을 열어 송금하세요'); });
+   at(2000,()=>{ $('ph').insertAdjacentHTML('beforeend',`<div class="ov bank" id="bank"><div class="bt">은행 앱 · 이체</div><div class="pr">📋 복사한 계좌로 보낼까요?<b>${MGT.line}</b></div><div class="go" id="bgo">보내기</div></div>`); });
+   at(2700,()=>curTo($('bgo'))); at(3400,()=>{ click(); $('bgo').style.background='#1e40af'; });
+   at(3800,()=>{ $('bank').innerHTML='<div class="ok"><i>✓</i><b>497,890원 보냈습니다</b></div>'; });
+   at(5000,()=>{ const b=$('bank'); if(b) b.remove(); }); }},
+ {t:'입금 완료 체크', cap:'앱으로 돌아와 <b>✓ 입금 완료</b> (사장님 비밀번호) → 「입금 완료」 탭으로 이동, 다음 건으로', d:5400, run(){
+   renderPhone(); at(200,()=>curTo($('cd-m'),0,-10));
+   at(900,()=>{ click(); $('ph').insertAdjacentHTML('beforeend',`<div class="sheet" id="sh"><h5>구월길병원점 · 관리비 9월분</h5><div class="ph2">${DOC()}</div><div style="font-size:11px;color:#6b7280;margin-bottom:8px">고지서 사진을 눌러 크게 볼 수 있습니다</div><div class="paid" id="pd">✓ 입금 완료</div></div>`); });
+   at(1800,()=>curTo($('pd'))); at(2500,()=>{ click(); $('ph').insertAdjacentHTML('beforeend','<div class="pin" id="pn"><div>사장님 비밀번호<p>●●●●</p></div></div>'); });
+   at(3400,()=>{ ['sh','pn'].forEach(i=>{ const e=$(i); if(e) e.remove(); }); G.done.push('m'); renderPhone(); phToast('입금 완료로 옮겼습니다'); G.hub.m=MGT.amt; });
+   at(4000,()=>{ G.done.push('s','d'); renderPhone(); G.hub.s=SUP.amt; G.hub.d=DLV.amt; phToast('나머지 2건도 같은 방법으로 입금 완료'); }); }},
+ {t:'지점에 입금 알림', cap:'사장님이 누르는 순간, 그 <b>지점 화면</b>에 「입금 완료」 배너가 자동으로 뜹니다 — 따로 연락할 필요 없음', d:4200, run(){
+   setDate('10월 16일 (금) · 지점 알림'); flow('f2',true);
+   at(400,()=>{ pcSupply(); pcBanner(['관리비 9월분 497,890원']); });
+   at(1300,()=>pcBanner(['관리비 9월분 497,890원','택배비 9월분 144,000원','비품 10/1 주문 222,060원']));
+   at(1700,()=>kt('sys','사장님 입금 완료 · 지점 화면에 자동 표시'));
+   at(3600,()=>flow('f2',false)); }},
+ {t:'실장님 사이트 자동 연동', cap:'월 합계는 <b>실장님 관리 사이트</b>가 주소 하나로 그대로 가져갑니다 — 비품·관리비·택배비 구분, 엑셀(CSV)로도', d:4600, run(){
+   setDate('10월 31일 (토) · 월 마감'); flow('f3',true);
+   [0,1,2,3].forEach(i=>at(700+i*550,()=>{ G.hubOn=i+1; hub(); })); at(4200,()=>flow('f3',false)); }},
+ {t:'정리', cap:'붙여넣기 → 완료 처리 → 사장님 입금 → 지점 알림 → 실장님 집계까지, <b>사람이 옮겨 적는 단계가 없습니다</b>', d:6000, run(){
+   $('ttl').innerHTML=`<div class="title end"><h2>10월 구월길병원점 — 시뮬레이션 결과</h2><p>가상 데이터 기준</p>
+     <div class="nums"><div><small>청구</small><b>3건</b></div><div><small>청구 금액</small><b>${won(SUP.amt+MGT.amt+DLV.amt)}</b></div><div><small>사장님 입금 완료</small><b>3건</b></div><div><small>지점 자동 알림</small><b>3건</b></div></div>
+     <p style="margin-top:14px">실제 주소 — 지점: supply-order.html · 사장님: boss.html</p></div>`; }}
+];
+/* ---------- 재생 ---------- */
+function resetAll(){ clear(); Object.assign(G,{cards:[],done:[],tab:'wait',hub:{s:0,m:0,d:0},hubOn:0}); $('kt').innerHTML=''; $('ttl').innerHTML=''; ['f1','f2','f3'].forEach(f=>flow(f,false)); pcSupply(); renderPhone(); hub(); $('cur').style.transform='translate(560px,420px)'; setDate('2026년 10월'); }
+function go(i){
+  resetAll(); G.instant=true; for(let j=0;j<i;j++){ S[j].run(); } $('ttl').innerHTML=''; ['f1','f2','f3'].forEach(f=>flow(f,false)); hub(); G.instant=false;
+  G.i=i; $('cap').innerHTML=S[i].cap; S[i].run();
+  [...$('steps').children].forEach((b,j)=>{ b.classList.toggle('on',j===i); b.classList.toggle('done',j<i); });
+  $('bar').style.width=((i+1)/S.length*100)+'%';
+  if(G.playing && i<S.length-1) G.timers.push(setTimeout(()=>go(i+1), (S[i].d+500)/G.speed));
+  if(i===S.length-1){ G.playing=false; $('play').textContent='▶ 다시 보기'; }
+}
+$('steps').innerHTML=S.map((s,i)=>`<button data-i="${i}">${i+1}. ${s.t}</button>`).join('');
+$('steps').querySelectorAll('button').forEach(b=>b.onclick=()=>{ go(+b.dataset.i); });
+$('play').onclick=()=>{ if(G.i===S.length-1 && !G.playing){ G.playing=true; $('play').textContent='⏸ 일시정지'; go(0); return; }
+  G.playing=!G.playing; $('play').textContent=G.playing?'⏸ 일시정지':'▶ 재생'; if(G.playing) go(G.i); else clear(); };
+$('restart').onclick=()=>{ G.playing=true; $('play').textContent='⏸ 일시정지'; go(0); };
+document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{ G.speed=+b.dataset.sp; document.querySelectorAll('[data-sp]').forEach(x=>x.classList.toggle('on',x===b)); });
+document.querySelector('[data-sp="1"]').classList.add('on');
+function fit(){ G.k=$('stage').clientWidth/1200; $('inner').style.transform=`scale(${G.k})`; }
+window.addEventListener('resize',fit); fit(); go(0);
+</script>
+</body>
+</html>
