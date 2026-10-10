@@ -48,6 +48,8 @@ main{padding:14px 14px calc(env(safe-area-inset-bottom) + 30px);max-width:640px;
 .cp.done{background:#111;color:#fff}
 .more{display:flex;gap:8px;margin-top:12px}
 .more button{flex:1;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px}
+.more button.mp{background:#15803d;border-color:#15803d;color:#fff;font-weight:800}
+#list .card[data-card]{cursor:pointer}
 .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--green-soft);color:var(--green)}
 .empty{text-align:center;color:var(--muted);padding:60px 0;font-size:15px}
 .empty .big{font-size:40px;margin-bottom:8px}
@@ -211,20 +213,23 @@ function render(){
   if(!rows.length){ $('list').innerHTML = B.tab==='wait' ? '<div class="empty"><div class="big">✓</div>입금할 건이 없습니다</div>' : '<div class="empty">아직 입금 완료한 건이 없습니다</div>'; return; }
   $('list').innerHTML = rows.map(r=>{
     const lines=payLines(r);
-    return `<div class="card">
+    return `<div class="card" data-card="${esc(r.id)}">
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><span class="kb k-${esc(kindOf(r))}">${esc(kindOf(r))}</span>${kindOf(r)!=='비품'?`<span style="color:var(--muted);font-size:13px">${Number(String(r.month).slice(5))}월분</span>`:''}${(!r.paid && r.dueDate)?(()=>{ const n=dday(r.dueDate); return `<span class="due ${n<=3?'soon':''}">납기 ${esc(String(r.dueDate).slice(5).replace('-','/'))}${n!=null?(n<0?' · 지남':n===0?' · 오늘':' · D-'+n):''}</span>`; })():''}</div>
       <div class="h"><span class="st">${esc(r.store)}</span>${r.paid?`<span class="badge">입금완료 ${esc(String(r.paidAt).slice(5,16).replace('-','/'))}</span>${r.ack?` <span class="badge" style="background:#e0ecff;color:#1d4ed8">지점 확인 ✓</span>`:` <span class="badge" style="background:#f3f4f6;color:#6b7280">지점 확인 전</span>`}`:''}<span class="dt">${mmdd(r.date)} ${kindOf(r)==='비품'?'주문':'청구'}</span></div>
       <div class="meta">${kindOf(r)==='비품' ? '품목 '+r.count+'개' : kindOf(r)==='택배비' ? (r.billCount||0)+'건'+(r.photoCount?' · 사진 '+r.photoCount+'장':'') : (r.photoCount?'고지서 사진 '+r.photoCount+'장':'')}</div>
       <div class="amt">${won(r.payTotal||r.itemTotal)}</div>
       ${lines.length ? lines.map(l=>`<div class="pay"><div class="t">${payHtml(l)}</div>${r.paid?'':`<button class="cp" data-cp="${esc(l)}">계좌 복사</button>`}</div>`).join('') : '<div class="pay"><div class="t" style="color:var(--red)">입금 정보 없음 — 지점에 확인해 주세요</div></div>'}
       ${accChanged(r)?'<div class="warn">⚠ 지난번 청구와 받는 계좌가 다릅니다 — 확인 후 입금하세요</div>':''}
-      <div class="more"><button data-open="${esc(r.id)}">${kindOf(r)==='비품'?'품목 · 엑셀 보기':'사진 · 내용 보기'}</button></div>
+      <div class="more"><button data-open="${esc(r.id)}">${kindOf(r)==='비품'?'품목 · 엑셀 보기':'사진 · 내용 보기'}</button>${r.paid?'':`<button class="mp" data-paid="${esc(r.id)}">✓ 입금 완료</button>`}</div>
     </div>`; }).join('');
 }
 document.addEventListener('click', async e=>{
   const cp=e.target.closest('[data-cp]');
   if(cp){ await copyText(cp.dataset.cp); cp.textContent='복사됨 ✓'; cp.classList.add('done'); toast('복사했습니다 — 은행 앱을 열어 송금하세요'); setTimeout(()=>{ cp.textContent='계좌 복사'; cp.classList.remove('done'); },2500); return; }
   const op=e.target.closest('[data-open]'); if(op){ openDetail(op.dataset.open); return; }
+  const mp=e.target.closest('[data-paid]'); if(mp){ const r=B.rows.find(x=>String(x.id)===mp.dataset.paid); if(r && confirm(`${r.store} ${kindOf(r)} ${won(r.payTotal||r.itemTotal)}\n입금 완료로 바꿀까요?`)){ mp.disabled=true; await markPaid(r,true); mp.disabled=false; } return; }
+  if(e.target.closest('button,a')) return;
+  const cd=e.target.closest('[data-card]'); if(cd && cd.closest('#list')) openDetail(cd.dataset.card);
 });
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ B.tab=b.dataset.t; document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b)); render(); window.scrollTo(0,0); });
 $('rf').onclick=()=>load();
