@@ -236,15 +236,15 @@ const S=[
    at(3200,()=>{ curTo($('xl')); }); at(3900,()=>{ click(); $('xl').classList.add('on'); $('st').innerHTML='<span class="chip">엑셀 자동 작성 · 보고 양식 그대로</span>'; }); }},
  {t:'비품 완료 → 사장님 폰', cap:'결제 후 <b>주문 완료 처리</b> → 카톡 멘트 그대로 보내고, 같은 순간 <b>사장님 앱 「입금 대기」</b>에 올라갑니다', d:5000, run(){
    at(200,()=>curTo($('dn'))); at(900,()=>{ click(); $('dn').classList.add('on'); $('st').innerHTML='<span class="chip">주문 완료 · 이력 저장</span>'; });
-   at(1300,()=>{ flow('f1',true); kt('text','[구월길병원점] 10월 비품 주문건\n\n1) 일반 비품류 ( 음료 & 기타비품 )\n입금 은행 : 우리은행\n계좌번호 : 1234567890123\n예금주 : 쿠팡\n입금 금액 : 222,060원'); });
+   at(1300,()=>{ flow('f1',true); kt('text','[구월길병원점] 10월 비품 주문건\n\n1) 일반 비품류 ( 음료 & 기타비품 )\n은행 : 우리은행\n계좌 : 1234567890123\n예금주 : 쿠팡\n금액 : 222,060원'); });
    at(2000,()=>kt('line',SUP.line));
    at(2600,()=>{ flow('f2',true); addCard({id:'s',kind:'비품',k:'k1',amt:SUP.amt,line:SUP.line}); });
    at(4300,()=>{ flow('f1',false); flow('f2',false); }); }},
- {t:'택배비 청구', cap:'<b>10/3</b> 로젠 월정산 — 정산표 사진, <b>금액·건수</b>만 넣으면 「[구월점 로젠택배 요금정산]」 멘트 완성', d:5200, run(){
+ {t:'택배비 청구', cap:'<b>10/3</b> 로젠 월정산 — 정산표 사진, <b>금액·건수</b>만 넣으면 「[구월점] 9월 택배비 정산」 멘트 완성', d:5200, run(){
    setDate('10월 3일 (토) · 택배 월정산'); pcBill('택배비');
    at(300,()=>curTo($('th'))); at(1000,()=>{ click(); $('th').outerHTML=`<div class="thumb" id="th">${DOC(true)}</div>`; });
    at(1400,()=>typeIn($('fa'),'144,000',400)); at(1900,()=>typeIn($('fb'),'32건',300));
-   at(2400,()=>{ $('mm').innerHTML=`<div class="mmsg">[구월점 로젠택배 요금정산]\n26년 09 144,000원 · 건수: 32건\n확인 후 입금부탁드립니다</div><div class="mmsg" style="font-weight:700">${DLV.line}</div>`; });
+   at(2400,()=>{ $('mm').innerHTML=`<div class="mmsg">[구월점] 9월 택배비 정산 (로젠택배)\n은행 · 계좌 · 예금주 · 금액 : 144,000원 · 건수 : 32건</div><div class="mmsg" style="font-weight:700">${DLV.line}</div>`; });
    at(3300,()=>curTo($('dn'))); at(3900,()=>{ click(); $('dn').classList.add('on'); flow('f1',true); kt('img',DOC(true)); });
    at(4300,()=>{ kt('line',DLV.line); flow('f2',true); addCard({id:'d',kind:'택배비',k:'k3',amt:DLV.amt,line:DLV.line,sub:'9월분 · 32건'}); });
    at(5000,()=>{ flow('f1',false); flow('f2',false); }); }},
@@ -252,10 +252,10 @@ const S=[
    setDate('10월 15일 (목) · 관리비 고지서'); pcBill('관리비');
    at(400,()=>curTo($('th'))); at(1100,()=>{ click(); $('th').outerHTML=`<div class="thumb" id="th">${DOC()}</div>`; });
    at(1500,()=>{ curTo($('fa')); }); at(2100,()=>typeIn($('fa'),'497,890',500)); at(2700,()=>typeIn($('fb'),'10월 30일',400));
-   at(3300,()=>{ $('mm').innerHTML=`<div class="mmsg">■ 구월점 관리비 납부\n금액: 497,890원 · 계좌 100-000-000000 · 납기일 : 10월 30일</div><div class="mmsg" style="font-weight:700">${MGT.line}</div><div class="mmsg">구월점 09월 관리비 청구건 입니다 확인 후 입금 부탁드립니다!</div>`; });
+   at(3300,()=>{ $('mm').innerHTML=`<div class="mmsg">[구월점] 9월 관리비 납부\n은행 · 계좌 · 예금주 · 금액 : 497,890원 · 납기일 : 10월 30일</div><div class="mmsg" style="font-weight:700">${MGT.line}</div>`; });
    at(4300,()=>curTo($('dn'))); at(4900,()=>{ click(); $('dn').classList.add('on'); }); }},
  {t:'관리비 → 사장님 폰', cap:'고지서 사진 + 멘트가 카톡으로, 사장님 앱에는 <b>납기일 D-day</b>와 함께 올라갑니다', d:4200, run(){
-   flow('f1',true); kt('img',DOC()); at(500,()=>kt('text','■ 구월점 관리비 납부\n\n금액: 497,890원\n계좌 100-000-000000\n은행: 신한은행\n납기일 : 10월 30일')); at(1000,()=>kt('line',MGT.line));
+   flow('f1',true); kt('img',DOC()); at(500,()=>kt('text','[구월점] 9월 관리비 납부\n\n은행 : 신한은행\n계좌 : 100-000-000000\n예금주 : ○○관리사무소\n금액 : 497,890원\n납기일 : 10월 30일')); at(1000,()=>kt('line',MGT.line));
    at(1500,()=>{ flow('f2',true); addCard({id:'m',kind:'관리비',k:'k2',amt:MGT.amt,line:MGT.line,sub:'9월분',due:'납기 10/30 · D-15'}); });
    at(3400,()=>{ flow('f1',false); flow('f2',false); }); }},
  {t:'사장님: 계좌 복사 → 송금', cap:'사장님은 <b>[계좌 복사]</b> 한 번 → 은행 앱을 열면 계좌·금액이 붙여넣기로 바로 잡힙니다', d:5600, run(){

@@ -731,7 +731,7 @@ function msgFrom(o){
   const pays = (o.pays&&o.pays.length) ? o.pays : [{label:'일반 비품류 ( 음료 & 기타비품 )',bank:'',acc:'',holder:'',amount:o.total||0}];
   let out = `[${store}] ${o.mm}월 비품 주문건\n`;
   pays.forEach((p,i)=>{
-    out += `\n${i+1}) ${p.label||'비품류'}\n입금 은행 : ${p.bank||''}\n계좌번호 : ${p.acc||''}\n예금주 : ${p.holder||''}\n입금 금액 : ${won(p.amount)}\n사업자 지출증빙 : ${ev}\n`;
+    out += `\n${i+1}) ${p.label||'비품류'}\n은행 : ${p.bank||''}\n계좌 : ${p.acc||''}\n예금주 : ${p.holder||''}\n금액 : ${won(p.amount)}\n사업자 지출증빙 : ${ev}\n`;
   });
   return out.trimEnd();
 }
@@ -1012,8 +1012,8 @@ const IN={ i:0, k:1, timers:[], DUR:[4300,5000,5600,6600,8200,7200,6400,5600],
      '도구 1번 칸에 <b>Ctrl+V</b> — 품목·옵션·수량·단가·링크가 자동으로 채워집니다',
      '결제 후 <b>주문완료 화면</b>도 똑같이 복사해서 3번 칸에 붙여넣기',
      '보고용 엑셀에는 <b>품목이 자동기입</b> 됩니다! <b>멘트 복사</b> → 카톡 전송 후 <b>주문 완료 처리</b>까지 누르면 끝',
-     '<b>관리비</b>: 고지서 사진 올리고 <b>금액·납기일</b>만 → 멘트 3줄 자동 → <b>청구 완료 처리</b>하면 사장님 앱으로',
-     '<b>택배비</b>: 정산표 사진, <b>금액·건수</b>만 → 「[구월점 로젠택배 요금정산]」 멘트 자동. 받는 계좌는 다음 달부터 자동',
+     '<b>관리비</b>: 고지서 사진 올리고 <b>금액·납기일</b>만 → 멘트 자동 → <b>청구 완료 처리</b>하면 사장님 앱으로',
+     '<b>택배비</b>: 정산표 사진, <b>금액·건수</b>만 → 「[구월점] 9월 택배비 정산」 멘트 자동. 받는 계좌는 다음 달부터 자동',
      '사장님이 입금하면 이 화면 위에 <b>「입금 완료」</b> 알림이 뜹니다 — 확인을 누르면 사라집니다' ] };
 function inAt(ms,fn){ IN.timers.push(setTimeout(fn,ms)); }
 function inQ(s){ return $('inScene').querySelector(s); }
@@ -1071,7 +1071,7 @@ const IN_SCENES=[
       <div id="iMs"></div><div style="margin-top:10px"><span class="m-btn" id="iDn" style="background:#fff;color:var(--text);border:1px solid var(--line)">✓ 청구 완료 처리</span></div></div>`;
     inCur(700,420); inAt(300,()=>inCurTo('#iTh')); inAt(1100,()=>{ inClick(); $('iTh').outerHTML='<div class="m-thumb" id="iTh"><div class="m-doc"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'; });
     inAt(1500,()=>{ inCurTo('#iA'); }); inAt(2200,()=>{ $('iA').classList.add('hl'); $('iA').textContent='497,890'; }); inAt(2700,()=>{ $('iA').classList.remove('hl'); $('iB').classList.add('hl'); $('iB').textContent='10월 30일'; });
-    inAt(3200,()=>{ $('iB').classList.remove('hl'); $('iMs').innerHTML='<div class="m-ms">■ 구월점 관리비 납부 · 금액: 497,890원 · 납기일 : 10월 30일</div><div class="m-ms" style="font-weight:700">신한은행 100-000-000000 497,890원</div><div class="m-ms">구월점 09월 관리비 청구건 입니다 확인 후 입금 부탁드립니다!</div>'; });
+    inAt(3200,()=>{ $('iB').classList.remove('hl'); $('iMs').innerHTML='<div class="m-ms">[구월점] 9월 관리비 납부 · 은행·계좌·예금주 · 금액 : 497,890원 · 납기일 : 10월 30일</div><div class="m-ms" style="font-weight:700">신한은행 100-000-000000 497,890원</div>'; });
     inAt(4600,()=>inCurTo('#iDn',10,4)); inAt(5400,()=>{ inClick(); const d=$('iDn'); d.style.background='var(--accent)'; d.style.color='#fff'; d.textContent='✓ 청구 완료됨'; inToast('청구 완료 — 사장님 앱 「입금 대기」에 올라갔습니다'); });
   },
   ()=>{ // 7 택배비
@@ -1082,7 +1082,7 @@ const IN_SCENES=[
       <div id="iMs"></div></div>`;
     inCur(700,420); inAt(400,()=>inCurTo('#iTh')); inAt(1200,()=>{ inClick(); $('iTh').outerHTML='<div class="m-thumb" id="iTh"><div class="m-doc lg"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>'; });
     inAt(1700,()=>inCurTo('#iA')); inAt(2300,()=>{ $('iA').textContent='144,000'; }); inAt(2800,()=>{ $('iB').textContent='32건'; });
-    inAt(3300,()=>{ $('iMs').innerHTML='<div class="m-ms">[구월점 로젠택배 요금정산]\n26년 09 144,000원 · 건수: 32건 · 확인 후 입금부탁드립니다</div><div class="m-ms" style="font-weight:700">카카오뱅크 3333000000000 144,000원 [ 홍길동 ]</div>'; inCur(760,440); });
+    inAt(3300,()=>{ $('iMs').innerHTML='<div class="m-ms">[구월점] 9월 택배비 정산 (로젠택배) · 은행·계좌·예금주 · 금액 : 144,000원 · 건수 : 32건</div><div class="m-ms" style="font-weight:700">카카오뱅크 3333000000000 144,000원 [ 홍길동 ]</div>'; inCur(760,440); });
   },
   ()=>{ // 8 입금 완료 배너
     $('inScene').innerHTML=`<div class="m-tool"><div style="font-size:20px;font-weight:800;margin-bottom:12px">구월길병원점 비품 주문 보고</div><div id="iBn"></div>
@@ -1096,7 +1096,7 @@ const IN_SCENES=[
 ];
 const _IN5 = [
   ()=>{ // 5 엑셀 + 멘트
-    const lines=['[구월길병원점] 10월 비품 주문건','&nbsp;','1) 일반 비품류 ( 음료 &amp; 기타비품 )','입금 은행 : 우리은행','계좌번호 : 1234567890123','예금주 : 쿠팡','입금 금액 : 222,060원','사업자 지출증빙 : 연수점 (1313632256)'];
+    const lines=['[구월길병원점] 10월 비품 주문건','&nbsp;','1) 일반 비품류 ( 음료 &amp; 기타비품 )','은행 : 우리은행','계좌 : 1234567890123','예금주 : 쿠팡','금액 : 222,060원','사업자 지출증빙 : 연수점 (1313632256)'];
     $('inScene').innerHTML=`<div class="m-out"><div class="m-panel"><h4>보고용 엑셀</h4><div style="color:var(--muted);font-size:12px;margin-bottom:14px">품목 14개 · 222,060원</div><span class="m-btn" id="inXl">엑셀 다운로드</span><div id="inFile"></div></div>
       <div class="m-panel"><h4>카톡 멘트</h4><div class="m-msg">${lines.map(l=>`<div>${l}</div>`).join('')}</div><div style="margin-top:10px"><span class="m-btn" id="inCp">멘트 복사</span></div></div></div>`;
     $('inScene').querySelectorAll('.m-msg div').forEach((d,i)=>inAt(150+i*120,()=>d.classList.add('in')));
@@ -1109,7 +1109,7 @@ const _IN5 = [
       inAt(1500,()=>{ const b=document.createElement('div'); b.className='m-badge'; b.textContent='보고용 엑셀에는 품목이 자동기입 됩니다!'; $('inFile').closest('.m-panel').appendChild(b); }); });
     inAt(3900,()=>inCurTo('#inCp',10,6));
     inAt(4750,()=>{ inClick(); $('inCp').classList.add('press'); inAt(180,()=>$('inCp').classList.remove('press')); inToast('멘트를 복사했습니다'); });
-    inAt(5700,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>입금 금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
+    inAt(5700,()=>{ const k=document.createElement('div'); k.className='m-kakao'; k.innerHTML='<div class="who">카톡 · 대표님</div><div class="bb">[구월길병원점] 10월 비품 주문건<br>1) 일반 비품류 …<br>금액 : 222,060원</div><div class="tm">+ 엑셀 파일 첨부</div>'; $('inScene').appendChild(k); });
   }
 ];
 IN_SCENES.splice(4,0,_IN5[0]); // 5번째 장면(엑셀·멘트)을 제자리에
@@ -1200,13 +1200,12 @@ function billData(){
   let msgs=[], line='';
   if(k==='관리비'){
     const dueTxt = due ? `${due.slice(5,7)}월 ${due.slice(8,10)}일` : '';
-    msgs.push(`■ ${sh} 관리비 납부\n\n금액: ${won(amt)}\n계좌 ${acc}\n은행: ${bank}\n예금주: ${holder}\n납기일 : ${dueTxt}`);
+    msgs.push(`[${sh}] ${Number(m)}월 관리비 납부\n\n은행 : ${bank}\n계좌 : ${acc}\n예금주 : ${holder}\n금액 : ${won(amt)}\n납기일 : ${dueTxt}`);
     line=`${bank} ${acc} ${won(amt)}`;
     msgs.push(line);
-    msgs.push(`${sh} ${m}월 관리비 청구건 입니다 확인 후 입금 부탁드립니다!`);
   } else {
-    msgs.push(`[${sh} ${car}택배 요금정산]\n\n${String(y).slice(2)}년 ${m} ${won(amt)}\n건수: ${cnt||0}건\n\n${sh} ${String(y).slice(2)}년 ${m}월 택배 월정산입니다.\n확인 후 입금부탁드립니다`);
-    line=`${bank} ${acc} ${won(amt)}` + (holder ? ` [ ${holder} ]` : '');
+    msgs.push(`[${sh}] ${Number(m)}월 택배비 정산 (${car}택배)\n\n은행 : ${bank}\n계좌 : ${acc}\n예금주 : ${holder}\n금액 : ${won(amt)}\n건수 : ${cnt||0}건`);
+    line=`${bank} ${acc} ${won(amt)}`;
     msgs.push(line);
   }
   return {k, amt, month:$('bMonth').value, sh, bank, acc, holder, due, cnt:Number(cnt)||0, car, msgs, line};
