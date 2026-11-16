@@ -31,7 +31,7 @@
   --sh-1:0 1px 2px rgba(22,32,64,.04),0 3px 10px rgba(22,32,64,.04);
   --sh-2:0 2px 6px rgba(22,32,64,.05),0 14px 32px rgba(22,32,64,.09);
   --sh-3:0 8px 18px rgba(22,32,64,.07),0 28px 60px rgba(22,32,64,.16);
-  --d-fast:160ms; --d-base:260ms; --d-slow:420ms;
+  --d-fast:160ms; --d-base:260ms; --d-slow:420ms; --d-vt:240ms;
   --ease:cubic-bezier(.22,1,.36,1);
   --spring:cubic-bezier(.34,1.5,.64,1);
   --spring-soft:cubic-bezier(.3,1.22,.5,1);
@@ -471,17 +471,17 @@ footer{view-transition-name:foot}
 @keyframes vt-in-fwd{from{opacity:0;transform:translateY(18px)}}
 @keyframes vt-out-back{to{opacity:0;transform:translateY(18px)}}
 @keyframes vt-in-back{from{opacity:0;transform:scale(.985)}}
-::view-transition-old(root){animation:vt-out-fwd var(--d-fast) ease-in both}
-::view-transition-new(root){animation:vt-in-fwd var(--d-slow) var(--ease) 60ms both}
-html[data-dir=back]::view-transition-old(root){animation:vt-out-back var(--d-fast) ease-in both}
-html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow) var(--ease) 60ms both}
-::view-transition-group(hero-bg),::view-transition-group(hero-title){animation-duration:var(--d-slow);animation-timing-function:var(--spring-soft)}
+::view-transition-old(root){animation:vt-out-fwd 110ms ease-in both}
+::view-transition-new(root){animation:vt-in-fwd var(--d-vt) var(--ease) both}
+html[data-dir=back]::view-transition-old(root){animation:vt-out-back 110ms ease-in both}
+html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) var(--ease) both}
+::view-transition-group(hero-bg),::view-transition-group(hero-title){animation-duration:var(--d-vt);animation-timing-function:var(--spring-soft)}
 ::view-transition-old(hero-bg),::view-transition-new(hero-bg){height:100%;width:100%}
 ::view-transition-old(hero-title),::view-transition-new(hero-title){height:100%;width:auto}
-::view-transition-old(hero-card),::view-transition-old(hero-back),::view-transition-old(hero-stats){animation:vt-fade-out 120ms ease-in both}
-::view-transition-new(hero-card),::view-transition-new(hero-back),::view-transition-new(hero-stats){animation:vt-fade-in var(--d-base) ease 180ms both}
-::view-transition-group(foot){animation-duration:var(--d-base)}
-.view-enter{animation:view-enter var(--d-slow) var(--ease) both}
+::view-transition-old(hero-card),::view-transition-old(hero-back),::view-transition-old(hero-stats){animation:vt-fade-out 90ms ease-in both}
+::view-transition-new(hero-card),::view-transition-new(hero-back),::view-transition-new(hero-stats){animation:vt-fade-in 160ms ease 70ms both}
+::view-transition-group(foot){animation-duration:var(--d-vt)}
+.view-enter{animation:view-enter var(--d-vt) var(--ease) both}
 @keyframes view-enter{from{opacity:0;transform:translateY(16px)}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
@@ -567,7 +567,7 @@ const num=n=>Math.round(Number(n)||0).toLocaleString('ko-KR');
 const won = n => (Number(n)||0).toLocaleString('ko-KR') + '원';
 const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const B = { rows:[], cache:{}, view:'home', store:null, tab:'이력', month:null, loaded:false, lock:0, pending:false, prevWait:null, shownPc:new Set(), homeY:0 };
+const B = { rows:[], cache:{}, cacheAt:{}, inflight:{}, gen:0, view:'home', store:null, tab:'이력', month:null, loaded:false, lock:0, pending:false, prevWait:null, shownPc:new Set(), homeY:0 };
 
 /* ───────── 아이콘 ───────── */
 const svg=(d,sw=2)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -698,9 +698,13 @@ function wbHeadHTML(n){ return `<div class="wb-head" data-flip="wbh"><h2>입금 
 async function load(silent){
   if(!silent){ $('rf').classList.add('busy'); }
   try{
+    const gen=B.gen;
     const res=await api({action:'list'}); if(!res.ok) throw new Error(res.error);
+    if(B.loaded && (PEND.size || gen!==B.gen)) return;   // 처리 중 요청이 끝난 뒤 다시 받음
     const first=!B.loaded; B.rows=res.rows; B.loaded=true;
+    Object.keys(B.cache).forEach(id=>{ const row=rowOf(id); if(row && String(row.savedAt)!==String(B.cacheAt[id])){ delete B.cache[id]; } });
     if(first){ renderHome({first:true}); if(B.view!=='home') renderView(); } else renderView();
+    prefetch();
   }catch(e){
     if(!B.loaded){ const w=$('waitSum'); w.className='wsum err'; w.innerHTML=`<span class="ws-l"><span class="ws-label">${IC.warn.replace('<svg','<svg style="width:16px;height:16px"')}불러오기 실패</span><span class="ws-sub">새로고침을 눌러주세요</span></span>`; $('storeGrid').innerHTML=''; $('mBody').innerHTML=''; }
     if(!silent) toast('불러오기 실패: '+e.message);
@@ -767,38 +771,40 @@ $('mPrev').onclick=()=>stepMonth(-1); $('mNext').onclick=()=>stepMonth(1);
 $('mBody').onclick=e=>{ const b=e.target.closest('[data-ms]'); if(!b) return; const c=qs(`.store-card[data-store="${CSS.escape(b.dataset.ms)}"]`); openStore(b.dataset.ms,c); };
 
 /* ───────── 화면 전환 ───────── */
-let navBusy=false;
-async function swapView(dir,update){
-  if(navBusy) return; navBusy=true;
-  const incoming=document.querySelector(dir==='fwd'?'main:not(#home)':'#home');
+/* 전환 중에 다른 누름이 오면 진행 중 전환을 건너뛰고 바로 처리 (막힘 없음) */
+let curVT=null;
+function vtClean(){ qsa('.is-hero').forEach(el=>el.classList.remove('is-hero')); $('all').classList.remove('vt'); delete document.documentElement.dataset.dir; }
+async function swapView(dir,update,mark){
+  if(curVT){ const v=curVT; curVT=null; try{ v.skipTransition(); }catch(e){} try{ await v.updateCallbackDone; }catch(e){} }
+  vtClean(); if(mark) mark();
   if(!RM&&document.startViewTransition){
     document.documentElement.dataset.dir=dir;
-    try{ const vt=document.startViewTransition(()=>{ update(); }); await vt.finished; }catch(e){}
-    delete document.documentElement.dataset.dir;
-  } else { update(); const inc=qs('main:not([hidden])'); if(!RM&&inc){ inc.classList.add('view-enter'); inc.addEventListener('animationend',()=>inc.classList.remove('view-enter'),{once:true}); } }
-  qsa('.is-hero').forEach(el=>el.classList.remove('is-hero')); $('all').classList.remove('vt'); navBusy=false;
+    let vt; try{ vt=document.startViewTransition(()=>{ update(); }); }catch(e){ update(); vtClean(); return; }
+    curVT=vt; try{ await vt.finished; }catch(e){}
+    if(curVT===vt){ curVT=null; vtClean(); }
+  } else { update(); vtClean(); const inc=qs('main:not([hidden])'); if(!RM&&inc){ inc.classList.add('view-enter'); inc.addEventListener('animationend',()=>inc.classList.remove('view-enter'),{once:true}); } }
 }
 function showMain(id){ ['home','store','all'].forEach(x=>$(x).hidden=x!==id); B.view=id; }
 function openStore(st,card,{push=true}={}){
-  if(navBusy||!B.loaded) return;
+  if(!B.loaded) return;
   if(B.view==='home') B.homeY=scrollY;
-  if(card) card.classList.add('is-hero'); B.store=st; B.tab='이력'; B.shownPc=new Set();
+  B.view='store'; B.store=st; B.tab='이력'; B.shownPc=new Set();
   if(push) try{ history.pushState({v:'store',st},''); }catch(e){}
-  swapView('fwd',()=>{ showMain('store'); renderStore({enter:true}); window.scrollTo(0,0); });
+  swapView('fwd',()=>{ showMain('store'); renderStore({enter:true}); window.scrollTo(0,0); },()=>{ if(card&&card.isConnected&&!$('home').hidden) card.classList.add('is-hero'); });
 }
 function openAll({push=true}={}){
-  if(navBusy||!B.loaded) return;
+  if(!B.loaded) return;
   if(B.view==='home') B.homeY=scrollY;
-  $('waitSum').classList.add('is-hero'); $('all').classList.add('vt'); B.shownPc=new Set();
+  B.view='all'; B.shownPc=new Set();
   if(push) try{ history.pushState({v:'all'},''); }catch(e){}
-  swapView('fwd',()=>{ showMain('all'); renderAll({enter:true}); window.scrollTo(0,0); });
+  swapView('fwd',()=>{ showMain('all'); renderAll({enter:true}); window.scrollTo(0,0); },()=>{ if(!$('home').hidden){ $('waitSum').classList.add('is-hero'); $('all').classList.add('vt'); } });
 }
 function goHome({fromPop=false}={}){
-  if(navBusy||B.view==='home') return;
+  if(B.view==='home') return;
   const st=B.store, from=B.view;
   if(!fromPop){ try{ if(history.state&&history.state.v&&history.state.v!=='home') { history.back(); return; } }catch(e){} }
-  if(from==='all') $('all').classList.add('vt');
-  swapView('back',()=>{ showMain('home'); renderHome({}); const c=from==='store'?qs(`.store-card[data-store="${CSS.escape(st)}"]`):null; if(c) c.classList.add('is-hero'); if(from==='all') $('waitSum').classList.add('is-hero'); window.scrollTo(0,B.homeY||0); });
+  B.view='home';
+  swapView('back',()=>{ showMain('home'); renderHome({}); const c=from==='store'?qs(`.store-card[data-store="${CSS.escape(st)}"]`):null; if(c) c.classList.add('is-hero'); if(from==='all') $('waitSum').classList.add('is-hero'); window.scrollTo(0,B.homeY||0); },()=>{ if(from==='all'&&!$('all').hidden) $('all').classList.add('vt'); });
 }
 window.addEventListener('popstate',()=>{ if($('sheet').classList.contains('show')){ closeDetail(); try{ history.pushState({v:B.view,st:B.store},''); }catch(e){} return; } if(B.view!=='home') goHome({fromPop:true}); });
 
@@ -815,7 +821,7 @@ function renderWaitBox({enter=false}={}){
   if(!w.length){ if(!qs('.wb-done',box)) box.innerHTML=''; return; }
   box.innerHTML=wbHeadHTML(w.length)+`<div class="wb-list">${w.map(r=>pcHTML(r,{warn:accChanged(r)})).join('')}</div>`;
   const cards=qsa('.pc',box);
-  if(enter) stagger(cards,{y:16,base:120});
+  if(enter) stagger(cards,{y:16,base:40});
   else cards.forEach(c=>{ if(!B.shownPc.has(c.dataset.pc)) anim(c,[{opacity:0,transform:'translateY(-10px) scale(.98)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:EASE}); });
   B.shownPc=new Set(cards.map(c=>c.dataset.pc));
 }
@@ -851,7 +857,7 @@ function renderAll({enter=false}={}){
   if(!w.length){ l.innerHTML=`<div class="wb-done"><span class="ic">${IC.check}</span>입금할 건이 없습니다</div>`; return; }
   l.innerHTML=w.map(r=>pcHTML(r,{showStore:true,warn:accChanged(r)})).join('');
   const cards=qsa('.pc',l);
-  if(enter) stagger(cards,{y:16,base:120}); else cards.forEach(c=>{ if(!B.shownPc.has(c.dataset.pc)) anim(c,[{opacity:0,transform:'translateY(-10px) scale(.98)'},{opacity:1,transform:'none'}],{duration:D.slow}); });
+  if(enter) stagger(cards,{y:16,base:40}); else cards.forEach(c=>{ if(!B.shownPc.has(c.dataset.pc)) anim(c,[{opacity:0,transform:'translateY(-10px) scale(.98)'},{opacity:1,transform:'none'}],{duration:D.slow}); });
   B.shownPc=new Set(cards.map(c=>c.dataset.pc));
 }
 
@@ -869,18 +875,28 @@ function copiedUI(btn){ if(btn._busy) return; btn._busy=true; const old=btn.inne
   setTimeout(()=>{ if(btn.isConnected) btn.innerHTML=old; btn._busy=false; },2500); }
 const PAID_LABEL=()=>`${IC.check}입금 완료`;
 async function payFromCard(id, btn){
-  const r=B.rows.find(x=>String(x.id)===String(id)); if(!r) return;
+  const r=B.rows.find(x=>String(x.id)===String(id)); if(!r||PEND.has(String(id))||btn.disabled) return;
   B.lock++;
   try{
     if(!(await ask({title:'입금 완료로 바꿀까요?',big:`${num(amtOf(r))}<small>원</small>`,text:`${r.store} · ${kindOf(r)}${kindOf(r)!=='비품'?' '+mNum(r.month)+'월분':''}`,note:'송금을 마친 뒤에 눌러 주세요. 지점 화면에 입금 완료 알림이 뜹니다.',yes:'입금 완료'}))) return;
-    btn.disabled=true; btn.innerHTML='<span class="spin"></span>처리 중';
+    btn.disabled=true;
     const ok=await markPaid(r,true,{card:btn.closest('.pc')});
     if(!ok && btn.isConnected){ btn.disabled=false; btn.innerHTML=PAID_LABEL(); }
   } finally { unlock(); }
 }
 
 /* ───────── 상세 ───────── */
-async function getOrder(id){ if(B.cache[id]) return B.cache[id]; const r=await api({action:'get',id}); if(!r.ok||!r.order) throw new Error(r.error||'주문을 찾지 못했습니다'); return B.cache[id]=r.order; }
+async function getOrder(id){ if(B.cache[id]) return B.cache[id];
+  if(!B.inflight[id]){ const at=(B.rows.find(x=>x.id===id)||{}).savedAt;
+    B.inflight[id]=api({action:'get',id}).then(r=>{ if(!r.ok||!r.order) throw new Error(r.error||'주문을 찾지 못했습니다'); B.cacheAt[id]=at; return B.cache[id]=r.order; }).finally(()=>{ delete B.inflight[id]; }); }
+  return B.inflight[id]; }
+/* 입금 대기 건 상세를 한가할 때 2~3개씩 미리 받아 둠 (사진은 받지 않음 · 받은 건은 다시 안 받음) */
+let pfOn=false;
+function prefetch(){ if(pfOn) return; pfOn=true;
+  const idle=cb=>('requestIdleCallback' in window)?requestIdleCallback(cb,{timeout:1200}):setTimeout(cb,150);
+  const next=()=>{ const ids=waitRows().map(r=>r.id).filter(id=>!B.cache[id]&&!B.inflight[id]).slice(0,3); if(!ids.length){ pfOn=false; return; }
+    idle(()=>{ Promise.allSettled(ids.map(id=>getOrder(id))).then(()=>setTimeout(next,60)); }); };
+  next(); }
 function sheetBar(title,sub=''){ return `<div class="bar"><span class="grip"></span><div class="bt"><h2>${title}</h2>${sub?`<p class="hint">${sub}</p>`:''}</div><button class="btn x" id="sx" aria-label="닫기">${IC.x}</button></div>`; }
 function openSheet(){ $('sheet').classList.add('show'); document.body.style.overflow='hidden'; $('sheetIn').scrollTop=0; }
 function payInfoSec(r,o,{warn}){ const lines=payLines(r);
@@ -952,34 +968,53 @@ function askPin(setMode){
     };
   });
 }
+/* 비밀번호 상태(pinstate)는 앱이 뜰 때 한 번 받아 두고 재사용 → 누를 때 서버 왕복 없음 */
+let PIN_SET=null;
+function prefetchPin(){ api({action:'pinstate'}).then(r=>{ if(r&&r.ok) PIN_SET=!!r.set; }).catch(()=>{}); }
 async function getPin(){
   let pin=savedPin(); if(pin) return pin;
-  let st={set:true}; try{ st=await api({action:'pinstate'}); }catch(e){}
-  if(!st.set){ const np=await askPin(true); if(!np) return null; const s=await api(null,{action:'setpin',pin:np}); if(!s.ok){ toast(s.error||'설정 실패'); return null; } toast('비밀번호를 만들었습니다'); return np; }
+  let st={set:true};
+  if(PIN_SET!==null) st={set:PIN_SET}; else { try{ st=await api({action:'pinstate'}); }catch(e){} }
+  if(!st.set){ const np=await askPin(true); if(!np) return null; const s=await api(null,{action:'setpin',pin:np});
+    if(!s.ok){ if(/이미/.test(s.error||'')){ PIN_SET=true; return await askPin(false); } toast(s.error||'설정 실패'); return null; }
+    PIN_SET=true; toast('비밀번호를 만들었습니다'); return np; }
   return await askPin(false);
 }
 function keepPin(pin, ok){ try{ if(!ok) localStorage.removeItem('bossPin'); else if($('pinKeep').checked) localStorage.setItem('bossPin',pin); }catch(e){} }
-async function markPaid(r, paid, {card=null}={}){
-  if(!paid && !(await ask({title:'입금 대기로 되돌릴까요?',text:'입금 완료를 취소하고 「입금 대기」로 되돌립니다.',note:`${r.store} · ${kindOf(r)} ${won(amtOf(r))}`,yes:'되돌리기',danger:true}))) return false;
-  const pin=await getPin(); if(!pin) return false;
-  const btn=$('dp'); const sheetOpen=$('sheet').classList.contains('show'); if(btn&&sheetOpen){ btn.disabled=true; btn.innerHTML='<span class="spin"></span>처리 중'; }
-  const res=await api(null,{action:'paid',id:r.id,pin,paid}).catch(e=>({ok:false,error:e.message}));
-  if(!res.ok){
-    try{ localStorage.removeItem('bossPin'); }catch(e){}
-    if(btn&&btn.isConnected){ btn.disabled=false; btn.innerHTML= paid?PAID_LABEL():'입금 대기로 되돌리기'; }
-    toast(/Error: /.test(res.error||'') ? res.error.replace(/^Error: /,'') : (res.error||'처리 실패')); return false;
-  }
-  try{ if($('pinKeep').checked) localStorage.setItem('bossPin',pin); }catch(e){}
-  const at=paid?nowStr():''; [r,B.rows.find(x=>String(x.id)===String(r.id))].forEach(o=>{ if(o){ o.paid=paid; o.paidAt=at; if(!paid) o.ack=''; } });
+/* 서버 응답을 기다리지 않고 바로 반영 → 저장은 뒤에서. 실패하면 원래 자리로 되돌리고 알림 */
+const PEND=new Map();   // 처리 중인 건 (같은 건 중복 전송 방지)
+const rowOf=id=>B.rows.find(x=>String(x.id)===String(id));
+async function markPaid(r, paid, {card=null,pin=null}={}){
+  const id=String(r.id);
+  if(PEND.has(id)){ toast('저장 중입니다 — 잠시만 기다려 주세요',{type:'info'}); return false; }
+  if(!paid && !pin && !(await ask({title:'입금 대기로 되돌릴까요?',text:'입금 완료를 취소하고 「입금 대기」로 되돌립니다.',note:`${r.store} · ${kindOf(r)} ${won(amtOf(r))}`,yes:'되돌리기',danger:true}))) return false;
+  pin=pin||await getPin(); if(!pin) return false;
+  if(PEND.has(id)) return false;
+  const cur=rowOf(id)||r; if(!!cur.paid===paid){ return false; }
+  const prev={paid:cur.paid,paidAt:cur.paidAt,ack:cur.ack}, keep=$('pinKeep').checked, job={paid,ok:null};
+  PEND.set(id,job); B.gen++;
+  const req=api(null,{action:'paid',id:r.id,pin,paid}).catch(e=>({ok:false,error:e.message}));
+  const at=paid?nowStr():''; [r,cur].forEach(o=>{ o.paid=paid; o.paidAt=at; if(!paid) o.ack=''; });
   closeDetail();
+  req.then(res=>finishPaid(id,job,pin,keep,prev,res,r));
   B.lock++;
   try{
-    const c=card||qs(`main:not([hidden]) .pc[data-pc="${CSS.escape(String(r.id))}"]`);
-    if(paid && c) await completeCard(c,r); else renderViewNow();
-  } finally { B.lock--; }
-  toast(paid?'입금 완료로 옮겼습니다':'입금 대기로 되돌렸습니다', paid?{action:'되돌리기',fn:()=>markPaid(B.rows.find(x=>String(x.id)===String(r.id))||r,false)}:{});
-  load(true);
+    const c=card||qs(`main:not([hidden]) .pc[data-pc="${CSS.escape(id)}"]`);
+    if(paid && c && c.isConnected) await completeCard(c,cur); else renderViewNow();
+  } finally { unlock(); }
+  if(job.ok!==false) toast(paid?'입금 완료로 옮겼습니다':'입금 대기로 되돌렸습니다', paid?{action:'되돌리기',fn:()=>markPaid(rowOf(id)||r,false)}:{});
   return true;
+}
+async function finishPaid(id,job,pin,keep,prev,res,r){
+  PEND.delete(id); job.ok=!!res.ok; B.gen++;
+  if(res.ok){ try{ if(keep) localStorage.setItem('bossPin',pin); }catch(e){} if(!PEND.size) load(true); return; }
+  try{ localStorage.removeItem('bossPin'); }catch(e){}
+  [r,rowOf(id)].forEach(o=>{ if(o){ o.paid=prev.paid; o.paidAt=prev.paidAt; o.ack=prev.ack; } });
+  B.shownPc.delete(id); renderView();
+  const msg=/Error: /.test(res.error||'') ? res.error.replace(/^Error: /,'') : (res.error||'처리 실패');
+  toast(`${msg} — ${job.paid?'입금 대기로':'입금 완료로'} 되돌렸습니다`,{type:'bad'});
+  if(!PEND.size) load(true);
+  if(/비밀번호/.test(msg) && !/잠겼|설정되지/.test(msg)){ await wait(900); const p2=await askPin(false); if(p2) markPaid(rowOf(id)||r, job.paid, {pin:p2}); }
 }
 function renderViewNow(){ const l=B.lock; B.lock=0; renderView(); B.lock=l; }
 /* 입금 완료 순간: 체크가 그려지고 → 카드가 빠지고 → 다음 건이 올라오고 → 숫자가 줄어듦 */
@@ -992,7 +1027,7 @@ async function completeCard(card,r){
     const c=qs('circle',ov); c.style.transformOrigin='32px 32px'; anim(c,[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:D.slow,easing:SPRING});
     anim(qs('path',ov),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:D.base+60,delay:180,easing:EIO});
     stagger(qsa('b,.amt',ov),{y:10,base:200,dur:320});
-    await wait(860);
+    await wait(450);
     await anim(card,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px) scale(.95)'}],{duration:D.base,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{});
   }
   const inStore=B.view==='store', list=card.parentElement;
@@ -1010,7 +1045,6 @@ async function completeCard(card,r){
   const n=qs('.wbN'); if(n) pop(n);
   if(inStore){ const s=storeStat(B.store); const hw=$('hsWait'); hw.textContent=s.wait+'건'; hw.classList.toggle('w',s.wait>0); pop(hw); const wa=$('hsWaitAmt'); wa._v=wa._v??(s.waitAmt+amtOf(r)); countUp(wa,s.waitAmt,'원'); wa.classList.toggle('w',s.wait>0); }
   else { const w=waitRows(), a=$('awN'), b=$('awSum'); a.textContent=w.length+'건'; pop(a); b._v=b._v??(w.reduce((x,y)=>x+amtOf(y),0)+amtOf(r)); countUp(b,w.reduce((x,y)=>x+amtOf(y),0),'원'); $('awSt').textContent=new Set(w.map(x=>x.store)).size+'개 지점'; }
-  await wait(RM?0:D.slow);
 }
 
 /* ---------- 🔔 상단바 알림 (Firebase Cloud Messaging) ---------- */
@@ -1342,6 +1376,7 @@ $('rf').onclick=()=>load();
 try{ history.replaceState({v:'home'},''); }catch(e){}
 skeleton();
 load();
+prefetchPin();
 setInterval(()=>{ if(!document.hidden && !$('sheet').classList.contains('show')) load(true); }, 60000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(true); });
 </script>
