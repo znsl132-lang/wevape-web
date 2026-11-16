@@ -422,6 +422,30 @@ footer{margin-top:var(--s-10);padding-bottom:var(--s-4);text-align:center;font-s
 .bi-home .me{text-align:center}
 .bi-home .me img{width:56px;height:56px;border-radius:16px;display:block;margin:auto;box-shadow:0 0 0 3px #fff}
 .bi-home .me span{display:block;color:#fff;font-size:11px;margin-top:5px;font-weight:700}
+.bi-kk{position:absolute;inset:0;background:#fff}
+.bi-kk .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 10px;font-size:20px;font-weight:800}
+.bi-kk .rw{display:flex;align-items:center;gap:12px;padding:10px 18px}
+.bi-kk .av{width:46px;height:46px;border-radius:17px;flex:none;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff}
+.bi-kk .tx{flex:1;min-width:0}.bi-kk .tx b{display:block;font-size:14.5px}.bi-kk .tx span{display:block;font-size:12.5px;color:#8a8f99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bi-kk .mt{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:11px;color:#a0a5ae}
+.bi-kk .un{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#FF4B39;color:#fff;font-size:11.5px;font-weight:800;line-height:20px;text-align:center}
+.bi-chat{position:absolute;inset:0;background:#BACEE0;padding:16px 14px}
+.bi-chat .nm{font-size:13px;color:#3d4450;margin:8px 0 6px 2px}
+.bi-chat .bb{background:#fff;border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:13px;line-height:1.6;white-space:pre-line;max-width:290px;color:#191919}
+.bi-chat .bb mark{background:#FFE89A;border-radius:3px;padding:0 2px}
+.bi-old{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+.bi-old .fog{position:absolute;inset:0;background:rgba(243,245,248,.78)}
+.bi-old svg{position:relative;width:132px;height:132px}
+.bi-old svg circle{fill:#fff;stroke:var(--red);stroke-width:7}
+.bi-old svg path{stroke:var(--red);stroke-width:9;stroke-linecap:round;fill:none;stroke-dasharray:60}
+.bi-old b{position:relative;font-size:19px;font-weight:800;color:var(--red)}
+.bi-old span{position:relative;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.bi-fog{position:absolute;inset:0;z-index:34;background:rgba(14,19,34,.42)}
+.bi-now{position:absolute;left:12px;right:12px;top:220px;z-index:35;background:var(--navy);color:#fff;border-radius:var(--r-l);padding:20px 18px;box-shadow:var(--sh-3);text-align:center}
+.bi-now small{display:block;color:#C9D2F0;font-size:13px;font-weight:700}
+.bi-now b{display:block;font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.35;margin-top:6px}
+.bi-now b em{font-style:normal;color:#FFD86B}
+.bi-end{position:absolute;left:50%;bottom:20px;z-index:35;transform:translateX(-50%);white-space:nowrap;background:var(--navy);color:#fff;border-radius:var(--r-pill);padding:12px 20px;font-size:15px;font-weight:800;box-shadow:var(--sh-3)}
 .bi-notif{position:absolute;left:10px;right:10px;top:12px;background:rgba(255,255,255,.97);border-radius:20px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .bi-native{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.42);display:grid;place-items:center}
 .bi-native .box{background:#fff;border-radius:26px;padding:22px 20px 14px;width:286px;text-align:center}
@@ -1147,18 +1171,19 @@ async function makeXlsx({items, store, date}){
 }
 
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「?」로 다시) ---------- */
-const BI={ i:0, k:1, timers:[], DUR:[5600,6800,7800,5400,6000,9000,8400,9200,5000,7000],
-  T:['카톡에서 열기','앱 설치','상단바 알림 켜기','알림이 오면','지점 카드와 말풍선','계좌 복사 → 송금','입금 완료','지점 내역 보기','계좌가 바뀌면','월별 정산'],
+const BI={ i:0, k:1, timers:[], DUR:[5600,6800,7800,10400,5400,6000,9000,8400,9200,5000,7600],
+  T:['카톡에서 열기','앱 설치','상단바 알림 켜기','카톡 보고는 이제 그만','알림이 오면','지점 카드와 말풍선','계좌 복사 → 송금','입금 완료','지점 내역 보기','계좌가 바뀌면','월별 정산'],
   C:['카톡으로 받은 링크는 카톡 안에서 열립니다 — 주황 안내의 <b>[인터넷 앱으로 열기]</b>를 누르세요',
      '<b>[앱 설치]</b> → <b>설치</b> 한 번이면 앱스 화면에 <b>₩ 입금요청</b>이 생깁니다 (아이폰은 사파리 공유 → 홈 화면에 추가)',
-     '앱에서 <b>종 버튼</b> → <b>이 폰에서 알림 받기</b> → <b>허용</b> → 비밀번호. 처음 한 번만 하면 됩니다',
-     '지점이 입금 요청을 올리면 <b>상단바에 바로</b> 뜹니다 — 눌러서 앱으로 들어가세요',
+     '대표님 폰에서 <b>종 버튼</b> → <b>이 폰에서 알림 받기</b> → <b>허용</b> → 비밀번호. 처음 한 번만 하면 됩니다',
+     '<span id="biC4">기존엔 지점마다 대표님 <b>개인 카톡</b>으로 멘트를 보내고, 대표님이 카톡을 뒤져 계좌를 복사했습니다</span>',
+     '지점이 입금 요청을 올리면 대표님 폰 <b>상단바에 바로</b> 뜹니다 — 눌러서 앱으로 들어가세요',
      '맨 위에 <b>입금 대기 합계</b>, 아래에 <b>9개 지점</b>. 지점 카드의 <b>빨간 말풍선</b>이 그 지점의 입금 대기 건수입니다',
      '<b>말풍선</b>을 누르면 그 지점 입금 대기로 바로 → <b>[계좌 복사]</b> → 은행 앱에서 붙여넣고 보내기',
      '송금 후 <b>[입금 완료]</b> → 비밀번호(처음 한 번). 체크가 그려지고 <b>다음 건이 올라옵니다</b> — 실수했으면 <b>되돌리기</b>',
      '지점 화면 아래 <b>지난 청구이력 · 비품 · 택배비 · 관리비</b> — 관리비·택배비는 <b>사진</b>, 비품은 품목과 <b>엑셀</b>',
      '받는 계좌가 지난번과 다르면 <b>빨간 경고</b>가 뜹니다 — 지점에 확인 후 입금하세요',
-     '첫 화면 아래 <b>월별 정산</b> — <b>◀ ▶</b>로 달을 넘기며 전체·종류별 합계와 입금 완료/대기 금액을 봅니다'] };
+     '첫 화면 아래 <b>월별 정산</b> — <b>◀ ▶</b>로 달을 넘기며 전체·종류별 합계와 입금 완료/대기 금액을 봅니다<br><b style="font-size:var(--f-l)">카톡 보고 없이, 이 앱 하나로</b>'] };
 function biAt(ms,fn){ BI.timers.push(setTimeout(()=>{ try{ fn(); }catch(e){} },ms)); }
 function biQ(s){ return $('biScene').querySelector(s); }
 function biCur(x,y){ $('biCur').style.transform=`translate(${x}px,${y}px)`; }
@@ -1175,7 +1200,8 @@ const BI_ROWS=()=>[
   {id:'b3',store:'구월길병원점',kind:'택배비',month:BI_M,date:biDay(-6),payTotal:144000,billCount:32,carrier:'로젠택배',photoCount:1,paySummary:'카카오뱅크 3333999999999 144,000원',paid:false}];
 const BI_GRID=[['구월로데오점',483100,2,1],['구월길병원점',867310,3,3],['인천연수점',764300,2,2],['인천논현점',590400,3,1],['부천상동점',879450,3,0],['부천중동점',827480,3,0],['인천공항점',0,0,0],['인천검단점',710540,3,0],['인천계산점',646710,2,2]];
 function biGrid(n=9,bubble=true){ return `<div class="store-grid">${BI_GRID.slice(0,n).map(([st,amt,cnt,w],i)=>storeCardHTML(st,{amt,cnt,wait:w,waitAmt:w*163000},{bubble,i})).join('')}</div>`; }
-function biTop(dot){ return `<header class="top"><div class="brand"><span class="logo">₩</span><div><p class="eyebrow">We Vape · 사장님</p><h1>입금 요청</h1></div></div><div class="top-acts"><span class="btn ibtn">${IC.refresh}</span><span class="btn ibtn" id="bBell">${IC.bell}<i class="${dot?'on':''}"></i></span><span class="btn ibtn">?</span></div></header>`; }
+const BI_TODAY=(()=>{ const d=new Date(); return `We Vape · ${d.getMonth()+1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`; })();
+function biTop(dot){ return `<header class="top"><div class="brand"><span class="logo">₩</span><div><p class="eyebrow">${BI_TODAY}</p><h1>입금 요청</h1></div></div><div class="top-acts"><span class="btn ibtn">${IC.refresh}</span><span class="btn ibtn" id="bBell">${IC.bell}<i class="${dot?'on':''}"></i></span><span class="btn ibtn">?</span></div></header>`; }
 function biWsum(n=9,sum=1365310,st=5){ return `<div class="wsum">${wsumInner(n,sum,st)}</div>`; }
 function biHome(opts={}){ return `<div class="bi-pad">${biTop(opts.dot)}${opts.pre||''}${biWsum()}<div class="sec-head"><h2>지점</h2><span class="hint">빨간 숫자는 입금 대기</span></div>${biGrid(opts.n||9,opts.bubble!==false)}</div>`; }
 function biStore(rows,{scroll=0}={}){ const w=rows.filter(r=>!r.paid), wa=w.reduce((a,r)=>a+amtOf(r),0);
@@ -1218,9 +1244,25 @@ const BI_SCENES=[
       const s=biAdd(biSheet(`${sheetBar('상단바 알림','지점이 입금 요청을 올리면 폰 상단바로 알려 드립니다').replace('id="sx"','')}<div class="pw"><div class="st" id="bSt2"><b>아직 이 폰은 알림을 받지 않습니다</b><div class="mut">아래 버튼을 누르고 「허용」을 눌러 주세요.</div></div><span class="btn primary lg" id="bOn">이 폰에서 알림 받기</span></div>`,250));
       anim(qs('.scrim',s),[{opacity:0},{opacity:1}]); anim(qs('.in',s),[{transform:'translateY(100%)'},{transform:'none'}],{duration:D.slow}); });
     biAt(2200,()=>biTo('#bOn')); biAt(3000,()=>{ biClick('#bOn'); const o=biAdd(`<div class="bi-native" id="bPm"><div class="box"><div style="color:var(--navy)">${IC.bell.replace('<svg','<svg style="width:26px;height:26px"')}</div><b style="font-size:15px;display:block;margin:8px 0 18px">입금요청에서 알림을 보내도록 허용하시겠습니까?</b><div id="bAl" style="background:#e8f0fe;color:#1a73e8;border-radius:999px;padding:12px;font-weight:800;margin-bottom:6px">허용</div><div style="color:#1a73e8;padding:10px;font-weight:700">허용 안함</div></div></div>`); anim(o,[{opacity:0},{opacity:1}]); anim(qs('.box',o),[{transform:'scale(.9)',opacity:0},{transform:'none',opacity:1}],{duration:D.slow,easing:SPRING}); });
-    biAt(3800,()=>biTo('#bAl')); biAt(4600,()=>{ biClick('#bAl'); $('bPm')?.remove(); const m=biAdd(`<div class="modal on" id="bPin"><div class="scrim"></div><div class="dlg" style="text-align:center"><h3>사장님 비밀번호</h3><p>처음 한 번 숫자 4~8자리로 정합니다</p><div class="pin-dots" id="bDots"></div></div></div>`); anim(qs('.dlg',m),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
+    biAt(3800,()=>biTo('#bAl')); biAt(4600,()=>{ biClick('#bAl'); $('bPm')?.remove(); const m=biAdd(`<div class="modal on" id="bPin"><div class="scrim"></div><div class="dlg" style="text-align:center"><h3>비밀번호 만들기</h3><p>처음 한 번 숫자 4~8자리로 정합니다</p><div class="pin-dots" id="bDots"></div></div></div>`); anim(qs('.dlg',m),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
     [1,2,3,4].forEach(n=>biAt(4800+n*220,()=>{ const d=biQ('#bDots'); if(d) d.textContent='●'.repeat(n); }));
     biAt(6100,()=>{ biQ('#bPin')?.remove(); const st=biQ('#bSt2'); st.innerHTML='<b class="ok">✓ 이 폰에서 알림을 받고 있습니다</b><div class="mut">지점이 입금 요청을 올리면 상단바에 바로 뜹니다.</div>'; anim(st,[{transform:'scale(.95)'},{transform:'none'}],{duration:D.slow,easing:SPRING}); const o=biQ('#bOn'); o.textContent='테스트 알림 보내기'; o.className='btn white lg'; biQ('#bBell i').classList.remove('on'); biCur(300,560); biToast('이 폰에서 알림을 받습니다'); });
+  },
+  /* ④ 카톡 보고는 이제 그만 — 기존 방식 ✕ → 바로 이 앱으로 */
+  ()=>{ const P=[['구월로데오점 김하늘 주임','[구월로데오점] 11월 비품 주문건 1) 일반 비품류 은행 : 우리은행','오후 2:14',3,'#7C8CC9'],['인천연수점 이도윤 매니저','[연수점] 11월 관리비 납부 은행 : 신한은행 계좌 : 100-…','오후 1:52',2,'#5FA79C'],['구월길병원점 박서준 점장','[길병원점] 11월 택배비 정산 (로젠택배) 은행 : 카카오뱅크','오전 11:30',4,'#C29468'],['부천중동점 최유나 주임','[중동점] 11월 비품 주문건 2) 사무용품 금액 : 47,800원','오전 10:05',1,'#B07CC9'],['인천논현점 정민재 매니저','[논현점] 10월 관리비 납부 납기일 : 11월 02일','어제',2,'#D07C7C'],['인천계산점 한지우 주임','[계산점] 11월 비품 주문건 은행 : 우리은행 계좌 : 1234…','어제',5,'#6C9BD2']];
+    biSet(`<div class="bi-kk" id="bKkL"><div class="hd">채팅<span style="font-size:13px;color:#8a8f99;font-weight:600">안 읽음 17</span></div>${P.map((r,i)=>`<div class="rw" id="bR${i}"><span class="av" style="background:${r[4]}">${r[0].slice(0,1)}</span><span class="tx"><b>${r[0]}</b><span>${r[1]}</span></span><span class="mt">${r[2]}<span class="un">${r[3]}</span></span></div>`).join('')}</div>`);
+    stagger(qsa('.bi-kk .rw',$('biScene')),{y:10}); biCur(300,600);
+    biAt(800,()=>biTo('#bR2')); biAt(1500,()=>{ biClick('#bR2'); const c=biAdd(`<div class="bi-chat" id="bCh"><div style="font-weight:800;font-size:16px;color:#191919">구월길병원점 박서준 점장</div><div class="nm">박서준 점장</div><div class="bb">[길병원점] 11월 택배비 정산 (로젠택배)\n\n은행 : 카카오뱅크\n계좌 : <mark id="bAcc">3333000000000</mark>\n예금주 : 홍길동\n금액 : 648,000원\n건수 : 36건</div><div class="nm" style="margin-top:12px">박서준 점장</div><div class="bb">대표님 확인 부탁드립니다 🙏</div></div>`); anim(c,[{opacity:0,transform:'translateX(30px)'},{opacity:1,transform:'none'}],{duration:D.slow}); });
+    biAt(2300,()=>biTo('#bAcc')); biAt(2900,()=>{ biClick('#bAcc'); const m=biQ('#bAcc'); if(m) anim(m,[{opacity:.4},{opacity:1}],{duration:300,iterations:2}); });
+    biAt(3600,()=>{ const o=biAdd(`<div class="bi-old"><span class="fog"></span><svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="58"/><path d="M44 44l44 44"/><path d="M88 44l-44 44"/></svg><b>기존 방식</b><span>지점마다 개인 카톡으로 보고가 쌓이고<br>카톡을 뒤져서 계좌를 복사</span></div>`);
+      anim(qs('.fog',o),[{opacity:0},{opacity:1}],{duration:D.base}); const sv=qs('svg',o); anim(sv,[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING});
+      qsa('path',o).forEach((p,i)=>anim(p,[{strokeDashoffset:60},{strokeDashoffset:0}],{duration:D.base,delay:200+i*140,easing:EIO})); stagger(qsa('b,span:not(.fog)',o),{y:10,base:300}); biCur(310,600); });
+    biAt(5300,()=>{ biSet(biHome({n:6})); const cap=$('biC4'); if(cap){ cap.innerHTML='<b>이제는</b> 지점이 <b>[입금 요청]</b>을 누르면 <b>이 앱으로 바로</b> — 카톡 보고는 생략해도 됩니다'; anim(cap,[{opacity:0},{opacity:1}],{duration:D.base}); }
+      const fg=biAdd('<div class="bi-fog"></div>'); anim(fg,[{opacity:0},{opacity:1}],{duration:D.base}); const nw=biAdd(`<div class="bi-now"><small>이제는</small><b>지점이 <em>[입금 요청]</em>을 누르면<br>이 앱으로 바로 들어옵니다!</b></div>`); anim(nw,[{opacity:0,transform:'translateY(16px) scale(.94)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
+    biAt(6900,()=>{ const nw=biQ('.bi-now'); if(nw) anim(nw,[{opacity:1},{opacity:0,transform:'translateY(-10px) scale(.97)'}],{duration:D.base,fill:'forwards'}); const fg=biQ('.bi-fog'); if(fg) anim(fg,[{opacity:1},{opacity:0}],{duration:D.base,fill:'forwards'});
+      const n=biAdd(`<div class="bi-notif" style="z-index:36"><div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-3)"><img src="boss/boss-192.png" alt="" style="width:16px;height:16px;border-radius:4px">입금요청 · 지금</div><b style="display:block;font-size:15px;margin-top:4px">구월로데오점 비품 주문건</b><div style="font-size:14px;color:var(--ink-2)">입금 요청이 들어왔습니다 · 225,420원</div></div>`); anim(n,[{opacity:0,transform:'translateY(-90px)'},{opacity:1,transform:'none'}],{duration:D.slow+100,easing:SPRING}); });
+    biAt(7900,()=>{ const b=biQ('.bubble[data-bubble="구월로데오점"]'); if(b){ b.textContent='2'; pop(b); } const c=biQ('.wsum .cnt'); if(c){ c.textContent='10'; pop(c); } const s=biQ('.ws-num'); if(s){ s._v=1365310; countUp(s,1590730); } biTo('.bubble[data-bubble="구월로데오점"]'); });
+    biAt(9300,()=>{ const n=biQ('.bi-notif'); if(n) anim(n,[{opacity:1},{opacity:0,transform:'translateY(-40px)'}],{duration:D.base,fill:'forwards'}); });
   },
   /* ④ 알림이 오면 */
   ()=>{ const d=new Date(); biSet(`<div class="bi-lock"><div style="color:#fff;text-align:center;padding-top:96px;font-size:58px;font-weight:300;letter-spacing:-.02em">${pad2(d.getHours())}:${pad2(d.getMinutes())}</div><div style="color:#C9D2F0;text-align:center;font-size:14px">${d.getMonth()+1}월 ${d.getDate()}일 ${'일월화수목금토'[d.getDay()]}요일</div></div>`);
@@ -1243,7 +1285,7 @@ const BI_SCENES=[
   /* ⑦ 입금 완료 — 다음 건이 올라옴 */
   ()=>{ biSet(biStore(BI_ROWS().slice(0,2))); biCur(300,620); biAt(400,()=>biTo('.pc [data-paid]')); biAt(1200,()=>{ biClick('.pc [data-paid]');
       const m=biAdd(`<div class="modal on" id="bAsk"><div class="scrim"></div><div class="dlg"><h3>입금 완료로 바꿀까요?</h3><div class="big n">497,890<small>원</small></div><p>구월길병원점 · 관리비 ${mNum(BI_M)}월분</p><div class="row"><span class="btn">취소</span><span class="btn primary" id="bY">입금 완료</span></div></div></div>`); anim(qs('.dlg',m),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
-    biAt(2000,()=>biTo('#bY')); biAt(2700,()=>{ biClick('#bY'); biQ('#bAsk .dlg').innerHTML='<h3>사장님 비밀번호 만들기</h3><p>처음 한 번만 — 다음부터는 묻지 않습니다</p><div class="pin-dots" id="bDots"></div>'; });
+    biAt(2000,()=>biTo('#bY')); biAt(2700,()=>{ biClick('#bY'); biQ('#bAsk .dlg').innerHTML='<h3>비밀번호 만들기</h3><p>처음 한 번만 — 다음부터는 묻지 않습니다</p><div class="pin-dots" id="bDots"></div>'; });
     [1,2,3,4].forEach(n=>biAt(2900+n*200,()=>{ const d=biQ('#bDots'); if(d) d.textContent='●'.repeat(n); }));
     biAt(4000,()=>{ biQ('#bAsk')?.remove(); const card=biQ('.pc'); const ov=document.createElement('div'); ov.className='done-ov'; ov.innerHTML=`<svg class="ck" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>입금 완료</b><span class="amt n">구월길병원점 · 497,890원</span>`; card.appendChild(ov);
       anim(ov,[{opacity:0},{opacity:1}],{duration:D.fast}); const c=qs('circle',ov); c.style.transformOrigin='32px 32px'; anim(c,[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:D.slow,easing:SPRING}); anim(qs('path',ov),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:D.base+60,delay:180,easing:EIO}); stagger(qsa('b,.amt',ov),{y:10,base:200,dur:320}); biCur(300,600); });
@@ -1270,7 +1312,8 @@ const BI_SCENES=[
     biSet(`<div class="bi-pad" style="transform:translateY(-6px)">${biTop()}${biWsum()}${box(vals.cur,lab(BI_M))}</div>`);
     const show=v=>{ countUp(biQ('#bMT'),v.t); countUp(biQ('#bMP'),v.p,'원'); countUp(biQ('#bMW'),v.w,'원'); qsa('.mk b',$('biScene')).forEach((b,j)=>countUp(b,v.k[j],'원')); biQ('#bMH').textContent=`청구 ${v.c}건 · 입금 대기 ${v.wn}건`; const mx=Math.max(...v.k); requestAnimationFrame(()=>{ biQ('#bMB').style.setProperty('--p',v.p/v.t); qsa('.mk .tr i',$('biScene')).forEach((x,j)=>x.style.setProperty('--p',v.k[j]/mx)); }); };
     biAt(300,()=>show(vals.cur)); biCur(300,620); biAt(1400,()=>biTo('#bMp')); biAt(2200,()=>{ biClick('#bMp'); biQ('#bML').textContent=lab(pm); pop(biQ('#bML')); anim(biQ('.m-body'),[{opacity:0,transform:'translateX(-22px)'},{opacity:1,transform:'none'}],{duration:D.base+60}); show(vals.prev); });
-    biAt(4000,()=>biTo('#bMn')); biAt(4800,()=>{ biClick('#bMn'); biQ('#bML').textContent=lab(BI_M); pop(biQ('#bML')); anim(biQ('.m-body'),[{opacity:0,transform:'translateX(22px)'},{opacity:1,transform:'none'}],{duration:D.base+60}); show(vals.cur); }); }
+    biAt(4000,()=>biTo('#bMn')); biAt(4800,()=>{ biClick('#bMn'); biQ('#bML').textContent=lab(BI_M); pop(biQ('#bML')); anim(biQ('.m-body'),[{opacity:0,transform:'translateX(22px)'},{opacity:1,transform:'none'}],{duration:D.base+60}); show(vals.cur); });
+    biAt(6000,()=>{ const e=biAdd('<div class="bi-end">카톡 보고 없이, 이 앱 하나로</div>'); anim(e,[{opacity:0,transform:'translate(-50%,16px) scale(.94)'},{opacity:1,transform:'translateX(-50%)'}],{duration:D.slow,easing:SPRING}); }); }
 ];
 function biShow(i){
   BI.timers.forEach(clearTimeout); BI.timers=[]; BI.i=i;
@@ -1282,14 +1325,14 @@ function biShow(i){
   if(!last) biAt(BI.DUR[i]+500,()=>biShow(i+1));
 }
 function biFit(){ const st=$('biStage'); const maxH=window.innerHeight-230, w=Math.max(200,Math.min(360, maxH*360/640, window.innerWidth-40)); st.style.width=w+'px'; st.style.height=(w*640/360)+'px'; BI.k=w/360; $('biIn').style.transform=`scale(${BI.k})`; }
-function openBI(){ try{ localStorage.setItem('bossIntroSeen3','1'); }catch(e){} $('bi').classList.add('show'); biFit(); biShow(0); }
+function openBI(){ try{ localStorage.setItem('bossIntroSeen4','1'); }catch(e){} $('bi').classList.add('show'); biFit(); biShow(0); }
 function closeBI(){ BI.timers.forEach(clearTimeout); BI.timers=[]; $('bi').classList.remove('show'); $('biScene').innerHTML=''; }
 (function(){
   $('biBar').innerHTML=BI_SCENES.map((_,j)=>`<i data-j="${j}"><b></b></i>`).join('');
   $('biBar').querySelectorAll('i').forEach(el=>el.onclick=()=>biShow(+el.dataset.j));
   $('biPrev').onclick=()=>{ if(BI.i>0) biShow(BI.i-1); }; $('biNext').onclick=()=>{ if(BI.i<BI_SCENES.length-1) biShow(BI.i+1); else closeBI(); };
   $('biSkip').onclick=closeBI; $('help').onclick=openBI; window.addEventListener('resize',()=>{ if($('bi').classList.contains('show')) biFit(); });
-  try{ if(/[?&]intro=1/.test(location.search) || !localStorage.getItem('bossIntroSeen3')) setTimeout(openBI,300); }catch(e){}
+  try{ if(/[?&]intro=1/.test(location.search) || !localStorage.getItem('bossIntroSeen4')) setTimeout(openBI,300); }catch(e){}
 })();
 
 /* ───────── 시작 ───────── */

@@ -798,6 +798,84 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
 .m-tip{position:absolute;z-index:25;padding:5px 10px;border-radius:8px;background:var(--ink);color:#fff;font-size:10.5px;font-weight:600;white-space:nowrap;animation:m-pop2 var(--d-base) var(--spring) both}
 .m-tip::after{content:"";position:absolute;left:var(--ax,50%);top:-4px;width:8px;height:8px;background:inherit;transform:translateX(-50%) rotate(45deg)}
 
+/* 「필요할 때만」 표시 */
+.m-opt{display:inline-flex;align-items:center;height:15px;padding:0 6px;margin-left:3px;border-radius:999px;background:var(--fill-2);color:var(--ink-3);font-size:8.5px;font-weight:600;vertical-align:1px}
+/* 기존 방식(카톡 보고) → ✕ */
+.m-old{position:absolute;inset:0;z-index:22}
+.m-old-sc{position:absolute;inset:0;background:rgba(243,245,248,.95);animation:m-ovin var(--d-slow) ease both}
+.m-old.out{transition:opacity var(--d-slow) ease;opacity:0}
+.m-old-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.m-old-card{position:relative;width:440px;padding:12px 14px 14px;border-radius:16px;background:#fff;box-shadow:var(--sh-2);transform:scale(.94);transition:transform var(--d-slow) var(--ease);animation:m-sheet var(--d-slow) var(--spring) both}
+.m-old-card .cx{opacity:.7;transition:opacity var(--d-slow) ease}
+.m-old.no .m-old-card{transform:scale(.9)}
+.m-old.no .m-old-card .cx{opacity:.4}
+.m-old-card .lb{display:inline-flex;height:20px;align-items:center;padding:0 9px;border-radius:999px;background:var(--fill-2);color:var(--ink-2);font-size:10px;font-weight:700}
+.m-old-steps{display:flex;align-items:center;gap:5px;margin-top:9px}
+.m-old-steps > span{opacity:0;transform:translateY(6px);transition:opacity var(--d-base) ease,transform var(--d-base) var(--ease)}
+.m-old-steps > span.in{opacity:1;transform:none}
+.m-old-steps .st{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px 0 5px;border-radius:9px;background:var(--fill);font-size:10.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.m-old-steps .st i{width:16px;height:16px;border-radius:50%;background:var(--ink-4);color:#fff;display:grid;place-items:center;font-style:normal;font-size:9px}
+.m-old-steps .ar{color:var(--ink-4)}
+.m-old-steps .ar svg{width:11px;height:11px}
+.m-kt{margin-top:10px;border-radius:12px;overflow:hidden;background:#B2C7DA;opacity:0;transform:translateY(8px);transition:opacity var(--d-base) ease,transform var(--d-slow) var(--ease)}
+.m-kt.in{opacity:1;transform:none}
+.m-kt .kh{display:flex;align-items:center;gap:7px;height:30px;padding:0 10px;background:#A9BFD3;font-size:11px;color:#1F2A37}
+.m-kt .bk svg{width:11px;height:11px}
+.m-kt .av{width:18px;height:18px;border-radius:7px;background:#8FA6BC}
+.m-kt .kb{padding:8px 10px 10px}
+.m-kt .dt{width:max-content;margin:0 auto 6px;padding:1px 9px;border-radius:999px;background:rgba(0,0,0,.12);color:#fff;font-size:8.5px}
+.m-kt .bb{display:flex;justify-content:flex-end;align-items:flex-end;gap:5px;opacity:0;transform:translateY(6px) scale(.97);transform-origin:right bottom;transition:opacity var(--d-base) ease,transform var(--d-slow) var(--spring)}
+.m-kt .bb.in{opacity:1;transform:none}
+.m-kt .tm{display:flex;flex-direction:column;align-items:flex-end;font-size:8px;color:#4B5A6A}
+.m-kt .tm i{font-style:normal;color:#C9A400;font-weight:700}
+.m-kt .bub{max-width:250px;padding:6px 9px;border-radius:10px 2px 10px 10px;background:#FEE500;color:#2A2A2A;font-size:9px;line-height:1.5}
+.m-x{position:absolute;left:50%;top:50%;width:150px;height:150px;margin:-75px 0 0 -75px;pointer-events:none}
+.m-x path{fill:none;stroke:var(--red);stroke-width:7;stroke-linecap:round;stroke-dasharray:51;stroke-dashoffset:51}
+.m-old.no .m-x path{animation:m-xd 300ms var(--ease-io) both}
+.m-old.no .m-x path+path{animation-delay:160ms}
+@keyframes m-xd{to{stroke-dashoffset:0}}
+.m-now{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--navy);opacity:0;transform:translateY(10px) scale(.96);transition:opacity var(--d-base) ease,transform var(--d-slow) var(--spring)}
+.m-now.in{opacity:1;transform:none}
+.m-now .ic{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center}
+.m-now .ic svg{width:17px;height:17px}
+/* 대표님 전용 앱(휴대폰) */
+.m-app.dim{opacity:.22}
+.m-phone{position:absolute;left:44px;top:18px;width:214px;height:424px;padding:7px;border-radius:32px;background:#1A2030;box-shadow:var(--sh-3);z-index:21;animation:m-phin 560ms var(--spring-soft) both}
+@keyframes m-phin{from{opacity:0;transform:translateX(-40px) scale(.96)}}
+.m-phone .scr{position:relative;height:100%;border-radius:26px;background:var(--bg);overflow:hidden;padding:0 10px}
+.m-phone .sb{display:flex;justify-content:space-between;align-items:center;height:26px;padding:0 8px;font-size:9px;font-weight:700;color:var(--ink)}
+.m-phone .sb .nt{width:60px;height:16px;border-radius:10px;background:#1A2030}
+.m-phone .sb span:last-child{font-size:6px;letter-spacing:1px}
+.m-phone .p-hd{padding:12px 4px 8px}
+.m-phone .p-hd small{font-size:8.5px;font-weight:700;color:var(--navy-ink)}
+.m-phone .p-hd .tt{display:flex;align-items:center;gap:6px;font-size:17px;font-weight:800;letter-spacing:-.03em;margin-top:1px}
+.p-list{display:grid;gap:5px}
+.p-r{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px;height:41px;padding:0 9px;border-radius:12px;background:#fff;box-shadow:var(--sh-1)}
+.p-r b{display:block;font-size:10.5px;font-weight:700}
+.p-r small{display:block;font-size:8px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-r em{font-style:normal;font-weight:800;font-size:11px;font-variant-numeric:tabular-nums}
+.p-r em small{display:inline;font-size:8px;margin-left:1px}
+.p-r.nw{box-shadow:inset 0 0 0 2px var(--navy-ink),var(--sh-2)}
+.p-r .k,.m-bill .k{display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:6px;font-size:8.5px;font-weight:700}
+.p-r .k.s,.m-bill .k.s{background:var(--k-supply-soft);color:var(--k-supply)}
+.p-r .k.f{background:var(--k-fee-soft);color:var(--k-fee)}
+.p-r .k.p{background:var(--k-ship-soft);color:var(--k-ship)}
+.m-phone .pn{position:absolute;left:6px;right:6px;top:30px;z-index:2;display:flex;gap:7px;padding:8px 9px;border-radius:14px;background:rgba(255,255,255,.97);box-shadow:var(--sh-3);opacity:0;transform:translateY(-70px);transition:opacity var(--d-base) ease,transform var(--d-slow) var(--spring-soft)}
+.m-phone .pn.in{opacity:1;transform:none}
+.m-phone .pn .ai{flex:none;width:22px;height:22px;border-radius:7px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800}
+.m-phone .pn small{display:block;font-size:8px;color:var(--ink-3)}
+.m-phone .pn b{display:block;font-size:10px;font-weight:700;line-height:1.35;word-break:keep-all}
+.m-bill{height:auto;padding:8px 12px;gap:8px}
+.m-bill b{display:block;font-size:11px}
+.m-bill small{display:block;font-size:9.5px;color:var(--orange);font-weight:700}
+.m-big{position:absolute;left:290px;right:22px;top:118px;z-index:21;padding:20px 22px;border-radius:20px;background:#fff;box-shadow:var(--sh-3);animation:m-sheet var(--d-slow) var(--spring) both}
+.m-big .l1,.m-big .l2{font-size:24px;font-weight:800;letter-spacing:-.035em;line-height:1.38;color:var(--ink)}
+.m-big .pl{display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:10px;background:var(--navy);color:#fff;font-size:18px;vertical-align:2px}
+.m-big em{font-style:normal;color:var(--navy-ink)}
+.m-big .sm{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:11.5px;color:var(--ink-2);font-weight:600}
+.m-big .no{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 9px;border-radius:999px;background:var(--red-soft);color:var(--red);font-weight:700;text-decoration:line-through}
+.m-big .no svg{width:10px;height:10px}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01ms!important;transition-delay:0s!important}
   ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
@@ -1947,7 +2025,7 @@ async function loadBill(o){
 }
 
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「사용법 보기」로 다시) ---------- */
-const INTRO_KEY='supplyIntroSeen3';
+const INTRO_KEY='supplyIntroSeen4';
 const IN={ i:0, k:1, timers:[], opener:null };
 const M_ITEMS=[['핫식스 제로','250ml X 30개',2,21900],['이오 알콜스왑','100개입 X 1갑',3,4500],['니트릴장갑','블랙 X M',2,8900],['캡형 물티슈','100매 X 10팩',1,11900],['종이컵 6.5온스','1000개',1,13500],['영수증 용지','80x80 X 50롤',2,31400]];
 const M_TOTAL=M_ITEMS.reduce((a,i)=>a+i[2]*i[3],0);
@@ -1976,7 +2054,7 @@ const M_MSG=['[구월길병원점] 11월 비품 주문건','','1) 일반 비품�
 function mResS({amt=0,chk='',msg=false,line=false,done=false}={}){
   return `<div class="m-res" id="mRes"><div class="l">품목 합계</div><div class="big"><span id="mAmt" data-v="${amt}">${fmt(amt)}</span><small>원</small></div>
     <div style="margin-top:5px;min-height:19px" id="mChk">${chk}</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><b style="font-size:11px">카톡 멘트</b><span class="m-btn sm soft" id="mCopy">${IC.copy}멘트 복사</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><b style="font-size:11px">멘트 <span class="m-opt">필요할 때만</span></b><span class="m-btn sm soft" id="mCopy">${IC.copy}멘트 복사</span></div>
     <div class="m-msg ${msg?'':'blank'}" id="mMsg" style="max-height:78px;overflow:hidden">${msg?M_MSG.map(l=>`<div class="in">${l||'&nbsp;'}</div>`).join(''):'품목을 넣으면 입금요청 멘트가 여기에 만들어집니다.'}</div>
     <div style="font-size:9.5px;font-weight:700;margin-top:6px;color:var(--ink-2)">송금용 한 줄</div>
     <div class="m-line" id="mLine">${line?`<code>${M_LINE}</code><span class="m-btn sm" id="mLineBtn">복사</span>`:'<code style="color:var(--ink-4);font-weight:400">입금 정보를 넣으면 한 줄로 나옵니다</code>'}</div>
@@ -1998,11 +2076,11 @@ function mBill(kind,{auto=false}={}){
     <div class="m-grid4"><div class="m-field">청구월<b>2026년 10월분</b></div>${ship?'<div class="m-field">건수<b id="bC"></b></div><div class="m-field">택배사<b>로젠</b></div>':'<div class="m-field" style="grid-column:span 2">납기일<b id="bD"></b></div>'}<div class="m-field">멘트용 지점명<b>구월점</b></div></div>
     <div class="m-sub">받는 계좌 <span class="${auto?'g':''}" id="bAutoNote">${auto?'✓ 지난달 청구에서 자동으로 채워졌습니다':'한 번 청구하면 다음 달부터 자동으로 채워집니다'}</span></div>
     <div class="m-grid3"><div class="m-field">은행<b id="bB" class="${auto?'auto':''}">${auto?(ship?'카카오뱅크':'신한은행'):''}</b></div><div class="m-field">계좌번호<b id="bN" class="${auto?'auto':''}">${auto?(ship?'3333000000000':'100000000000'):''}</b></div><div class="m-field">예금주<b id="bH" class="${auto?'auto':''}">${auto?(ship?'홍길동':'관리사무소'):''}</b></div></div>
-    <div class="m-sub">사진 첨부 <span>${ship?'택배 정산현황 사진':'관리비 고지서 사진'} — 사장님 앱에서 같이 보입니다</span></div>
+    <div class="m-sub">사진 첨부 <span>${ship?'택배 정산현황 사진':'관리비 고지서 사진'} — 대표님 앱에서 같이 보입니다</span></div>
     <div class="m-phs" id="bPh"><div class="m-ph" id="bAdd">${IC.photo.replace('<svg','<svg style="width:18px;height:18px"')}</div></div></div></div>
     <div class="m-res" id="mRes"><div class="l">${ship?'정산 금액':'납부 금액'}</div><div class="big"><span id="mAmt" data-v="0">0</span><small>원</small></div>
       <div style="margin-top:5px;min-height:19px" id="mChk"><span class="m-chip wait">금액 입력 필요</span></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><b style="font-size:11px">카톡 멘트</b><span class="m-btn sm soft">${IC.copy}멘트 복사</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px"><b style="font-size:11px">멘트 <span class="m-opt">필요할 때만</span></b><span class="m-btn sm soft">${IC.copy}멘트 복사</span></div>
       <div class="m-msg" id="mMsg" style="min-height:96px"></div>
       <div style="font-size:9.5px;font-weight:700;margin-top:6px;color:var(--ink-2)">송금용 한 줄</div>
       <div class="m-line" id="mLine"><code id="mLineTx"></code><span class="m-btn sm" id="mLineBtn">복사</span></div>
@@ -2016,6 +2094,18 @@ function mHRow(r,nok){ const st=r[4]==='wait'?'<span class="m-chip wait">입금 
   return `<div class="m-hr ${nok?'nok':''}" data-k="${r[1]}">${nok?'':`<span class="k ${r[0]}">${r[1]}</span>`}<div style="min-width:0"><div class="tt">${r[2]}</div><div class="mt">${r[3]}</div></div><div style="display:flex;gap:3px" class="stc">${st}</div><div class="am">${won(r[5])}</div><div class="ac">${r[6]?`<span class="m-btn sm soft">${IC.down}엑셀</span>`:''}<span class="m-btn sm quiet">멘트</span><span class="m-btn sm quiet lnb">한 줄 복사</span><span class="m-btn sm quiet">불러오기</span></div></div>`; }
 function mHist(rows){ return `<div class="m-card" style="padding:10px 12px"><div class="m-h" style="align-items:center;margin-bottom:2px">지난 청구이력<span class="hint" style="margin-left:6px">구월길병원점의 비품 · 관리비 · 택배비</span><span style="margin-left:auto;--i:0" class="m-seg" id="mSeg"><span class="si"></span><span class="on" data-f="전체">전체</span><span data-f="비품">비품</span><span data-f="관리비">관리비</span><span data-f="택배비">택배비</span></span></div>
   <div class="m-mon">2026년 11월<span>${rows.length}건 · 입금 대기 ${rows.filter(r=>r[4]==='wait').length}건</span><span class="t">${won(rows.reduce((a,r)=>a+r[5],0))}</span></div><div id="mHL">${rows.map(r=>mHRow(r)).join('')}</div></div>`; }
+
+function mOldHTML(){ return `<div class="m-old-sc"></div><div class="m-old-in"><div class="m-old-card" id="mOldCard"><div class="cx"><div class="lb">기존 방식</div>
+  <div class="m-old-steps"><span class="st"><i>1</i>멘트 복사</span><span class="ar">${IC.go}</span><span class="st"><i>2</i>카톡 열기</span><span class="ar">${IC.go}</span><span class="st"><i>3</i>대표님 1:1 개인톡에 붙여넣어 보고</span></div>
+  <div class="m-kt"><div class="kh"><span class="bk">${IC.back}</span><span class="av"></span><b>대표님</b></div><div class="kb"><div class="dt">2026년 11월 16일 월요일</div><div class="bb"><span class="tm"><i>1</i>오후 2:14</span><div class="bub">${M_MSG.slice(0,7).filter(Boolean).join('<br>')}</div></div></div></div></div>
+  <svg class="m-x" viewBox="0 0 64 64"><path d="M14 14L50 50"/><path d="M50 14L14 50"/></svg></div>
+  <div class="m-now"><span class="ic">${IC.check}</span>이제 카톡 보고는 안 해도 됩니다</div></div>`; }
+const P_ROWS=[['f','관리비','인천연수점','10월분 관리비 · 납기 11/30',412300],['p','택배비','부천상동점','10월분 택배비 · 로젠 27건',121500]];
+function pRow(r,nw){ return `<div class="p-r ${nw?'nw':''}"><span class="k ${r[0]}">${r[1]}</span><div style="min-width:0"><b>${r[2]}</b><small>${r[3]}</small></div><em>${fmt(r[4])}<small>원</small></em></div>`; }
+function mPhoneHTML(){ return `<div class="m-phone" id="mPhone"><div class="scr"><div class="sb"><span>14:14</span><span class="nt"></span><span>●●●</span></div>
+  <div class="pn" id="mPn"><span class="ai">W</span><div><small>대표님 전용 앱 · 지금</small><b>구월길병원점 비품 주문건 입금 요청이 들어왔습니다</b></div></div>
+  <div class="p-hd"><small>We Vape · 대표님 전용 앱</small><div class="tt">입금 요청 <span class="m-chip wait" id="pCnt">2건</span></div></div>
+  <div class="p-list" id="pList">${P_ROWS.map(r=>pRow(r)).join('')}</div></div></div>`; }
 
 const IN_SCENES=[
   { t:'지점 선택', d:6200, c:'첫 화면에서 <b>우리 지점</b>을 누릅니다 — 지점마다 이번 달 금액과 입금 대기 건수가 보입니다', f(){
@@ -2063,7 +2153,7 @@ const IN_SCENES=[
       inCur(470,420); });
     inAt(7000,()=>inTip('.m-row:not(.hd) .op','칸을 누르면 바로 고칠 수 있습니다',16));
   }},
-  { t:'입금 정보 · 멘트 · 엑셀', d:11800, c:'입금대기 화면도 붙여넣으면 <b>카톡 멘트</b>와 <b>송금용 한 줄</b>이 나옵니다. 보고용 엑셀에는 <b>품목이 자동기입</b> 됩니다!', f(){
+  { t:'입금 정보 · 카톡 보고 생략', d:10600, c:'입금대기 화면을 붙여넣으면 금액이 맞는지 바로 확인됩니다. 이제 <b>멘트를 복사해 카톡으로 보고하지 않아도 됩니다</b> — 멘트·한 줄·엑셀은 필요할 때만', f(){
     $('inScene').innerHTML=mFrame(1,`<div class="m-work">${mPayCol(false)}${mResS({amt:M_TOTAL,chk:'<span class="m-chip wait">입금 정보가 아직 없습니다</span>'})}</div>`);
     inCur(600,430,true);
     inAt(300,()=>inMove('#mPay',-60,0)); inAt(1100,()=>{ inClick(); inQ('#mPay').classList.add('focus'); }); inAt(1400,()=>inKeys('Ctrl','V'));
@@ -2071,29 +2161,34 @@ const IN_SCENES=[
       inAt(350,()=>{ $('mChk').innerHTML=`<span class="m-chip ok pop">${IC.check}품목 합계와 입금 합계 일치</span>`; });
       const m=$('mMsg'); m.classList.remove('blank'); m.innerHTML=M_MSG.map(l=>`<div>${l||'&nbsp;'}</div>`).join(''); qsa('div',m).forEach((d,i)=>inAt(500+i*90,()=>d.classList.add('in')));
       inAt(1300,()=>{ $('mLine').innerHTML=`<code>${M_LINE}</code><span class="m-btn sm" id="mLineBtn">복사</span>`; anim($('mLine'),[{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); }); });
-    inAt(3700,()=>inMove('#mLineBtn',4,3)); inAt(4500,()=>{ inClick('#mLineBtn'); $('mLineBtn').innerHTML=`${IC.check}복사됨`; inToast('송금용 한 줄을 복사했습니다'); });
-    inAt(5400,()=>inMove('#mCopy',6,3)); inAt(6200,()=>{ inClick('#mCopy'); $('mCopy').innerHTML=`${IC.check}복사됨`; inToast('멘트를 복사했습니다'); });
-    inAt(7100,()=>inMove('#mXl',10,2)); inAt(7900,()=>{ inClick('#mXl');
-      const x=document.createElement('div'); x.className='m-xl'; x.style.left='60px'; x.style.top='150px';
-      x.innerHTML=`<div class="fh"><i>X</i>비품주문보고용(26.11.16).xlsx</div><div class="xh">구월길병원점 비품 주문서</div><div class="xr hd"><span>품목명</span><span>수량</span><span>링크</span><span>단가</span></div>${M_ITEMS.map(it=>`<div class="xr d"><span>${it[0]}</span><span>${it[2]}</span><span class="lk">쿠팡 ▸</span><span>${fmt(it[3])}</span></div>`).join('')}`;
-      $('inScene').appendChild(x); qsa('.xr.d',x).forEach((r,i)=>inAt(400+i*160,()=>r.classList.add('in')));
-      inAt(1500,()=>{ const b=document.createElement('div'); b.className='bdg'; b.textContent='보고용 엑셀에는 품목이 자동기입 됩니다!'; x.appendChild(b); }); inCur(520,430); });
+    inAt(3400,()=>{ inCur(790,450); const o=document.createElement('div'); o.className='m-old'; o.innerHTML=mOldHTML(); $('inScene').appendChild(o);
+      qsa('.m-old-steps > span',o).forEach((x,i)=>inAt(300+i*200,()=>x.classList.add('in')));
+      inAt(1400,()=>qs('.m-kt',o).classList.add('in')); inAt(1800,()=>qs('.m-kt .bb',o).classList.add('in')); });
+    inAt(6000,()=>inQ('.m-old').classList.add('no'));
+    inAt(6700,()=>inQ('.m-now').classList.add('in'));
+    inAt(8700,()=>{ const o=inQ('.m-old'); o.classList.add('out'); inAt(D.slow,()=>o.remove()); inAt(500,()=>inTip('#mCopy','멘트·송금용 한 줄·엑셀은 필요할 때만 쓰세요',14)); });
   }},
-  { t:'주문 완료 처리', d:8200, c:'카톡 전송 후 <b>주문 완료 처리</b> — 금액이 「지난 청구이력」으로 들어가고 사장님 앱 입금 대기에 올라갑니다', f(){
+  { t:'주문 완료 → 대표님 앱', d:10800, c:'이제는 <b>[주문 완료 처리]</b> 한 번이면 <b>대표님 전용 앱</b>으로 바로 입금 요청이 들어갑니다 — 「지난 청구이력」에도 저장됩니다', f(){
     $('inScene').innerHTML=mFrame(1,mSupply({rows:true,res:{amt:M_TOTAL,chk:`<span class="m-chip ok">${IC.check}품목 합계와 입금 합계 일치</span>`,msg:true,line:true}}));
     inCur(420,420,true);
     inAt(300,()=>inMove('#mDone',20,2)); inAt(1100,()=>{ inClick('#mDone');
-      const s=document.createElement('div'); s.className='m-sheet-wrap'; s.innerHTML=`<div class="m-scrim"></div><div class="m-sheet"><h4>11월 주문으로 완료 처리할까요?</h4><div class="bg">${fmt(M_TOTAL)}<small>원</small></div><p>구월길병원점 · 품목 6개</p><div class="nt">완료한 주문만 「지난 청구이력」과 월 합계에 들어갑니다.</div><div class="rw"><span class="m-btn">취소</span><span class="m-btn primary" id="mYes">완료 처리</span></div></div>`; $('mApp').appendChild(s); });
+      const s=document.createElement('div'); s.className='m-sheet-wrap'; s.innerHTML=`<div class="m-scrim"></div><div class="m-sheet"><h4>11월 주문으로 완료 처리할까요?</h4><div class="bg">${fmt(M_TOTAL)}<small>원</small></div><p>구월길병원점 · 품목 6개</p><div class="nt">완료 처리하면 대표님 전용 앱으로 입금 요청이 바로 들어갑니다.</div><div class="rw"><span class="m-btn">취소</span><span class="m-btn primary" id="mYes">완료 처리</span></div></div>`; $('mApp').appendChild(s); });
     inAt(1900,()=>inMove('#mYes',10,2)); inAt(2700,()=>{ inClick('#mYes'); });
-    inAt(2950,()=>{ inQ('.m-sheet-wrap').remove(); const r=$('mRes'); r.classList.add('lift'); const o=document.createElement('div'); o.className='m-ov'; o.innerHTML=`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>주문 완료</b><span class="n" id="mOvAmt">${won(M_TOTAL)}</span><span>지난 청구이력에 넣는 중</span>`; r.appendChild(o); inCur(560,440); });
-    inAt(4000,()=>{ const src=$('mOvAmt'), dst=inQ('.m-tabs span[data-t="0"]'); const [x0,y0]=inPos(src), [x1,y1]=inPos(dst);
-      const g=document.createElement('div'); g.className='m-fly'; g.innerHTML=`<span class="dot k-비품"></span>11월 비품 · ${won(M_TOTAL)}`; $('inScene').appendChild(g); const w=g.offsetWidth, h=g.offsetHeight;
-      src.style.opacity=0; $('mRes').classList.remove('lift');
-      anim(g,[{transform:`translate(${x0-w/2}px,${y0-h/2}px) scale(.9)`,opacity:0,offset:0},{transform:`translate(${x0-w/2}px,${y0-h/2}px) scale(1.06)`,opacity:1,offset:.2,easing:EIO},{transform:`translate(${x1-w/2}px,${y1-h/2}px) scale(.55)`,opacity:.9,offset:.92},{transform:`translate(${x1-w/2}px,${y1-h/2}px) scale(.4)`,opacity:0,offset:1}],{duration:700,easing:'linear',fill:'forwards'}).finished.then(()=>{ g.remove(); const t=inQ('.m-tabs span[data-t="0"]'); if(t){ t.insertAdjacentHTML('beforeend','<i class="bd">+1</i>'); pop(t); } inToast('주문 완료 — 사장님 앱 「입금 대기」에 올라갔습니다'); }); });
-    inAt(5300,()=>{ const o=inQ('.m-ov'); if(o){ anim(o,[{opacity:1},{opacity:0}],{duration:D.base,fill:'forwards'}).finished.then(()=>{ const r=$('mRes'); if(r) r.outerHTML=mResS({amt:M_TOTAL,chk:`<span class="m-chip ok">${IC.check}품목 합계와 입금 합계 일치</span>`,msg:true,line:true,done:true}); }); } });
-    inAt(6300,()=>inTip('.m-tabs span[data-t="0"]','방금 완료한 주문이 여기로 들어갔습니다',18));
+    inAt(2950,()=>{ inQ('.m-sheet-wrap').remove(); const r=$('mRes'); r.classList.add('lift'); const o=document.createElement('div'); o.className='m-ov'; o.innerHTML=`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>주문 완료</b><span class="n" id="mOvAmt">${won(M_TOTAL)}</span><span>대표님 앱으로 보내는 중</span>`; r.appendChild(o); inCur(790,450); });
+    inAt(3500,()=>{ $('inScene').insertAdjacentHTML('beforeend',mPhoneHTML()); });
+    inAt(4400,()=>{ const src=$('mOvAmt'), dst=qs('#pList .p-r'); const [x0,y0]=inPos(src), [x1,y1]=inPos(dst);
+      const g=document.createElement('div'); g.className='m-fly m-bill'; g.innerHTML=`<span class="k s">비품</span><div><b>구월길병원점 · 11월 비품 주문</b><small>입금 요청 ${won(M_TOTAL)}</small></div>`; $('inScene').appendChild(g); const w=g.offsetWidth, h=g.offsetHeight;
+      src.style.opacity=0; const r=$('mRes'); r.classList.remove('lift'); const app=$('mApp'); app.classList.remove('m-fade'); app.classList.add('dim');
+      const mx=(x0+x1)/2, my=Math.min(y0,y1)-70;
+      anim(g,[{transform:`translate(${x0-w/2}px,${y0-h/2}px) scale(.9)`,opacity:0,offset:0},{transform:`translate(${x0-w/2}px,${y0-h/2}px) scale(1.06)`,opacity:1,offset:.18,easing:EIO},{transform:`translate(${mx-w/2}px,${my-h/2}px) scale(.95)`,opacity:1,offset:.55},{transform:`translate(${x1-w/2}px,${y1-h/2}px) scale(.8)`,opacity:1,offset:.92},{transform:`translate(${x1-w/2}px,${y1-h/2}px) scale(.78)`,opacity:0,offset:1}],{duration:900,easing:'linear',fill:'forwards'}).finished.then(()=>{ g.remove();
+        const l=$('pList'); if(!l) return; l.insertAdjacentHTML('afterbegin',pRow(['s','비품','구월길병원점','11월 비품 주문 · 품목 6개',M_TOTAL],true)); anim(l.firstChild,[{opacity:0,transform:'translateY(-10px) scale(.96)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING});
+        qsa('.p-r:not(.nw)',l).forEach(x=>anim(x,[{transform:'translateY(-46px)'},{transform:'none'}],{duration:D.slow,easing:EASE}));
+        const c=$('pCnt'); c.textContent='3건'; pop(c); $('mPn').classList.add('in');
+        const t=inQ('.m-tabs span[data-t="0"]'); if(t) t.insertAdjacentHTML('beforeend','<i class="bd">+1</i>'); }); });
+    inAt(6100,()=>{ const b=document.createElement('div'); b.className='m-big'; b.innerHTML=`<div class="l1">이제는 <span class="pl">주문 완료 처리</span> 한 번이면</div><div class="l2"><em>대표님 전용 앱</em>으로</div><div class="l2">바로 요청이 들어갑니다!</div><div class="sm"><span class="no">${IC.x}카톡 보고</span>안 해도 됩니다 · 「지난 청구이력」에도 자동 저장</div>`; $('inScene').appendChild(b);
+      qsa('.m-big > div',b).forEach((d,i)=>anim(d,[{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:D.slow,delay:i*D.gap*2})); });
   }},
-  { t:'관리비 청구', d:9000, c:'<b>관리비</b>: 금액·납기일만 넣고 고지서 사진 첨부 → 멘트·송금용 한 줄 자동 → <b>청구 완료 처리</b>하면 사장님 앱으로', f(){
+  { t:'관리비 청구', d:9000, c:'<b>관리비</b>: 금액·납기일만 넣고 고지서 사진 첨부 → <b>[청구 완료 처리]</b>를 누르면 대표님 앱으로 바로 들어갑니다 — 카톡 보고 생략', f(){
     $('inScene').innerHTML=mFrame(3,mBill('관리비',{auto:true}));
     const setMsg=(a,d)=>{ $('mMsg').textContent=mBillMsg('관리비',a,d); $('mLineTx').textContent=`신한은행 100000000000 ${won(a)}`; };
     setMsg(0,''); inCur(620,430,true);
@@ -2104,9 +2199,9 @@ const IN_SCENES=[
     inAt(3800,()=>{ $('bD').classList.remove('hl'); setMsg(497890,'11월 30일'); $('mChk').innerHTML=`<span class="m-chip ok pop">${IC.check}멘트 준비 완료</span>`; });
     inAt(4000,()=>inMove('#bAdd')); inAt(4800,()=>{ inClick('#bAdd'); const p=document.createElement('div'); p.className='m-ph pop'; p.innerHTML=M_DOC; $('bPh').insertBefore(p,$('bAdd')); });
     inAt(5600,()=>inMove('#mDone',20,2)); inAt(6400,()=>{ inClick('#mDone'); const r=$('mRes'); r.classList.add('lift'); const o=document.createElement('div'); o.className='m-ov'; o.innerHTML=`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>청구 완료</b><span>${won(497890)}</span>`; r.appendChild(o); });
-    inAt(7400,()=>{ $('mRes').classList.remove('lift'); inToast('청구 완료 — 사장님 앱에 올라갔습니다'); inCur(560,440); });
+    inAt(7400,()=>{ $('mRes').classList.remove('lift'); inToast('청구 완료 — 대표님 앱으로 바로 들어갔습니다'); inCur(560,440); });
   }},
-  { t:'택배비 청구', d:8800, c:'<b>택배비</b>: 정산 금액·건수만 넣으면 멘트와 <b>송금용 한 줄</b>이 나옵니다. 받는 계좌는 지난달 청구에서 <b>자동으로 채워집니다</b>', f(){
+  { t:'택배비 청구', d:8800, c:'<b>택배비</b>: 정산 금액·건수만 넣고 <b>[청구 완료 처리]</b>를 누르면 대표님 앱으로 바로 들어갑니다 — 카톡 보고 생략. 받는 계좌는 <b>자동으로 채워집니다</b>', f(){
     $('inScene').innerHTML=mFrame(2,mBill('택배비',{auto:true}));
     const setMsg=(a,c)=>{ $('mMsg').textContent=mBillMsg('택배비',a,c); $('mLineTx').textContent=`카카오뱅크 3333000000000 ${won(a)}`; };
     setMsg(0,0); inCur(620,430,true);
@@ -2115,8 +2210,8 @@ const IN_SCENES=[
     inAt(2300,()=>{ $('bA').classList.remove('hl'); inMove('#bC',-10,0); }); inAt(3000,()=>{ inClick(); $('bC').classList.add('hl'); inType($('bC'),'32',90); });
     inAt(3500,()=>{ $('bC').classList.remove('hl'); setMsg(144000,32); $('mChk').innerHTML=`<span class="m-chip ok pop">${IC.check}멘트 준비 완료</span>`; });
     inAt(3700,()=>inMove('#bAdd')); inAt(4500,()=>{ inClick('#bAdd'); const p=document.createElement('div'); p.className='m-ph pop'; p.innerHTML=M_DOC; $('bPh').insertBefore(p,$('bAdd')); });
-    inAt(5300,()=>inMove('#mLineBtn',4,3)); inAt(6100,()=>{ inClick('#mLineBtn'); $('mLineBtn').innerHTML=`${IC.check}복사됨`; inToast('송금용 한 줄을 복사했습니다'); });
-    inAt(7000,()=>inTip('#mLine','은행 앱에 바로 붙여넣는 한 줄',14));
+    inAt(5300,()=>inMove('#mDone',20,2)); inAt(6100,()=>{ inClick('#mDone'); const r=$('mRes'); r.classList.add('lift'); const o=document.createElement('div'); o.className='m-ov'; o.innerHTML=`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>청구 완료</b><span>${won(144000)}</span>`; r.appendChild(o); });
+    inAt(7100,()=>{ $('mRes').classList.remove('lift'); inToast('청구 완료 — 대표님 앱으로 바로 들어갔습니다'); inCur(560,440); });
   }},
   { t:'지난 청구이력', d:9600, c:'<b>지난 청구이력</b>에서 월별로 모아 보고, 각 탭 아래에서도 그 종류의 지난 내역을 펼쳐 봅니다 — 엑셀·멘트·한 줄 복사·불러오기', f(){
     $('inScene').innerHTML=mFrame(0,mHist(M_HROWS));
@@ -2133,16 +2228,16 @@ const IN_SCENES=[
     inAt(6100,()=>inMove('#mFoldH',220,0)); inAt(6900,()=>{ inClick(); $('mFold').classList.add('open'); $('mFoldB').innerHTML=`<div style="margin-top:8px">${[M_HROWS[0],M_HROWS[3]].map(r=>mHRow(r,true)).join('')}</div>`; stagger(qsa('#mFoldB .m-hr',$('inScene')),{y:-8,dur:300}); });
     inAt(7800,()=>inTip('#mFoldB .m-btn.soft','지난 주문 엑셀도 언제든 다시 받기',14));
   }},
-  { t:'입금 완료 알림줄', d:7000, c:'사장님이 입금하면 위에 <b>「입금 완료」 알림줄</b>이 뜹니다 — <b>확인 완료</b>를 누르면 사장님 앱에 「지점 확인」으로 표시됩니다', f(){
+  { t:'입금 완료 알림줄', d:7000, c:'대표님이 입금하면 위에 <b>「입금 완료」 알림줄</b>이 뜹니다 — <b>확인 완료</b>를 누르면 대표님 앱에 「지점 확인」으로 표시됩니다', f(){
     const rows=[M_HROWS[3],M_HROWS[1],M_HROWS[2]];
     $('inScene').innerHTML=mFrame(0,mHist(rows));
     inCur(640,430,true);
-    inAt(700,()=>{ $('mBn').innerHTML=`<div class="m-ban" id="mBan"><span class="ic">${IC.check}</span><div><b>비품 입금 완료 · 11월 3일 주문 98,600원</b><span>사장님이 11/16 14:20에 입금 처리했습니다</span></div><span class="m-btn sm" id="mAck">확인 완료</span></div>`; });
-    inAt(1400,()=>inTip('#mBan','사장님이 입금하면 여기에 뜹니다',10));
+    inAt(700,()=>{ $('mBn').innerHTML=`<div class="m-ban" id="mBan"><span class="ic">${IC.check}</span><div><b>비품 입금 완료 · 11월 3일 주문 98,600원</b><span>대표님이 11/16 14:20에 입금 처리했습니다</span></div><span class="m-btn sm" id="mAck">확인 완료</span></div>`; });
+    inAt(1400,()=>inTip('#mBan','대표님이 입금하면 여기에 뜹니다',10));
     inAt(2500,()=>{ qsa('.m-tip',$('inScene')).forEach(t=>t.remove()); inMove('#mAck',6,2); });
     inAt(3300,()=>{ inClick('#mAck'); $('mAck').textContent='처리 중…'; });
     inAt(3700,()=>{ const b=$('mBan'); b.classList.add('gone'); setTimeout(()=>{ b.style.transition='height 260ms var(--ease),margin 260ms var(--ease),padding 260ms var(--ease)'; b.style.height=b.offsetHeight+'px'; void b.offsetWidth; b.style.height='0px'; b.style.marginTop='0px'; b.style.paddingTop=b.style.paddingBottom='0px'; },170); setTimeout(()=>b.remove(),480);
-      inToast('확인 완료 — 사장님 앱에 「지점 확인」으로 표시됩니다'); inCur(560,440); });
+      inToast('확인 완료 — 대표님 앱에 「지점 확인」으로 표시됩니다'); inCur(560,440); });
     inAt(4500,()=>{ const st=qs('#mHL .m-hr .stc',$('inScene')); if(st){ st.innerHTML=`<span class="m-chip ok">${IC.check}입금 완료</span><span class="m-chip ok pop">${IC.check}지점 확인</span>`; qs('#mHL .m-hr',$('inScene')).classList.add('hi'); } });
   }}
 ];

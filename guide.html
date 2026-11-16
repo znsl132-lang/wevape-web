@@ -103,7 +103,7 @@ h1,h2,h3,p{margin:0}
 .ctl .sp{flex:1}
 .ctl .btn{height:40px}
 .ctl #play{min-width:122px}
-.steps{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:6px}
+.steps{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px}
 .steps button{position:relative;text-align:left;padding:8px 8px 10px;border-radius:var(--r-s);background:var(--fill);color:var(--ink-3);font-size:var(--f-xs);font-weight:600;line-height:1.3;overflow:hidden;min-height:52px;transition:background-color var(--d-fast) ease,color var(--d-fast) ease,transform var(--d-base) var(--spring)}
 .steps button:hover{background:var(--fill-2);color:var(--ink-2)}
 .steps button:active{transform:scale(.96);transition-duration:90ms}
@@ -114,7 +114,7 @@ h1,h2,h3,p{margin:0}
 .steps button.done i{transform:scaleX(1);opacity:.35}
 .steps button.on{background:var(--navy-soft);color:var(--navy-ink)}
 footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height:1.8;color:var(--ink-4)}
-@media (max-width:1100px){.steps{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media (max-width:1100px){.steps{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media (max-width:700px){
   .page{padding:var(--s-4) var(--s-4) var(--s-4)}
   .g-head h1{font-size:var(--f-xl)}
@@ -130,7 +130,7 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
   .ctl .btn{padding:0 var(--s-3);font-size:var(--f-s)}
   .ctl #play{min-width:0}
   .ctl .sp{display:none}
-  .steps{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  .steps{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
   .steps button{min-height:34px;padding:6px 0 8px;text-align:center}
   .steps button span{display:none}
 }
@@ -140,6 +140,38 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
 .dlbl{position:absolute;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--ink-2);white-space:nowrap}
 .dlbl i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;display:grid;place-items:center}
 .dlbl span{font-weight:500;color:var(--ink-3)}
+.dlbl.old i{background:var(--red)}
+.kt,.dlbl.old{transition:opacity var(--t-slow) ease}
+.kt.old{opacity:.32}
+.kt.gone,.dlbl.old.gone{opacity:0}
+.kt-bk{font-size:22px;font-weight:400;color:#4B5563;margin-right:2px}
+.kt-me{margin-left:auto;font-size:10.5px;font-weight:600;color:#5B6B7C}
+.bub.in{align-self:flex-start;background:#fff;border-radius:4px 14px 14px 14px;position:relative;margin-left:36px;margin-top:14px}
+.bub.in::before{content:"대";position:absolute;left:-36px;top:-14px;width:30px;height:30px;border-radius:11px;background:#7F95AA;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.bub.in::after{content:"대표님";position:absolute;left:0;top:-16px;font-size:10px;color:#4B5563;white-space:nowrap}
+.ktx{position:absolute;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;pointer-events:none;opacity:0}
+.ktx .xx{width:112px;height:112px;border-radius:50%;background:var(--red);color:#fff;font-size:64px;font-weight:300;line-height:1;display:grid;place-items:center;box-shadow:0 10px 30px rgba(207,67,67,.4)}
+.ktx b{margin-top:6px;padding:10px 18px;border-radius:var(--r-pill);background:#fff;color:var(--red);font-size:19px;font-weight:800;box-shadow:var(--sh-2);white-space:nowrap}
+.ktx small{font-size:12.5px;color:var(--ink-2);font-weight:600;background:rgba(255,255,255,.85);border-radius:8px;padding:3px 8px;text-decoration:line-through;text-decoration-color:var(--red)}
+.ktx.on{opacity:1}
+.direct{position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:0;pointer-events:none;transition:opacity var(--t-slow) ease}
+.direct.on{opacity:1}
+.direct .dl-ln{position:relative;width:100%;height:4px;margin-bottom:14px;background:repeating-linear-gradient(90deg,var(--navy-ink) 0 10px,transparent 10px 18px)}
+.direct .dl-ln i{position:absolute;right:-4px;top:-7px;width:0;height:0;border-left:14px solid var(--navy-ink);border-top:9px solid transparent;border-bottom:9px solid transparent}
+.direct b{font-size:20px;font-weight:800;color:var(--navy)}
+.direct em{font-style:normal;font-size:14px;color:var(--ink-2);font-weight:600}
+#callout{position:absolute;left:0;right:0;top:20px;z-index:46;display:flex;justify-content:center;pointer-events:none}
+.co{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 34px 20px;border-radius:24px;background:var(--navy);color:#fff;box-shadow:var(--sh-3);text-align:center}
+.co small{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.14);font-size:14px;font-weight:700}
+.co small::before{content:"✕";color:#FF9C9C;font-weight:800}
+.co b{font-size:34px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.pk.card{height:auto;padding:12px 16px;gap:12px;border-radius:18px;font-size:14px}
+.pk.card i{display:none}
+.pk.card b{display:block;font-size:15px}
+.pk.card small{display:block;font-size:13px;color:var(--ink-3);font-weight:600}
+.ov .flow5 span.skip{opacity:.55;text-decoration:line-through;text-decoration-color:var(--red)}
+.ov .flow5 span.skip i{background:var(--red)}
+.nt div b{white-space:normal;line-height:1.35}
 .frame{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;background:var(--bg)}
 .view{position:absolute;inset:0}
 .win{position:absolute;background:#fff;border-radius:14px;box-shadow:var(--sh-2);overflow:hidden}
@@ -369,7 +401,7 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
 .bub.file small{color:var(--ink-3);font-size:10px}
 .bub.sys{align-self:center;background:rgba(20,25,38,.2);color:#fff;font-size:10px;border-radius:var(--r-pill);padding:3px 12px}
 
-/* ───────── 사장님 폰 ───────── */
+/* ───────── 대표님 폰 ───────── */
 .phone{position:absolute;background:#121620;border-radius:46px;padding:8px;box-shadow:var(--sh-3)}
 .ph-scr{position:relative;width:296px;height:636px;border-radius:38px;overflow:hidden;background:var(--bg)}
 .ph-isl{position:absolute;top:9px;left:50%;margin-left:-42px;width:84px;height:24px;border-radius:12px;background:#05070B;z-index:90}
@@ -556,7 +588,7 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
     <div>
       <p class="eyebrow">We Vape · 전체 흐름 안내</p>
       <h1>청구에서 입금, 본사 집계까지 — 한 달 흐름</h1>
-      <p class="sub">지점 PC · 카톡 · 사장님 폰 · 매장 포스 · 실장님 사이트가 어떻게 이어지는지 가상 자료로 보여줍니다 (계좌 · 금액은 가짜)</p>
+      <p class="sub">카톡 보고 없이 지점 PC → 대표님 전용 앱 → 매장 포스 → 실장님 사이트로 이어지는 흐름을 가상 자료로 보여줍니다 (계좌 · 금액은 가짜)</p>
     </div>
   </header>
 
@@ -565,10 +597,10 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
       <div class="world" id="world">
         <svg class="conn" width="3240" height="720" viewBox="0 0 3240 720"><path d="M830 330 L860 330"/><path d="M1130 330 L1160 330"/><path d="M1472 300 L1510 300"/><path d="M2190 300 L2400 300"/></svg>
         <div class="dlbl" style="left:34px;top:16px"><i>1</i>지점 PC <span>— 비품 주문 보고</span></div>
-        <div class="dlbl" style="left:864px;top:16px"><i>2</i>카톡 <span>— 대표님께 보고</span></div>
-        <div class="dlbl" style="left:1166px;top:4px"><i>3</i>사장님 폰 <span>— 입금 요청</span></div>
-        <div class="dlbl" style="left:1514px;top:16px"><i>4</i>매장 포스 <span>— 입금 완료 알림</span></div>
-        <div class="dlbl" style="left:2404px;top:16px"><i>5</i>실장님 사이트 <span>— 금액관리</span></div>
+        <div class="dlbl old" id="ktLbl" style="left:864px;top:16px"><i>✕</i>기존 방식 <span>— 카톡 1:1 보고</span></div>
+        <div class="dlbl" style="left:1166px;top:4px"><i>2</i>대표님 폰 <span>— 대표님 전용 앱</span></div>
+        <div class="dlbl" style="left:1514px;top:16px"><i>3</i>매장 포스 <span>— 입금 완료 알림</span></div>
+        <div class="dlbl" style="left:2404px;top:16px"><i>4</i>실장님 사이트 <span>— 금액관리</span></div>
 
         <div class="win" id="pcWin" style="left:30px;top:50px;width:800px;height:560px">
           <div class="win-bar"><i></i><i></i><i></i><span class="url" id="pcUrl">wevape · 비품 주문 보고</span></div>
@@ -576,11 +608,13 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
         </div>
 
         <div class="kt" id="kt" style="left:860px;top:50px;width:270px;height:600px">
-          <div class="kt-hd"><i>대</i>대표님</div>
+          <div class="kt-hd"><span class="kt-bk">‹</span><b>대표님</b><span class="kt-me">구월점 AA주임의 카톡</span></div>
           <div class="kt-ms" id="ktMs"></div>
           <div class="kt-in"><span class="att" id="ktAtt"></span><span class="box" id="ktBox">메시지 입력</span><span class="send" id="ktSend">전송</span></div>
         </div>
 
+        <div class="ktx" id="ktX" style="left:860px;top:50px;width:270px;height:600px"><span class="xx">✕</span><b>이제 카톡 보고는 생략</b><small>멘트 복사 → 카톡 열기 → 붙여넣기 → 전송</small></div>
+        <div class="direct" id="direct" style="left:842px;top:200px;width:306px"><span class="dl-ln"><i></i></span><b>카톡 보고 없이</b><em>청구가 대표님 전용 앱으로 바로</em></div>
         <div class="phone" id="phone" style="left:1160px;top:34px">
           <div class="ph-scr"><div class="ph-isl"></div><div class="frame" id="phF" style="width:390px;height:838px;transform:scale(.759)"></div></div>
         </div>
@@ -596,11 +630,11 @@ footer{margin-top:var(--s-8);text-align:center;font-size:var(--f-xs);line-height
         </div>
         <div id="pkts"></div>
       </div>
-      <div id="ovl"></div>
+      <div id="ovl"></div><div id="callout"></div>
       <div id="cur"><span class="rp"></span><span class="tc"></span><svg class="ar" viewBox="0 0 24 24" width="24" height="24"><path d="M4 2.5 L4 19 L8.6 15 L11.7 21.6 L14.3 20.5 L11.3 14 L17.4 14 Z" fill="#141926" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
     </div></div></div>
 
-    <div class="cap" id="cap"><span class="cap-no n" id="capNo">1 / 13</span><h2 id="capT"></h2><span class="date n" id="date">2026년 10월</span><p id="capD"></p></div>
+    <div class="cap" id="cap"><span class="cap-no n" id="capNo">1 / 11</span><h2 id="capT"></h2><span class="date n" id="date">2026년 10월</span><p id="capD"></p></div>
     <div class="ctl">
       <button class="btn" id="prev" aria-label="이전 장면"></button>
       <button class="btn primary" id="play"></button>
@@ -709,7 +743,7 @@ function panelSwap(el,dir,render){
 
 /* ───────── 카메라 ───────── */
 const CAM={
-  all:[0,0,3240,720], pc:[14,10,1136,650], flow:[10,0,1480,700], boss:[846,0,1360,700], pos:[1146,0,1060,700], hq:[1490,0,1740,700], site:[2370,6,860,660]
+  all:[0,0,3240,720], pc:[14,10,1136,650], flow:[10,0,1480,700], boss:[1150,0,1060,700], pos:[1146,0,1060,700], hq:[1490,0,1740,700], site:[2370,6,860,660]
 };
 function camT(name){ const [x,y,w,h]=CAM[name], s=Math.min(1280/w,720/h); return `translate(${-x*s+(1280-w*s)/2}px,${-y*s+(720-h*s)/2}px) scale(${s})`; }
 function setCam(name){ const moved=G.cam!==name; G.cam=name; const w=$('#world'); w.style.transform=camT(name); if(moved&&!G.instant) $('#cur').style.opacity=0; }
@@ -831,7 +865,7 @@ function supSideHTML(){
     <pre class="msg tight ${n?'':'blank'}" id="msg">${n?SUP_MSG:'품목을 넣으면 입금요청 멘트가 여기에 만들어집니다.'}</pre>
     <div id="oneliners">${P.pays?`<div class="oneline"><code class="n">${SUP_LINE}</code><span class="btn sm" id="olCopy">복사</span></div>`:''}</div>
     <div class="res-acts"><span class="btn ${n?'':'off'}" id="dlXlsx">${IC.down}엑셀 받기</span>${P.supDone?'':`<span class="btn primary lg ${n?'':'off'}" id="doneBtn">${P.saving?'<span class="spin"></span>저장하는 중':'주문 완료 처리'}</span>`}</div>
-    ${P.supDone?`<div class="res-state">${IC.check}사장님 앱 「입금 대기」에 올라갔습니다</div>`:''}`;
+    ${P.supDone?`<div class="res-state">${IC.check}대표님 앱 「입금 대기」에 올라갔습니다</div>`:''}`;
 }
 function billHTML(kind){
   const b=G.pc.bill[kind], ship=kind==='택배비', B=BILL[kind];
@@ -847,7 +881,7 @@ function billHTML(kind){
     </div>
     <h3 class="bsub">받는 계좌 <span>한 번 청구하면 다음 달부터 자동으로 채워집니다</span><span class="chip ok" style="margin-left:auto">${IC.check}지난달 계좌를 불러왔습니다</span></h3>
     <div class="bgrid" style="grid-template-columns:1fr 1.4fr 1fr"><label class="field">은행<span class="inp">${B.bank}</span></label><label class="field">계좌번호<span class="inp n">${B.acc}</span></label><label class="field">예금주<span class="inp">${B.holder}</span></label></div>
-    <h3 class="bsub">사진 첨부 <span>${ship?'정산표 사진':'고지서 사진'} — 사장님 앱에서 같이 보입니다</span></h3>
+    <h3 class="bsub">사진 첨부 <span>${ship?'정산표 사진':'고지서 사진'} — 대표님 앱에서 같이 보입니다</span></h3>
     <div class="photos" id="bPhotos">${b.photo?`<div class="pht">${DOC(ship?'ship':'')}</div>`:''}<span class="ph-add" id="bAdd">${IC.photo}사진 추가</span></div>
   </section></div>
   <aside class="card result" id="result"><span class="lifted"></span>
@@ -861,7 +895,7 @@ function billSideHTML(kind){ const b=G.pc.bill[kind], ok=b.total>0;
     <div class="msg-head"><h3>카톡 멘트</h3><span class="btn sm soft">${IC.copy}멘트 복사</span></div>
     <pre class="msg" id="msg">${billMsg(kind,b)}</pre>
     <div class="res-acts">${b.done?'':`<span class="btn primary lg ${ok?'':'off'}" id="doneBtn">${b.saving?'<span class="spin"></span>저장하는 중':'청구 완료 처리'}</span>`}</div>
-    ${b.done?`<div class="res-state">${IC.check}사장님 앱 「입금 대기」에 올라갔습니다</div>`:''}`; }
+    ${b.done?`<div class="res-state">${IC.check}대표님 앱 「입금 대기」에 올라갔습니다</div>`:''}`; }
 function renderStaff(){
   const f=$('#pcF'); f.innerHTML=G.pc.view==='home'?staffHomeHTML():staffStoreHTML(); applyScroll(); $('#pcUrl').textContent=G.pc.view==='home'?'wevape · 비품 주문 보고':`wevape · 비품 주문 보고 · ${ME}`;
   const dl=$('#dlbar'); dl.hidden=!G.pc.dl; dl.innerHTML=`<span class="fi"><em>${XL}</em>${ME}_10월_비품주문.xlsx</span><small>${IC.check.replace('<svg','<svg width="12" height="12" style="vertical-align:-1px"')} 내려받기 완료</small>`;
@@ -907,7 +941,16 @@ function renderKT(){
 }
 function ktPush(m){ G.kt.push(m); renderKT(); const last=$('#ktMs').lastElementChild; anim(last,[{opacity:0,transform:'translateY(14px) scale(.96)'},{opacity:1,transform:'none'}],{duration:420,easing:SPRING}); }
 
-/* ───────── 3. 사장님 폰 ───────── */
+function ktMode(m){ G.ktMode=m; const kt=$('#kt'), x=$('#ktX'), d=$('#direct'), l=$('#ktLbl');
+  kt.classList.toggle('old',m==='old'); kt.classList.toggle('gone',m==='gone'||m==='off'); l.classList.toggle('gone',m==='gone'||m==='off');
+  x.classList.toggle('on',m==='old'); d.classList.toggle('on',m==='gone');
+  if(m==='old'){ anim($('.xx',x),[{transform:'scale(.2) rotate(-40deg)',opacity:0},{transform:'none',opacity:1}],{duration:520,easing:SPRING}); stagger([$('b',x),$('small',x)],{y:12,base:200,dur:380,gap:80}); }
+  if(m==='gone'){ anim($('.dl-ln',d),[{transform:'scaleX(0)'},{transform:'none'}],{duration:620,easing:EIO,delay:200}); $('.dl-ln',d).style.transformOrigin='0 50%'; stagger([$('b',d),$('em',d)],{y:10,base:500,dur:380}); } }
+function callout(sub,big){ const c=$('#callout'); if(!big){ const o=c.firstChild; if(o&&!G.instant&&!RM){ anim(o,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-16px)'}],{duration:260,easing:'ease-in',fill:'forwards'}); at(270,()=>{ if(c.firstChild===o) c.innerHTML=''; }); } else c.innerHTML=''; return; }
+  c.innerHTML=`<div class="co"><small>${sub}</small><b>${big}</b></div>`; anim(c.firstChild,[{opacity:0,transform:'translateY(-24px) scale(.94)'},{opacity:1,transform:'none'}],{duration:520,easing:SPRING}); }
+function cardFly(from,to,kind,title,sub){ packet(from,to,`<span class="kind k-${kind}">${kind}</span><span><b>${title}</b><small class="n">${sub}</small></span>`,'card'); }
+
+/* ───────── 3. 대표님 폰 ───────── */
 const PH=()=>G.ph;
 function bossWait(st){ const order={관리비:0,택배비:1,비품:2}; return waitOf(st).slice().sort((a,b)=>(b.hot?1:0)-(a.hot?1:0)||0); }
 function sbar(w){ return `<div class="sbar ${w?'w':''}"><span class="n">${PH().time}</span><span class="ic"><i></i><i></i><i></i></span></div>`; }
@@ -915,7 +958,7 @@ function lockHTML(){ return `<div class="view lock">${sbar(true)}<div class="lk-
 function bossHomeHTML(){
   const all=G.db.filter(r=>!r.paid), tot=sum(all);
   return `<div class="view" style="background:var(--bg)">${sbar()}<div class="bz-pad">
-    <div class="bz-head"><div><p class="eyebrow">We Vape · 사장님</p><h1>입금 요청</h1></div></div>
+    <div class="bz-head"><div><p class="eyebrow">We Vape · 대표님 전용 앱</p><h1>입금 요청</h1></div></div>
     <div class="bz-total"><div><span>입금 대기 합계</span><b class="n"><span id="bzTot">${num(tot)}</span><small>원</small></b></div><em class="n">${all.length}건</em></div>
     <div class="bz-sec">지점 <span>말풍선 = 입금 대기 건수</span></div>
     <div class="bz-grid">${STORES.map(st=>{ const w=waitOf(st), hot=w.some(r=>r.hot);
@@ -951,7 +994,7 @@ function bankHTML(){ const s=PH().bank; if(!s) return '';
     <div class="bk-go ${filled?'':'off'}" id="bkGo">보내기</div></div>
     ${s==='sent'?`<div class="bk-done" id="bkDone"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b class="n">${won(SUP.total)}을 보냈습니다</b><span>쿠팡 · 우리은행 ${SUP.acc}</span></div>`:''}</div>`; }
 function askHTML(){ const r=PH().ask&&G.db.find(x=>x.id===PH().ask); if(!r) return '';
-  return `<div class="bz-ask" id="bzAsk"><div class="scrim"></div><div class="bsheet"><h3>입금 완료로 처리할까요?</h3><div class="big n">${num(r.total)}<small>원</small></div><p>${ME} · ${r.title}</p><div class="pin"><span>사장님 비밀번호</span><b>●●●●</b></div>
+  return `<div class="bz-ask" id="bzAsk"><div class="scrim"></div><div class="bsheet"><h3>입금 완료로 처리할까요?</h3><div class="big n">${num(r.total)}<small>원</small></div><p>${ME} · ${r.title}</p><div class="pin"><span>대표님 비밀번호</span><b>●●●●</b></div>
     <div class="row"><span class="btn">취소</span><span class="btn primary" id="bzAskYes">입금 완료</span></div></div></div>`; }
 function notifHTML(){ const n=PH().notif; if(!n) return '';
   return `<div class="nt ${n.hot?'hot':''} ${PH().screen==='lock'?'lk':''}" id="bzNt"><span class="ai">₩</span><div style="min-width:0"><div class="tp"><span>입금 요청</span><em>${n.hot?'납기 임박':'지금'}</em></div><b>${n.t}</b><p class="n">${n.p}</p></div></div>`; }
@@ -976,7 +1019,7 @@ function posHTML(){ const al=G.pos.alerts, r=al.length&&G.db.find(x=>x.id===al[0
     <div class="pos-cart"><h4>판매</h4><div class="li"><span>입호흡 액상 30ml × 1</span><b class="n">25,000</b></div><div class="li"><span>코일 5개입 × 1</span><b class="n">18,000</b></div><div class="tot">합계<b class="n">43,000원</b></div><div class="pos-pay">결제하기</div></div></div>
     ${r?`<div class="pm" id="pm"><div class="scrim"></div><div class="psheet" id="pmSheet"><span class="pic">${IC.check}</span>${al.length>1||G.pos.total>1?`<span class="pq n">알림 ${G.pos.total-al.length+1} / ${G.pos.total}</span>`:''}
       <h3>${title}</h3><div class="big n">${num(r.total)}<small>원</small></div>
-      <p>${ME} · ${r.title}<br>사장님이 ${r.paidAt}에 입금 처리했습니다</p>
+      <p>${ME} · ${r.title}<br>대표님이 ${r.paidAt}에 입금 처리했습니다</p>
       <div class="row"><span class="btn">나중에</span><span class="btn primary" id="posOk">확인 완료</span></div></div></div>`:''}</div>`; }
 function renderPOS(){ $('#posF').innerHTML=posHTML(); }
 function posAlert(ids){ G.pos.alerts.push(...ids); G.pos.total=G.pos.alerts.length; renderPOS(); const sh=$('#pmSheet');
@@ -987,7 +1030,7 @@ function posConfirm(){ const id=G.pos.alerts.shift(); const r=G.db.find(x=>x.id=
   if(G.pos.alerts.length){ anim(sh,[{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-40px)'}],{duration:160,easing:'ease-in',fill:'forwards'});
     at(170,()=>{ renderPOS(); anim($('#pmSheet'),[{opacity:0,transform:'translateX(40px)'},{opacity:1,transform:'none'}],{duration:420,easing:EASE}); }); }
   else { anim(sh,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(16px) scale(.95)'}],{duration:160,easing:'ease-in',fill:'forwards'}); anim($('#pm .scrim'),[{opacity:1},{opacity:0}],{duration:200,fill:'forwards'});
-    at(180,()=>{ renderPOS(); ftoast('#posF .pos','확인 완료 — 사장님 앱에 「지점 확인」으로 표시됩니다'); }); }
+    at(180,()=>{ renderPOS(); ftoast('#posF .pos','확인 완료 — 대표님 앱에 「지점 확인」으로 표시됩니다'); }); }
 }
 
 /* ───────── 5. 실장님 금액관리 ───────── */
@@ -1000,12 +1043,12 @@ function hqHTML(){
   return `<div class="hq"><aside class="hq-side"><div class="hq-logo">We Vape<small>금액관리 · 본사</small></div><div class="hq-nav"><span>한눈에 보기</span><span class="on">매장별 비용</span><span>매출 정리</span><span>인건비</span><span>설정</span></div></aside>
     <main class="hq-main"><div class="hq-top"><div><p class="eyebrow">본사 · 실장님</p><h1>매장별 비용</h1><p class="sub">월세는 직접 입력 · 관리비 · 비품구매 · 택배비는 청구 도구에서 자동으로 들어옵니다</p></div>
       <div class="seg" style="--n:3;--i:1"><span class="seg-ind"></span><span class="sb">9월</span><span class="sb on">10월</span><span class="sb">11월</span></div></div>
-      <div class="hq-link"><i></i>자동 입력 켜짐 — 지점 청구 · 사장님 입금 내역과 연결되어 있습니다<span>${done?'10월 31일 23:59 갱신':'갱신 대기'}</span></div>
+      <div class="hq-link"><i></i>자동 입력 켜짐 — 지점 청구 · 대표님 입금 내역과 연결되어 있습니다<span>${done?'10월 31일 23:59 갱신':'갱신 대기'}</span></div>
       <section class="card"><table class="tbl"><thead><tr><th>매장</th><th>월세</th><th>관리비</th><th>비품구매</th><th>택배비</th><th>합계</th></tr></thead><tbody>${rows}</tbody>
       <tfoot><tr><td>합계</td><td class="n">${num(rent)}</td><td class="n">${num(tt('fee'))}</td><td class="n">${num(tt('sup'))}</td><td class="n">${num(tt('ship'))}</td><td class="n">${num(rent+tt('fee')+tt('sup')+tt('ship'))}</td></tr></tfoot></table></section>
       <section class="card hq-log"><h2>자동 입력 기록</h2>${G.site.log?HQLOG.map(l=>`<div class="lg"><span class="n">${l[0]}</span><span class="kind k-${l[1]}">${l[1]==='비품'?'비품구매':l[1]}</span><b>${l[2]}</b><em class="n">${l[3]}</em></div>`).join(''):'<div class="hint" style="padding:6px 0">월 마감 때 자동으로 들어옵니다</div>'}</section></main></div>`;
 }
-const HQLOG=[['10/31 23:59','관리비','9개 매장 10월 비용 자동 입력 — 관리비 · 비품구매 · 택배비','전 매장'],['10/26 19:13','택배비','구월길병원점 · 9월분 택배비 — 사장님 입금 완료','144,000원'],['10/26 19:12','관리비','구월길병원점 · 9월분 관리비 — 사장님 입금 완료','497,890원'],['10/05 18:40','비품','구월길병원점 · 10월 비품 주문건 — 사장님 입금 완료','222,060원']];
+const HQLOG=[['10/31 23:59','관리비','9개 매장 10월 비용 자동 입력 — 관리비 · 비품구매 · 택배비','전 매장'],['10/26 19:13','택배비','구월길병원점 · 9월분 택배비 — 대표님 입금 완료','144,000원'],['10/26 19:12','관리비','구월길병원점 · 9월분 관리비 — 대표님 입금 완료','497,890원'],['10/05 18:40','비품','구월길병원점 · 10월 비품 주문건 — 대표님 입금 완료','222,060원']];
 function renderHQ(){ $('#hqF').innerHTML=hqHTML(); }
 function hqFillRow(i){ G.site.rows=Math.max(G.site.rows,i+1); if(G.instant||RM){ renderHQ(); return; }
   /* 그 줄과 합계 줄만 바꿔 끼워 앞 줄의 숫자 올라가기가 끊기지 않게 한다 */
@@ -1021,7 +1064,7 @@ function freshState(){
   return { db:seedDB(), cam:'all', date:'2026년 10월', instant:false,
     pc:{view:'home',tab:'이력',scroll:0,items:[],pays:false,reading:false,status:'붙여넣으면 자동으로 품목을 읽습니다. 네이버 스마트스토어 장바구니도 같은 방식으로 됩니다.',supDone:false,saving:false,dl:false,badge:0,newId:null,
       bill:{택배비:{total:0,cntTxt:'',photo:false,done:false},관리비:{total:0,due:false,photo:false,done:false}}},
-    kt:[{t:'sys',x:'10월 5일 월요일'}], ktIn:'',
+    kt:[{t:'sys',x:'10월 2일 금요일'},{t:'in',x:'AA주임님, 9월 비품 정산 확인했어요. 수고했어요'},{t:'sys',x:'10월 5일 월요일'}], ktIn:'', ktMode:'off',
     ph:{screen:'lock',tab:'이력',bank:null,ask:null,notif:null,time:'18:36',lockDate:'10월 5일 월요일',copied:null},
     pos:{alerts:[],total:0,clock:'10월 5일 18:41'}, site:{rows:0,log:false} };
 }
@@ -1047,64 +1090,59 @@ function billFlow(kind,t0){
   at(t3+MOVE+60+480,()=>{ b.saving=false; b.done=true;
     const rec=addRec(kind==='택배비'?{id:'d1',store:ME,kind,month:'2026-10',title:'9월분 택배비 · 로젠택배 32건',date:'10월 6일 청구 · 홍길동',total:B.total,paid:false,ack:false}
                                  :{id:'m1',store:ME,kind,month:'2026-10',title:'9월분 관리비',date:'10월 26일 청구 · 납기 10월 30일',total:B.total,paid:false,ack:false,hot:true});
-    const before=sum(octOf(ME))-B.total; renderBillSide(kind); completeMoment(rec,'청구 완료'); heroStats(before); ftoast('#pcF','청구 완료 — 사장님 앱에 올라갔습니다'); });
+    const before=sum(octOf(ME))-B.total; renderBillSide(kind); completeMoment(rec,'청구 완료'); heroStats(before); ftoast('#pcF','청구 완료 — 대표님 앱에 올라갔습니다'); });
   return t3+MOVE+60+480;
 }
 const S=[
  {t:'지점 선택과 탭', d:8400, cap:'<b>10월 5일</b> 구월길병원점 직원이 비품 주문 보고 도구를 엽니다. 첫 화면의 <b>지점 카드</b>를 누르면 그 지점의 지난 청구이력 · 비품 · 택배비 · 관리비 탭이 나옵니다', run(){
    setCam('all'); setDate('10월 5일 (월) · 지점 PC');
-   overlay(`<p class="eyebrow" style="font-size:16px">가상 자료 · 구월길병원점의 10월 한 달</p><h2>지점 청구 → 사장님 입금 → 매장 확인 → 본사 집계</h2><p>한 번 올린 청구가 사람 손을 거치지 않고 어디까지 흘러가는지 차례로 봅니다</p>
-     <div class="flow5"><span><i>1</i>지점 PC</span><em>›</em><span><i>2</i>카톡</span><em>›</em><span><i>3</i>사장님 폰</span><em>›</em><span><i>4</i>매장 포스</span><em>›</em><span><i>5</i>실장님 사이트</span></div>`);
+   overlay(`<p class="eyebrow" style="font-size:16px">가상 자료 · 구월길병원점의 10월 한 달</p><h2>지점 청구 → 대표님 입금 → 매장 확인 → 본사 집계</h2><p>카톡 보고 없이, 한 번 올린 청구가 대표님 전용 앱으로 바로 들어가 어디까지 흘러가는지 봅니다</p>
+     <div class="flow5"><span><i>1</i>지점 PC</span><em>›</em><span class="skip"><i>✕</i>카톡 보고</span><em>›</em><span><i>2</i>대표님 전용 앱</span><em>›</em><span><i>3</i>매장 포스</span><em>›</em><span><i>4</i>실장님 사이트</span></div>`);
    at(2700,()=>{ overlay(''); setCam('pc'); });
    at(4000,()=>{ const c=$(`#pcF .store-card[data-store="${ME}"]`); if(c&&!G.instant) c.classList.add('hov'); });
    act(3900,()=>$(`#pcF .store-card[data-store="${ME}"] .sc-name`),()=>{ G.pc.view='store'; G.pc.tab='이력'; viewSwap($('#pcF'),1,renderStaff); },{pressEl:`#pcF .store-card[data-store="${ME}"]`});
    act(6000,'#pcF .tab[data-tab="비품"]',()=>staffTab('비품'));
  }},
- {t:'장바구니 붙여넣기', d:7800, cap:'쿠팡 장바구니를 통째로 복사해 붙여넣으면 품목명 · 옵션 · 수량 · 단가 · 구매사유가 <b>표에 자동으로 채워집니다</b>. 결제 후 입금대기 화면도 붙여넣으면 받는 계좌가 들어갑니다', run(){
+ {t:'붙여넣기 · 엑셀', d:9000, cap:'쿠팡 장바구니를 통째로 붙여넣으면 품목명 · 옵션 · 수량 · 단가가 <b>표에 자동으로 채워지고</b>, 입금대기 화면을 붙여넣으면 받는 계좌가 들어갑니다. 보고용 <b>엑셀</b>도 한 번에 받습니다', run(){
    setCam('pc');
    act(300,'#cartPaste',()=>{ const z=$('#cartPaste'); z?.classList.add('focus'); anim($('#cartPaste .pulse'),[{opacity:0},{opacity:1},{opacity:0}],{duration:420,fill:'none'}); G.pc.reading=true; G.pc.status='품목을 읽는 중…'; $('#itemsWrap').innerHTML=itemsHTML(); $('#cartStatus').textContent=G.pc.status; });
    at(1500,()=>{ G.pc.reading=false; G.pc.items=ITEMS.slice(); G.pc.status=`품목 ${ITEMS.length}개를 읽었습니다. 아래에서 수량과 구매사유를 확인하세요.`; renderPanel(); stagger($$('#itemsWrap .it-row'),{y:14,dur:360}); countUp($('#resAmt'),SUP.total,{from:0,dur:700}); pop($('#itChip')); ftoast('#pcF',`품목 ${ITEMS.length}개를 읽었습니다`); });
    at(3600,()=>setScroll(268));
    act(4600,'#payPaste',()=>{ anim($('#payPaste .pulse'),[{opacity:0},{opacity:1},{opacity:0}],{duration:420,fill:'none'}); G.pc.pays=true; $('#payList').innerHTML=payHTML(); stagger($$('#payList .pay'),{y:-10,dur:360}); renderSupSide(); pop($('#supSide .res-check .chip')); ftoast('#pcF','입금 정보를 읽었습니다'); });
- }},
- {t:'멘트 · 한 줄 · 엑셀', d:7000, cap:'오른쪽에 <b>카톡 멘트</b>(은행 → 계좌 → 예금주 → 금액 순서)와 송금용 <b>한 줄</b>이 바로 만들어지고, 보고용 <b>엑셀</b>도 한 번에 받습니다', run(){
-   setCam('pc');
-   act(300,'#copyMsg',el=>{ if(el){ el.innerHTML=`${IC.check}복사됨`; anim(el.firstChild,[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'none'}],{duration:260,easing:SPRING}); } ftoast('#pcF','멘트를 복사했습니다'); at(1400,()=>renderSupSide()); });
-   act(2200,'#olCopy',el=>{ if(el) el.innerHTML=`${IC.check}복사됨`; ftoast('#pcF','계좌 한 줄을 복사했습니다'); at(1400,()=>renderSupSide()); });
-   act(4100,'#dlXlsx',el=>{ const ic=el&&$('svg',el); anim(ic,[{transform:'translateY(0)'},{transform:'translateY(5px)',offset:.5},{transform:'translateY(0)'}],{duration:420,easing:SPRING});
+   act(6400,'#dlXlsx',el=>{ const ic=el&&$('svg',el); anim(ic,[{transform:'translateY(0)'},{transform:'translateY(5px)',offset:.5},{transform:'translateY(0)'}],{duration:420,easing:SPRING});
      at(420,()=>{ G.pc.dl=true; const d=$('#dlbar'); d.hidden=false; anim(d,[{transform:'translateY(40px)'},{transform:'none'}],{duration:420,easing:EASE}); ftoast('#pcF','엑셀을 내려받았습니다'); }); });
  }},
- {t:'카톡 전송', d:7400, cap:'복사한 <b>멘트</b>와 송금용 <b>한 줄</b>, 보고용 <b>엑셀 파일</b>을 대표님 카톡에 그대로 붙여넣어 보냅니다', run(){
-   setCam('pc');
-   act(300,'#ktBox',()=>{ G.ktIn='[구월길병원점] 10월 비품 주문건 …'; renderKT(); });
-   act(1300,'#ktSend',()=>{ G.ktIn=''; ktPush({t:'text',x:SUP_MSG}); });
-   act(2900,'#ktBox',()=>{ G.ktIn=SUP_LINE; renderKT(); });
-   act(3900,'#ktSend',()=>{ G.ktIn=''; ktPush({t:'line',x:SUP_LINE}); });
-   act(5300,'#ktAtt',()=>{ ktPush({t:'file',name:`${ME}_10월_비품주문.xlsx`}); });
+ {t:'기존 방식 — 카톡 보고', d:9800, cap:'<b>기존 방식</b>: 만든 멘트를 복사해 카톡을 열고, 대표님 개인톡에 붙여넣어 보고했습니다. 대표님 전용 앱이 생기면서 <b>이 카톡 보고 단계는 생략</b>합니다', run(){
+   setCam('pc'); ktMode('live');
+   act(300,'#copyMsg',el=>{ if(el){ el.innerHTML=`${IC.check}복사됨`; anim(el.firstChild,[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'none'}],{duration:260,easing:SPRING}); } ftoast('#pcF','멘트를 복사했습니다'); at(1400,()=>renderSupSide()); });
+   act(1500,'#ktBox',()=>{ G.ktIn='[구월길병원점] 10월 비품 주문건 …'; renderKT(); });
+   act(2500,'#ktSend',()=>{ G.ktIn=''; ktPush({t:'text',x:SUP_MSG}); });
+   act(3600,'#olCopy',el=>{ if(el) el.innerHTML=`${IC.check}복사됨`; ftoast('#pcF','계좌 한 줄을 복사했습니다'); at(1400,()=>renderSupSide()); });
+   act(4600,'#ktBox',()=>{ G.ktIn=SUP_LINE; renderKT(); });
+   act(5600,'#ktSend',()=>{ G.ktIn=''; ktPush({t:'line',x:SUP_LINE}); });
+   at(7000,()=>{ $('#cur').style.opacity=0; ktMode('old'); });
  }},
- {t:'주문 완료', d:8200, cap:'<b>주문 완료 처리</b>를 누르면 지난 청구이력에 들어가고, 같은 순간 사장님 앱 <b>「입금 대기」</b>에 올라갑니다', run(){
-   setCam('pc');
-   act(200,'#doneBtn',()=>{ G.pc.modal=true; if(G.instant) return; const f=$('#pcF'); f.insertAdjacentHTML('beforeend',`<div class="fmodal" id="pcModal"><div class="scrim"></div><div class="sheet"><h3>10월 주문으로 완료 처리할까요?</h3><div class="big n">${num(SUP.total)}<small>원</small></div><p>${ME} · 품목 ${ITEMS.length}개</p><div class="note">완료한 주문만 「지난 청구이력」과 월 합계에 들어갑니다.</div><div class="row"><span class="btn">취소</span><span class="btn primary" id="pcMYes">완료 처리</span></div></div></div>`);
+ {t:'이제는 바로 전용 앱으로', d:11400, cap:'<b>[주문 완료 처리]</b> 한 번이면 끝. 카톡을 열 필요 없이 청구가 <b>대표님 전용 앱</b>으로 바로 들어가고, 대표님 폰 상단에 알림이 뜹니다', run(){
+   setCam('pc'); ktMode('gone');
+   act(900,'#doneBtn',()=>{ G.pc.modal=true; if(G.instant) return; const f=$('#pcF'); f.insertAdjacentHTML('beforeend',`<div class="fmodal" id="pcModal"><div class="scrim"></div><div class="sheet"><h3>10월 주문으로 완료 처리할까요?</h3><div class="big n">${num(SUP.total)}<small>원</small></div><p>${ME} · 품목 ${ITEMS.length}개</p><div class="note">완료 처리하면 대표님 전용 앱 「입금 대기」로 바로 들어갑니다.</div><div class="row"><span class="btn">취소</span><span class="btn primary" id="pcMYes">완료 처리</span></div></div></div>`);
      anim($('#pcModal .scrim'),[{opacity:0},{opacity:1}],{duration:260,easing:'ease'}); anim($('#pcModal .sheet'),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:420,easing:SPRING}); });
-   act(1600,'#pcMYes',()=>{ G.pc.modal=false; const m=$('#pcModal'); if(m){ anim($('.sheet',m),[{opacity:1},{opacity:0,transform:'translateY(16px) scale(.95)'}],{duration:160,easing:'ease-in',fill:'forwards'}); anim($('.scrim',m),[{opacity:1},{opacity:0}],{duration:160,fill:'forwards'}); at(170,()=>m.remove()); }
+   act(2300,'#pcMYes',()=>{ G.pc.modal=false; const m=$('#pcModal'); if(m){ anim($('.sheet',m),[{opacity:1},{opacity:0,transform:'translateY(16px) scale(.95)'}],{duration:160,easing:'ease-in',fill:'forwards'}); anim($('.scrim',m),[{opacity:1},{opacity:0}],{duration:160,fill:'forwards'}); at(170,()=>m.remove()); }
      G.pc.saving=true; renderSupSide(); });
-   at(2800,()=>{ G.pc.saving=false; G.pc.supDone=true; const rec=addRec({id:'s1',store:ME,kind:'비품',month:'2026-10',title:'10월 비품 주문건',date:'10월 5일 주문 · 품목 6개',total:SUP.total,paid:false,ack:false});
+   at(3500,()=>{ G.pc.saving=false; G.pc.supDone=true; const rec=addRec({id:'s1',store:ME,kind:'비품',month:'2026-10',title:'10월 비품 주문건',date:'10월 5일 주문 · 품목 6개',total:SUP.total,paid:false,ack:false});
      renderSupSide(); completeMoment(rec,'주문 완료'); heroStats(0); });
-   at(4400,()=>ftoast('#pcF','주문 완료 — 사장님 앱 「입금 대기」에 올라갔습니다'));
    at(5000,()=>setCam('flow'));
-   at(6300,()=>packet('#pcWin','#phone','입금 요청 · 222,060원','k-비품'));
+   at(6100,()=>cardFly('#pcWin','#phone','비품',`${ME} · 10월 비품 주문건`,'222,060원 입금 요청'));
+   at(7400,()=>{ setDate('10월 5일 (월) 18:36 · 대표님 폰'); notify({t:`${ME} 비품 주문건 입금 요청이 들어왔습니다`,p:'222,060원 · 대표님 전용 앱'},0); });
+   at(7900,()=>callout('카톡 보고 생략','이제는 바로 요청이 전용 앱으로 들어갑니다!'));
+   at(11000,()=>callout(''));
  }},
- {t:'사장님 폰 알림', d:5600, cap:'<b>18시 36분</b> 사장님 폰 상단바에 입금 요청 알림이 뜹니다. 알림을 누르면 바로 입금 요청 앱이 열립니다', run(){
-   setCam('boss'); setDate('10월 5일 (월) 18:36 · 사장님 폰');
-   at(1200,()=>notify({t:`${ME} · 10월 비품 주문건`,p:'222,060원 입금 요청이 왔습니다'},0));
-   act(2700,'#bzNt',()=>{ hideNotif(); phoneGo('home',1); at(260,()=>{ if(!G.instant) stagger($$('#phF .bz-card'),{y:12,dur:340,base:120}); }); },{touch:true});
- }},
- {t:'지점 카드 · 말풍선', d:6400, cap:'첫 화면에 <b>9개 지점</b>이 카드로 있고, 카드 오른쪽 위 <b>말풍선 숫자</b>가 그 지점의 입금 대기 건수입니다. 말풍선을 누르면 그 지점 대기 건으로 들어갑니다', run(){
+ {t:'대표님 앱 · 지점 카드 · 말풍선', d:9800, cap:'알림을 누르면 <b>대표님 전용 앱</b>이 열립니다. 첫 화면에 <b>9개 지점</b>이 카드로 있고, 카드 오른쪽 위 <b>말풍선 숫자</b>가 그 지점의 입금 대기 건수입니다', run(){
    setCam('boss');
-   at(200,()=>{ countUp($('#bzTot'),sum(G.db.filter(r=>!r.paid)),{from:0,dur:700}); $$('#phF .bbl').forEach((b,i)=>anim(b,[{transform:'scale(0)'},{transform:'scale(1)'}],{duration:420,delay:200+i*60,easing:SPRING})); });
-   at(1700,()=>cursorTo(`#phF [data-bbl="${ME}"]`,{touch:true}));
-   at(2500,()=>{ const r=$(`#phF [data-bbl="${ME}"] .ring`); anim(r,[{opacity:.9,transform:'scale(.8)'},{opacity:0,transform:'scale(1.5)'}],{duration:800,easing:'ease-out',iterations:2}); });
-   act(3800,`#phF [data-bbl="${ME}"]`,()=>{ PH().tab='이력'; phoneGo('store',1); },{touch:true,pressEl:`#phF .bz-card[data-st="${ME}"]`});
+   act(500,'#bzNt',()=>{ hideNotif(); phoneGo('home',1); at(260,()=>{ if(!G.instant) stagger($$('#phF .bz-card'),{y:12,dur:340,base:120}); }); },{touch:true});
+   at(1700,()=>{ countUp($('#bzTot'),sum(G.db.filter(r=>!r.paid)),{from:0,dur:700}); $$('#phF .bbl').forEach((b,i)=>anim(b,[{transform:'scale(0)'},{transform:'scale(1)'}],{duration:420,delay:200+i*60,easing:SPRING})); });
+   at(3600,()=>cursorTo(`#phF [data-bbl="${ME}"]`,{touch:true}));
+   at(4400,()=>{ const r=$(`#phF [data-bbl="${ME}"] .ring`); anim(r,[{opacity:.9,transform:'scale(.8)'},{opacity:0,transform:'scale(1.5)'}],{duration:800,easing:'ease-out',iterations:2}); });
+   act(6800,`#phF [data-bbl="${ME}"]`,()=>{ PH().tab='이력'; phoneGo('store',1); },{touch:true,pressEl:`#phF .bz-card[data-st="${ME}"]`});
  }},
  {t:'계좌 복사 → 송금 → 입금 완료', d:12600, cap:'<b>[계좌 복사]</b> → 은행 앱에서 붙여넣어 송금 → 돌아와 <b>[✓ 입금 완료]</b>. 이 지점의 대기 건이 비면 말풍선이 사라집니다', run(){
    setCam('boss'); PH().time='18:39';
@@ -1112,7 +1150,7 @@ const S=[
    at(1700,()=>{ PH().bank='paste'; renderBank(); anim($('#bank'),[{transform:'translateX(100%)'},{transform:'none'}],{duration:420,easing:EASE}); });
    act(2400,'#bkPb',()=>{ PH().bank='filled'; renderBank(); stagger($$('#bank .bk-f b'),{y:6,dur:300}); },{touch:true});
    act(3900,'#bkGo',()=>{ PH().bank='sent'; renderBank(); const d=$('#bkDone'); anim(d,[{opacity:0},{opacity:1}],{duration:160}); anim($('circle',d),[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:420,easing:SPRING}); anim($('path',d),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:320,delay:180,easing:EIO}); },{touch:true});
-   at(6000,()=>{ setDate('10월 5일 (월) 18:40 · 사장님 입금'); PH().bank=null; PH().time='18:40'; const b=$('#bank'); if(b&&!G.instant&&!RM){ anim(b,[{transform:'none'},{transform:'translateX(100%)'}],{duration:260,easing:'ease-in',fill:'forwards'}); at(270,()=>b.remove()); } else b?.remove(); $('#phF .sbar span').textContent='18:40'; });
+   at(6000,()=>{ setDate('10월 5일 (월) 18:40 · 대표님 입금'); PH().bank=null; PH().time='18:40'; const b=$('#bank'); if(b&&!G.instant&&!RM){ anim(b,[{transform:'none'},{transform:'translateX(100%)'}],{duration:260,easing:'ease-in',fill:'forwards'}); at(270,()=>b.remove()); } else b?.remove(); $('#phF .sbar span').textContent='18:40'; });
    act(6700,'#bzPaid',()=>{ PH().ask='s1'; $('#phF').insertAdjacentHTML('beforeend',askHTML()); anim($('#bzAsk .scrim'),[{opacity:0},{opacity:1}],{duration:260}); anim($('#bzAsk .bsheet'),[{transform:'translateY(100%)'},{transform:'none'}],{duration:420,easing:EASE}); },{touch:true});
    act(8000,'#bzAskYes',()=>{ PH().ask=null; const a=$('#bzAsk'); if(a&&!G.instant&&!RM){ anim($('.bsheet',a),[{transform:'none'},{transform:'translateY(100%)'}],{duration:260,easing:'ease-in',fill:'forwards'}); anim($('.scrim',a),[{opacity:1},{opacity:0}],{duration:260,fill:'forwards'}); at(270,()=>a.remove()); } else a?.remove();
      const r=G.db.find(x=>x.id==='s1'); r.paid=true; r.paidAt='10/05 18:40'; PH().copied=null;
@@ -1121,32 +1159,30 @@ const S=[
    at(10200,()=>setCam('pos'));
    at(11300,()=>packet('#phone','#posMon','입금 완료 알림','ok'));
  }},
- {t:'매장 포스 확인', d:7400, cap:'입금 처리 순간 <b>매장 포스</b>에 알림창이 뜹니다. 직원이 <b>[확인 완료]</b>를 누르면 사장님 앱의 그 건에 <b>「지점 확인 ✓」</b>가 붙습니다', run(){
+ {t:'매장 포스 확인', d:7400, cap:'입금 처리 순간 <b>매장 포스</b>에 알림창이 뜹니다. 직원이 <b>[확인 완료]</b>를 누르면 대표님 앱의 그 건에 <b>「지점 확인 ✓」</b>가 붙습니다', run(){
    setCam('pos'); setDate('10월 5일 (월) 18:41 · 매장 포스'); G.pos.clock='10월 5일 18:41';
    at(200,()=>posAlert(['s1']));
    act(2400,'#posOk',()=>posConfirm());
    at(4000,()=>packet('#posMon','#phone','지점 확인','ok'));
    at(5100,()=>{ renderBossPanel(); const c=$('#bzPanel [data-id="s1"] [data-ack]'); pop(c,1.18); });
  }},
- {t:'택배비 청구', d:12400, cap:'<b>10월 6일</b> 로젠택배 월정산. 받는 계좌는 지난달 것이 자동으로 채워지고, <b>금액 · 건수 · 정산표 사진</b>만 넣으면 멘트가 완성됩니다', run(){
+ {t:'택배비 청구', d:12400, cap:'<b>10월 6일</b> 로젠택배 월정산. 받는 계좌는 지난달 것이 자동으로 채워지고, <b>금액 · 건수 · 정산표 사진</b>만 넣어 <b>[청구 완료 처리]</b>하면 카톡 없이 대표님 앱으로 바로 들어갑니다', run(){
    setCam('pc'); setDate('10월 6일 (화) · 택배 월정산'); PH().time='10:12'; at(1300,()=>{ PH().screen='home'; renderPhone(); }); G.pc.dl=false; $('#dlbar').hidden=true;
-   G.kt.push({t:'sys',x:'10월 6일 화요일'}); renderKT(); G.pc.newId=null;
+   G.pc.newId=null;
    at(200,()=>setScroll(0));
    act(500,'#pcF .tab[data-tab="택배비"]',()=>staffTab('택배비'));
    const end=billFlow('택배비',1600);
-   at(end+300,()=>{ ktPush({t:'img',tone:'ship'}); }); at(end+700,()=>ktPush({t:'text',x:billMsg('택배비',{total:BILL.택배비.total,cnt:32})}));
-   at(end+1300,()=>setCam('flow'));
-   at(end+2300,()=>packet('#pcWin','#phone','입금 요청 · 144,000원','k-택배비'));
-   at(end+3300,()=>{ renderPhone(); notify({t:`${ME} · 9월 택배비 정산`,p:'144,000원 입금 요청이 왔습니다'},2200); bubbleChange(ME); });
+   at(end+1000,()=>setCam('flow'));
+   at(end+2000,()=>cardFly('#pcWin','#phone','택배비',`${ME} · 9월 택배비 정산`,'144,000원 입금 요청'));
+   at(end+3300,()=>{ renderPhone(); notify({t:`${ME} 택배비 정산 입금 요청이 들어왔습니다`,p:'144,000원 · 카톡 보고 없이 바로'},2200); bubbleChange(ME); });
  }},
- {t:'관리비 청구 · 납기 임박', d:16600, cap:'<b>10월 26일</b> 관리비 고지서(납기 10월 30일). 사장님 앱에 <b>납기 임박</b> 표시로 맨 위에 올라오고, 한 건을 끝내면 <b>다음 건이 이어서</b> 올라오며 말풍선 숫자가 줄어듭니다', run(){
-   setCam('pc'); setDate('10월 26일 (월) · 관리비 고지서'); PH().time='19:08'; G.pos.clock='10월 26일 19:13'; renderPOS(); G.pc.newId=null; G.kt.push({t:'sys',x:'10월 26일 월요일'}); renderKT();
+ {t:'관리비 청구 · 납기 임박', d:16600, cap:'<b>10월 26일</b> 관리비 고지서(납기 10월 30일). [청구 완료 처리]하면 대표님 앱에 <b>납기 임박</b> 표시로 맨 위에 올라오고, 한 건을 끝내면 <b>다음 건이 이어서</b> 올라오며 말풍선 숫자가 줄어듭니다', run(){
+   setCam('pc'); setDate('10월 26일 (월) · 관리비 고지서'); PH().time='19:08'; G.pos.clock='10월 26일 19:13'; renderPOS(); G.pc.newId=null;
    act(300,'#pcF .tab[data-tab="관리비"]',()=>staffTab('관리비'));
    const end=billFlow('관리비',1400);
-   at(end+300,()=>ktPush({t:'img',tone:''})); at(end+700,()=>ktPush({t:'text',x:billMsg('관리비',{total:BILL.관리비.total,due:true})}));
-   at(end+1200,()=>setCam('boss'));
-   at(end+2200,()=>packet('#kt','#phone','납기 임박 · 497,890원','k-관리비'));
-   at(end+3200,()=>{ renderPhone(); notify({t:`${ME} · 9월 관리비 납부`,p:'497,890원 · 납기 10월 30일 (4일 남음)',hot:true},2000); bubbleChange(ME); });
+   at(end+1000,()=>setCam('flow'));
+   at(end+2000,()=>cardFly('#pcWin','#phone','관리비',`${ME} · 9월 관리비 납부`,'497,890원 · 납기 임박'));
+   at(end+3200,()=>{ setCam('boss'); renderPhone(); notify({t:`${ME} 관리비 납부 입금 요청이 들어왔습니다`,p:'497,890원 · 납기 10월 30일 (4일 남음)',hot:true},2000); bubbleChange(ME); });
    const t=end+4000;
    act(t,`#phF [data-bbl="${ME}"]`,()=>{ hideNotif(); PH().tab='이력'; phoneGo('store',1); },{touch:true,pressEl:`#phF .bz-card[data-st="${ME}"]`});
    act(t+1500,'#bzPaid',()=>payNext('m1','10/26 19:12'),{touch:true});
@@ -1158,7 +1194,7 @@ const S=[
    act(400,'#posOk',()=>posConfirm());
    act(1700,'#posOk',()=>posConfirm());
    at(2800,()=>{ renderBossPanel(); $$('#bzPanel [data-ack]').slice(0,2).forEach(c=>pop(c,1.18)); });
-   at(3700,()=>{ setCam('pc'); });
+   at(3700,()=>{ setCam('flow'); });
    at(4300,()=>{ G.pc.view='home'; G.pc.scroll=0; viewSwap($('#pcF'),-1,renderStaff); PH().screen='home'; viewSwap($('#phF'),-1,renderPhone); });
    at(5600,()=>setScroll(452));
    at(6300,()=>{ countUp($('#sTot'),Number($('#sTot').textContent.replace(/,/g,'')),{from:0,dur:800}); stagger($$('#sSum tbody tr'),{y:8,dur:300});
@@ -1172,8 +1208,8 @@ const S=[
    const order=[1,0,2,3,4,5,6,7,8];
    order.forEach((i,j)=>at(4200+j*260+(j?400:0),()=>hqFillRow(i)));
    at(7200,()=>{ G.site.log=true; renderHQ(); stagger($$('#hqF .hq-log .lg'),{y:10,dur:340,gap:60}); });
-   at(9400,()=>{ overlay(`<p class="eyebrow" style="font-size:16px">시뮬레이션 결과 · 가상 자료</p><h2>${ME} 10월 — 옮겨 적는 단계 없이 끝</h2><p>지점 청구 → 사장님 입금 → 매장 확인 → 본사 자동 입력</p>
-     <div class="nums"><div><small>청구</small><b class="n">3건</b></div><div><small>청구 금액</small><b class="n" id="endAmt">${won(SUP.total+BILL.택배비.total+BILL.관리비.total)}</b></div><div><small>사장님 입금 완료</small><b class="n">3건</b></div><div><small>매장 확인</small><b class="n">3건</b></div></div>`,'end');
+   at(9400,()=>{ overlay(`<p class="eyebrow" style="font-size:16px">시뮬레이션 결과 · 가상 자료</p><h2>${ME} 10월 — 옮겨 적는 단계 없이 끝</h2><p>지점 청구 → 대표님 입금 → 매장 확인 → 본사 자동 입력</p>
+     <div class="nums"><div><small>청구</small><b class="n">3건</b></div><div><small>청구 금액</small><b class="n" id="endAmt">${won(SUP.total+BILL.택배비.total+BILL.관리비.total)}</b></div><div><small>대표님 입금 완료</small><b class="n">3건</b></div><div><small>매장 확인</small><b class="n">3건</b></div></div>`,'end');
      countUp($('#endAmt'),SUP.total+BILL.택배비.total+BILL.관리비.total,{suffix:'원',from:0,dur:900}); });
  }}
 ];
@@ -1193,14 +1229,14 @@ function payNext(id,when){
 function resetAll(){
   stageAnims().forEach(a=>a.cancel()); T.q=[]; T.tick=[]; T.vt=T.now=0;
   G=freshState(); $('#ovl').innerHTML=''; $('#pkts').innerHTML='';
-  renderStaff(); renderKT(); renderPhone(); renderPOS(); renderHQ();
+  renderStaff(); renderKT(); ktMode('off'); renderPhone(); renderPOS(); renderHQ(); $('#callout').innerHTML='';
 }
 function go(i,{fromAuto=false}={}){
   const prev=G.i??0, dir=i>=prev?1:-1;
   const inner=$('#inner'); inner.classList.add('instant');
   resetAll(); G.instant=true;
   for(let j=0;j<i;j++){ T.vt=T.now=0; S[j].run(); drain(); }
-  $('#ovl').innerHTML='';
+  $('#ovl').innerHTML=''; $('#callout').innerHTML='';
   void inner.offsetWidth; inner.classList.remove('instant');
   G.instant=false; T.q=[]; T.tick=[]; T.vt=T.now=0; G.i=i;
   if(i===0){ CUR.x=820; CUR.y=640; } placeCur(); $('#cur').style.opacity=0;
