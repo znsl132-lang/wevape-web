@@ -492,7 +492,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><img class="logo" src="boss/boss-192.png" alt=""><div><p class="eyebrow" id="today">We Vape · 사장님</p><h1>W 결재함</h1></div></div>
+    <div class="brand"><img class="logo" src="boss/boss-192.png" alt=""><div><p class="eyebrow" id="today">We Vape · 대표님</p><h1>W 결재함</h1></div></div>
     <div class="top-acts"><button class="btn ibtn" id="rf" title="새로고침" aria-label="새로고침"></button><button class="btn ibtn" id="bell" title="알림 설정" aria-label="상단바 알림 설정"><i id="bellDot"></i></button><button class="btn ibtn" id="help" title="사용법" aria-label="사용법 보기">?</button></div>
   </header>
   <div class="nb kk" id="kk"><b>카톡 안에서는 설치·알림이 안 됩니다</b><span>아래 버튼으로 인터넷 앱에서 다시 열어 주세요</span><button class="btn primary" id="kkOpen">인터넷 앱으로 열기</button><span class="sm">버튼이 안 되면 오른쪽 아래 <b>⋮</b> → 「다른 브라우저로 열기」 · <a href="boss-install.html">그림 안내</a></span></div>
@@ -536,7 +536,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 <div class="sheet" id="sheet"><div class="scrim" id="sheetScrim"></div><div class="in" id="sheetIn"></div></div>
 
 <div class="modal" id="pin" hidden><div class="scrim"></div><div class="dlg" role="dialog" aria-modal="true">
-  <h3 id="pinTitle">사장님 비밀번호</h3><p id="pinSub">입금 완료 처리는 사장님만 할 수 있습니다</p>
+  <h3 id="pinTitle">대표님 비밀번호</h3><p id="pinSub">입금 완료 처리는 대표님만 할 수 있습니다</p>
   <input class="inp" id="pinIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
   <input class="inp" id="pinIn2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="한 번 더" style="display:none">
   <div class="pin-err" id="pinErr"></div>
@@ -950,8 +950,8 @@ document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if($('zoom
 function savedPin(){ try{ return localStorage.getItem('bossPin')||''; }catch(e){ return ''; } }
 function askPin(setMode){
   return new Promise(res=>{
-    $('pinTitle').textContent = setMode ? '사장님 비밀번호 만들기' : '사장님 비밀번호';
-    $('pinSub').textContent = setMode ? '입금 완료 처리에 쓸 숫자 4~8자리를 정해 주세요' : '입금 완료 처리는 사장님만 할 수 있습니다';
+    $('pinTitle').textContent = setMode ? '대표님 비밀번호 만들기' : '대표님 비밀번호';
+    $('pinSub').textContent = setMode ? '입금 완료 처리에 쓸 숫자 4~8자리를 정해 주세요' : '입금 완료 처리는 대표님만 할 수 있습니다';
     $('pinIn2').style.display = setMode ? '' : 'none';
     $('pinIn').value=''; $('pinIn2').value=''; $('pinErr').textContent='';
     const m=$('pin'); openModal(m); setTimeout(()=>$('pinIn').focus(),50);
