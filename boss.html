@@ -13,6 +13,19 @@
 <meta name="apple-mobile-web-app-title" content="W 결재함">
 <meta name="theme-color" content="#F3F5F8">
 <meta name="robots" content="noindex">
+<script>
+/* 설치 신호(beforeinstallprompt)는 일찍 올 수 있으므로 맨 앞에서 받아 둠 */
+window.__bip=null;
+window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); window.__bip=e; try{ window.dispatchEvent(new Event('wv-bip')); }catch(_){} });
+/* 크롬으로 여는 주소 — 크롬이 없는 폰은 원래 주소로 그대로(kj=1 표시로 다시 넘기지 않음) */
+window.__chromeIntent=function(){ var u=new URL(location.href); u.searchParams.set('kj','1');
+  return 'intent://'+location.host+location.pathname+location.search+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(u.href)+';end'; };
+/* 카톡 안(안드로이드)에서 열리면 뜨자마자 한 번만 크롬으로 */
+(function(){ var ua=navigator.userAgent; if(!/KAKAOTALK/i.test(ua)||!/Android/i.test(ua)||/[?&]kj=1/.test(location.search)) return;
+  var tried=false; try{ tried=sessionStorage.getItem('wvKakaoJump')==='1'; sessionStorage.setItem('wvKakaoJump','1'); }catch(e){ return; }
+  if(tried) return;
+  window.__kakaoJump=window.__chromeIntent(); (window.__wvNavigate||function(u){ location.href=u; })(window.__kakaoJump); })();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
@@ -546,7 +559,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 (function(){
   var el=document.getElementById('stampSplash'); if(!el) return;
   var seen=false; try{ seen=sessionStorage.getItem('stampSplashSeen')==='1'; sessionStorage.setItem('stampSplashSeen','1'); }catch(e){}
-  if(seen||!el.animate){ el.remove(); return; }
+  if(seen||!el.animate||window.__kakaoJump){ el.remove(); return; }
   var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   var q=function(s){return el.querySelector(s)}, E='cubic-bezier(.22,1,.36,1)', done=false, T=[], started=false;
   var paper=q('.ss-paper'), stamp=q('.ss-stamp'), shadow=q('.ss-shadow'), ink=q('.ss-ink'), icon=q('.ss-icon'), name=q('.ss-name'), stage=q('.ss-stage');
@@ -1128,22 +1141,27 @@ function devName(){ const u=navigator.userAgent; return /iPhone/.test(u)?'아이
 function myToken(){ try{ return localStorage.getItem('bossPushToken')||''; }catch(e){ return ''; } }
 function loadJs(src){ return new Promise((ok,no)=>{ const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>no(new Error('알림 모듈을 불러오지 못했습니다')); document.head.appendChild(s); }); }
 async function pushCfg(){ if(PUSH.cfg===undefined){ const r=await api({action:'pushconfig'}).catch(()=>({})); PUSH.cfg=(r&&r.ok&&r.config)||null; } return PUSH.cfg; }
-async function swReg(){
+let SWP=null;
+function swReg(){ return SWP||(SWP=swRegNow().catch(e=>{ SWP=null; throw e; })); }
+async function swRegNow(){
   const reg=await navigator.serviceWorker.register('boss/sw.js',{scope:'boss/'});
   if(!reg.active) await new Promise(res=>{ const w=reg.installing||reg.waiting; if(!w) return res(); w.addEventListener('statechange',()=>{ if(w.state==='activated') res(); }); setTimeout(res,8000); });
   return reg;
 }
+function fbSdk(){ return PUSH.sdk||(PUSH.sdk=loadJs(FB_SDK+'firebase-app-compat.js').then(()=>loadJs(FB_SDK+'firebase-messaging-compat.js')).catch(e=>{ PUSH.sdk=null; throw e; })); }
 async function fbToken(cfg){
-  if(!window.firebase){ await loadJs(FB_SDK+'firebase-app-compat.js'); await loadJs(FB_SDK+'firebase-messaging-compat.js'); }
+  if(!window.firebase) await fbSdk();
   if(!firebase.apps.length) firebase.initializeApp(cfg.web);
   return firebase.messaging().getToken({vapidKey:cfg.vapid, serviceWorkerRegistration:await swReg()});
 }
 function bellDot(){ const on = pushSupported() && PUSH.cfg && (!myToken() || (typeof Notification!=='undefined' && Notification.permission!=='granted') || (PUSH.state&&PUSH.state.last&&PUSH.state.last.failed>0&&!PUSH.state.last.sent)); $('bellDot').classList.toggle('on', !!on); }
 async function refreshPush(){ await pushCfg(); try{ const r=await api({action:'pushstate'}); if(r.ok) PUSH.state=r; }catch(e){} bellDot(); }
 async function enablePush({quiet=false}={}){
-  const cfg=PUSH.cfg; if(!cfg){ toast('알림 서버 설정이 아직 안 됐습니다'); return false; }
-  if(!pushSupported()){ toast(isIOS&&!isStandalone()?'홈 화면에 추가한 앱으로 열어야 알림을 받을 수 있습니다':'이 브라우저는 알림을 지원하지 않습니다'); return false; }
-  const perm=await Notification.requestPermission();
+  /* 사용자 누름이 살아 있을 때 — 다른 비동기 작업보다 먼저 권한 요청 */
+  const permP=pushSupported() ? Notification.requestPermission() : null;
+  const cfg=PUSH.cfg!==undefined ? PUSH.cfg : await pushCfg(); if(!cfg){ toast('알림 서버 설정이 아직 안 됐습니다'); return false; }
+  if(!permP){ toast(isIOS&&!isStandalone()?'홈 화면에 추가한 앱으로 열어야 알림을 받을 수 있습니다':'이 브라우저는 알림을 지원하지 않습니다'); return false; }
+  const perm=await permP;
   if(perm!=='granted'){ toast('알림이 차단돼 있습니다. 폰 설정에서 이 앱 알림을 허용해 주세요'); await refreshPush(); openPush(); return false; }
   const b=quiet?null:$('pwOn'); if(b){ b.disabled=true; b.innerHTML='<span class="spin"></span>등록 중'; }
   try{
@@ -1193,13 +1211,15 @@ function openPush(){
 }
 const inKakao=/KAKAOTALK/i.test(navigator.userAgent); if(inKakao) $('kk').classList.add('show');
 const isAndroid=/Android/i.test(navigator.userAgent), isMobile=isAndroid||isIOS;
-$('kkOpen').onclick=()=>{ if(isAndroid) location.href='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end'; else toast('오른쪽 아래 ⋯ → 「다른 브라우저로 열기」를 눌러 주세요'); };
+$('kkOpen').onclick=()=>{ if(isAndroid) location.href=window.__chromeIntent(); else toast('오른쪽 아래 ⋯ → 「다른 브라우저로 열기」를 눌러 주세요'); };
 /* 앱 설치 버튼 — 크롬·삼성 인터넷이 주는 설치 창(beforeinstallprompt)을 그대로 띄움. 아이폰은 그림 안내로 */
-let INST=null;
-window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); INST=e; });
-window.addEventListener('appinstalled', ()=>{ INST=null; toast('설치했습니다 — 앱스 화면의 W 결재함으로 여세요'); suMark('inst'); });
+window.addEventListener('appinstalled', ()=>{ window.__bip=null; toast('설치했습니다 — 앱스 화면의 W 결재함으로 여세요'); suMark('inst'); });
+/* 카드가 보이는 동안 설치 신호가 오면 [추가] → 「지금 설치」로 살짝 강조 */
+window.addEventListener('wv-bip', ()=>{ const el=$('setup'); if(el.hidden||SU.inst||SU.waitInst) return;
+  if($('sheet').classList.contains('show')&&$('ihDone')) closeDetail();
+  const go=qs('[data-su="inst"] .su-go',el); if(!go) return; go.textContent='지금 설치'; go.classList.add('on'); pop(go); });
 /* ---------- 시작 설정 2단계 (홈 화면에 추가 · 알림 받기) ---------- */
-const SU={inst:false,push:false,busy:false};
+const SU={inst:false,push:false,busy:false,waitInst:false};
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 function suInstalled(){ return isStandalone() || lsGet('bossInstalled')==='1'; }
@@ -1207,7 +1227,7 @@ function suPushOn(){ return !!myToken() && typeof Notification!=='undefined' && 
 function setupHTML(st){
   const step=(k,n,t,sub,go,done,next)=>`<button class="su-step${done?' done':''}" data-su="${k}" ${done?'disabled':''}><span class="su-n">${done?IC.check:n}</span><span class="su-t"><b>${t}</b><small>${done?'완료':sub}</small></span><span class="su-go${next?' on':''}">${done?'':go}</span></button>`;
   return `<div class="su-head"><div><b>시작 설정 2단계</b><span>한 번만 하면 입금 요청이 상단바로 옵니다</span></div><button class="btn quiet sm" data-su="later">나중에</button></div>
-    <div class="su-steps">${step('inst',1,'홈 화면에 추가','앱처럼 바로 열립니다','추가',st.inst,!st.inst)}${step('push',2,'알림 받기','입금 요청이 오면 상단바로','켜기',st.push,st.inst&&!st.push)}</div>`;
+    <div class="su-steps">${step('inst',1,'홈 화면에 추가','앱처럼 바로 열립니다',window.__bip?'지금 설치':'추가',st.inst,!st.inst)}${step('push',2,'알림 받기','입금 요청이 오면 상단바로','켜기',st.push,st.inst&&!st.push)}</div>`;
 }
 function setupWanted(){ if(inKakao||!isMobile||lsGet('bossSetupDone')==='1') return false;
   const later=+lsGet('bossSetupLater')||0; if(later && Date.now()-later<7*864e5) return false;
@@ -1236,22 +1256,33 @@ function openInstallHelp(){
   $('sx').onclick=closeDetail; $('ihDone').onclick=()=>{ closeDetail(); suMark('inst'); };
   openSheet(); stagger(qsa('.pw > *',$('sheetIn')),{y:10,dur:300,base:80});
 }
-async function suInstall(){
-  if(INST){ const ev=INST; INST=null; let ok=false; try{ ev.prompt(); ok=(await ev.userChoice).outcome==='accepted'; }catch(e){}
-    if(ok) suMark('inst'); else toast('설치를 취소했습니다'); return; }
-  openInstallHelp();
+/* 누름 안에서 바로 설치 창. 신호가 아직 없으면 최대 4초 기다렸다가 오면 같은 누름으로 띄움 */
+function promptInstall(){ const ev=window.__bip; window.__bip=null; let p;
+  try{ p=ev.prompt(); }catch(e){}
+  Promise.resolve(p).then(()=>ev.userChoice).then(r=>{ if(r&&r.outcome==='accepted') suMark('inst'); else { toast('설치를 취소했습니다'); if(!$('setup').hidden&&!SU.inst) $('setup').innerHTML=setupHTML(SU); } }).catch(()=>{}); }
+function suInstall(btn){
+  if(window.__bip) return promptInstall();
+  const go=qs('.su-go',btn); SU.waitInst=true; btn.disabled=true; if(go) go.innerHTML='<span class="spin"></span>';
+  let t; const h=()=>{ clearTimeout(t); SU.waitInst=false; btn.disabled=false; if(window.__bip) promptInstall(); };
+  addEventListener('wv-bip',h,{once:true});
+  t=setTimeout(()=>{ removeEventListener('wv-bip',h); SU.waitInst=false; btn.disabled=false; if(go){ go.textContent='추가'; } openInstallHelp(); },4000);
 }
 async function suPush(btn){
-  await pushCfg();
-  if(!PUSH.cfg||!pushSupported()||(typeof Notification!=='undefined'&&Notification.permission==='denied')){ await refreshPush(); openPush(); return; }
-  btn.disabled=true; const go=qs('.su-go',btn); if(go) go.innerHTML='<span class="spin"></span>';
-  const ok=await enablePush({quiet:true});
+  if(PUSH.cfg===null||!pushSupported()||Notification.permission==='denied'){ refreshPush().then(openPush); return; }
+  const go=qs('.su-go',btn); btn.disabled=true; if(go) go.innerHTML='<span class="spin"></span>';
+  const ok=await enablePush({quiet:true});   // 권한 요청이 이 안의 맨 처음
+
   if(!ok&&btn.isConnected){ btn.disabled=false; if(go) go.textContent='켜기'; }
 }
 $('setup').addEventListener('click',e=>{ const b=e.target.closest('[data-su]'); if(!b||b.disabled) return; const k=b.dataset.su;
   if(k==='later'){ lsSet('bossSetupLater',String(Date.now())); hideSetup(); }
-  else if(k==='inst') suInstall(); else if(k==='push') suPush(b); });
+  else if(k==='inst') suInstall(b); else if(k==='push') suPush(b); });
 renderSetup();
+/* 알림 설정 값·서비스워커·알림 모듈은 미리 준비 → 누르면 권한 창만 */
+if(!$('setup').hidden && pushSupported() && !suPushOn()){
+  const idle=cb=>('requestIdleCallback' in window)?requestIdleCallback(cb,{timeout:2500}):setTimeout(cb,1200);
+  idle(()=>{ swReg().catch(()=>{}); pushCfg().then(cfg=>{ if(cfg&&!window.firebase) fbSdk().catch(()=>{}); }); });
+}
 $('bell').onclick=async()=>{ await refreshPush(); openPush(); };
 refreshPush();
 
