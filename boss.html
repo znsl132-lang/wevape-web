@@ -97,7 +97,7 @@ a{color:var(--navy-ink)}
 @media (min-width:760px){.app{max-width:720px;padding:0 24px}}
 .top{display:flex;align-items:center;gap:var(--s-3);padding:calc(env(safe-area-inset-top) + 16px) 0 var(--s-4)}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
-.logo{width:36px;height:36px;border-radius:11px;background:var(--navy);color:#fff;font-weight:800;font-size:18px;display:grid;place-items:center;flex:none}
+.logo{width:38px;height:38px;flex:none;display:block;filter:drop-shadow(0 1px 2px rgba(22,32,64,.10)) drop-shadow(0 3px 8px rgba(22,32,64,.08))}
 .eyebrow{font-size:var(--f-xs);font-weight:600;color:var(--navy-ink);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand > div{min-width:0}
 .brand h1{font-size:var(--f-xl);font-weight:800;letter-spacing:-.03em;line-height:1.2}
@@ -420,7 +420,7 @@ footer{margin-top:var(--s-10);padding-bottom:var(--s-4);text-align:center;font-s
 .bi-home{position:absolute;inset:0;background:linear-gradient(165deg,#24366F,#0E1322);padding:70px 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:22px 10px;align-content:start}
 .bi-home .ap{width:56px;height:56px;margin:auto;border-radius:16px;background:rgba(255,255,255,.16)}
 .bi-home .me{text-align:center}
-.bi-home .me img{width:56px;height:56px;border-radius:16px;display:block;margin:auto;box-shadow:0 0 0 3px #fff}
+.bi-home .me img{width:56px;height:56px;display:block;margin:auto;filter:drop-shadow(0 4px 10px rgba(0,0,0,.35))}
 .bi-home .me span{display:block;color:#fff;font-size:11px;margin-top:5px;font-weight:700}
 .bi-kk{position:absolute;inset:0;background:#fff}
 .bi-kk .hd{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 10px;font-size:20px;font-weight:800}
@@ -492,7 +492,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><span class="logo">₩</span><div><p class="eyebrow" id="today">We Vape · 사장님</p><h1>입금 요청</h1></div></div>
+    <div class="brand"><img class="logo" src="boss/boss-192.png" alt=""><div><p class="eyebrow" id="today">We Vape · 사장님</p><h1>W 결재함</h1></div></div>
     <div class="top-acts"><button class="btn ibtn" id="rf" title="새로고침" aria-label="새로고침"></button><button class="btn ibtn" id="bell" title="알림 설정" aria-label="상단바 알림 설정"><i id="bellDot"></i></button><button class="btn ibtn" id="help" title="사용법" aria-label="사용법 보기">?</button></div>
   </header>
   <div class="nb kk" id="kk"><b>카톡 안에서는 설치·알림이 안 됩니다</b><span>아래 버튼으로 인터넷 앱에서 다시 열어 주세요</span><button class="btn primary" id="kkOpen">인터넷 앱으로 열기</button><span class="sm">버튼이 안 되면 오른쪽 아래 <b>⋮</b> → 「다른 브라우저로 열기」 · <a href="boss-install.html">그림 안내</a></span></div>
@@ -530,7 +530,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
     <div class="wb-list" id="allList" style="margin-top:var(--s-4)"></div>
   </main>
 
-  <footer>We Vape — 입금 요청 (비품 · 관리비 · 택배비)<br>Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>내부 운영 자료 · 외부 공유를 금합니다</footer>
+  <footer>We Vape — W 결재함 (비품 · 관리비 · 택배비)<br>Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>내부 운영 자료 · 외부 공유를 금합니다</footer>
 </div>
 
 <div class="sheet" id="sheet"><div class="scrim" id="sheetScrim"></div><div class="in" id="sheetIn"></div></div>
@@ -551,7 +551,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 
 <div class="zoom" id="zoom"><img id="zoomImg" alt=""><button id="zoomX" aria-label="닫기"></button></div>
 
-<div class="bi" id="bi"><div class="hd"><small id="biStep">1 / 10</small><b>입금 요청 앱 사용법</b></div>
+<div class="bi" id="bi"><div class="hd"><small id="biStep">1 / 10</small><b>W 결재함 사용법</b></div>
   <div class="stage" id="biStage"><div class="stage-in" id="biIn"><div id="biScene"></div><div id="biCur"></div></div></div>
   <div class="cap" id="biCap"></div><div class="bar2" id="biBar"></div>
   <div class="nav"><button class="btn" id="biPrev">이전</button><button class="btn" id="biSkip">건너뛰기</button><button class="btn primary" id="biNext">다음</button></div></div>
@@ -1235,7 +1235,7 @@ const BI_ROWS=()=>[
 const BI_GRID=[['구월로데오점',483100,2,1],['구월길병원점',867310,3,3],['인천연수점',764300,2,2],['인천논현점',590400,3,1],['부천상동점',879450,3,0],['부천중동점',827480,3,0],['인천공항점',0,0,0],['인천검단점',710540,3,0],['인천계산점',646710,2,2]];
 function biGrid(n=9,bubble=true){ return `<div class="store-grid">${BI_GRID.slice(0,n).map(([st,amt,cnt,w],i)=>storeCardHTML(st,{amt,cnt,wait:w,waitAmt:w*163000},{bubble,i})).join('')}</div>`; }
 const BI_TODAY=(()=>{ const d=new Date(); return `We Vape · ${d.getMonth()+1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`; })();
-function biTop(dot){ return `<header class="top"><div class="brand"><span class="logo">₩</span><div><p class="eyebrow">${BI_TODAY}</p><h1>입금 요청</h1></div></div><div class="top-acts"><span class="btn ibtn">${IC.refresh}</span><span class="btn ibtn" id="bBell">${IC.bell}<i class="${dot?'on':''}"></i></span><span class="btn ibtn">?</span></div></header>`; }
+function biTop(dot){ return `<header class="top"><div class="brand"><img class="logo" src="boss/boss-192.png" alt=""><div><p class="eyebrow">${BI_TODAY}</p><h1>W 결재함</h1></div></div><div class="top-acts"><span class="btn ibtn">${IC.refresh}</span><span class="btn ibtn" id="bBell">${IC.bell}<i class="${dot?'on':''}"></i></span><span class="btn ibtn">?</span></div></header>`; }
 function biWsum(n=9,sum=1365310,st=5){ return `<div class="wsum">${wsumInner(n,sum,st)}</div>`; }
 function biHome(opts={}){ return `<div class="bi-pad">${biTop(opts.dot)}${opts.pre||''}${biWsum()}<div class="sec-head"><h2>지점</h2><span class="hint">빨간 숫자는 입금 대기</span></div>${biGrid(opts.n||9,opts.bubble!==false)}</div>`; }
 function biStore(rows,{scroll=0}={}){ const w=rows.filter(r=>!r.paid), wa=w.reduce((a,r)=>a+amtOf(r),0);
@@ -1314,7 +1314,7 @@ const BI_SCENES=[
     biAt(1500,()=>{ biSet(biStore(BI_ROWS().slice(0,2))); const p=biQ('#bSt'); anim(p,[{opacity:0,transform:'translateY(22px)'},{opacity:1,transform:'none'}],{duration:D.slow}); stagger(qsa('.pc',p),{y:16,base:120}); });
     biAt(2500,()=>biTo('.pc .cp')); biAt(3300,()=>{ const b=biQ('.pc .cp'); biClick(b); b.innerHTML=`<span class="swap">${IC.check}복사됨</span>`; anim(b.firstChild,[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'none'}],{duration:D.base,easing:SPRING}); biToast('복사했습니다 — 은행 앱을 열어 송금하세요'); });
     biAt(4600,()=>{ const o=biAdd(`<div class="bi-bank" id="bBank"><div style="font-weight:800;font-size:19px">은행 앱 · 이체</div><div style="margin-top:20px;background:var(--navy-soft);border-radius:14px;padding:14px;font-size:13px;color:var(--ink-2)">복사한 계좌로 보낼까요?<b style="display:block;font-size:16px;margin-top:6px;color:var(--ink)">신한은행 100-000-000000<br>497,890원</b></div><div id="bGo" style="margin-top:22px;background:#2563eb;color:#fff;text-align:center;border-radius:14px;padding:15px;font-weight:800;font-size:16px">보내기</div></div>`); anim(o,[{opacity:0,transform:'translateX(40px)'},{opacity:1,transform:'none'}],{duration:D.slow}); });
-    biAt(5600,()=>biTo('#bGo')); biAt(6400,()=>{ biClick('#bGo'); const b=biQ('#bBank'); b.innerHTML='<div style="margin-top:130px;text-align:center"><div id="bOk" style="width:76px;height:76px;margin:auto;border-radius:50%;background:#2563eb;color:#fff;display:grid;place-items:center">'+IC.check.replace('<svg','<svg style="width:38px;height:38px"')+'</div><div style="font-weight:800;font-size:18px;margin-top:14px">497,890원 보냈습니다</div><div style="color:var(--ink-3);font-size:13px;margin-top:6px">이제 입금 요청 앱으로 돌아가 「입금 완료」</div></div>'; anim(biQ('#bOk'),[{transform:'scale(.3)',opacity:0},{transform:'none',opacity:1}],{duration:D.slow,easing:SPRING}); });
+    biAt(5600,()=>biTo('#bGo')); biAt(6400,()=>{ biClick('#bGo'); const b=biQ('#bBank'); b.innerHTML='<div style="margin-top:130px;text-align:center"><div id="bOk" style="width:76px;height:76px;margin:auto;border-radius:50%;background:#2563eb;color:#fff;display:grid;place-items:center">'+IC.check.replace('<svg','<svg style="width:38px;height:38px"')+'</div><div style="font-weight:800;font-size:18px;margin-top:14px">497,890원 보냈습니다</div><div style="color:var(--ink-3);font-size:13px;margin-top:6px">이제 W 결재함으로 돌아가 「입금 완료」</div></div>'; anim(biQ('#bOk'),[{transform:'scale(.3)',opacity:0},{transform:'none',opacity:1}],{duration:D.slow,easing:SPRING}); });
   },
   /* ⑦ 입금 완료 — 다음 건이 올라옴 */
   ()=>{ biSet(biStore(BI_ROWS().slice(0,2))); biCur(300,620); biAt(400,()=>biTo('.pc [data-paid]')); biAt(1200,()=>{ biClick('.pc [data-paid]');
