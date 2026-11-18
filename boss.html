@@ -119,13 +119,30 @@ a{color:var(--navy-ink)}
 .kk .sm{font-size:var(--f-xs);color:var(--ink-2)}
 .kk .sm b{display:inline;font-size:inherit;color:var(--ink)}
 .kk a{font-weight:700;text-decoration:none;display:inline-block;margin-left:4px}
-.ib{background:var(--card);box-shadow:var(--sh-1);align-items:center;gap:var(--s-3)}
-.ib.show{display:flex}
-.ib .ic{width:40px;height:40px;border-radius:12px;background:var(--navy-soft);color:var(--navy-ink);display:grid;place-items:center;flex:none}
-.ib .ic svg{width:20px;height:20px}
-.ib div{flex:1;min-width:0}
-.ib span{color:var(--ink-3)}
-.ib .btn{flex:none;height:40px}
+.setup{position:relative;overflow:hidden;background:var(--card);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:var(--s-4);margin-bottom:var(--s-3)}
+.su-head{display:flex;align-items:flex-start;gap:var(--s-2);margin-bottom:var(--s-3)}
+.su-head > div{flex:1;min-width:0}
+.su-head b{display:block;font-size:var(--f-l);font-weight:700}
+.su-head span{display:block;font-size:var(--f-s);color:var(--ink-3);margin-top:2px}
+.su-head .btn{height:30px;padding:0 10px;margin:-3px -6px 0 0;color:var(--ink-3);flex:none}
+.su-steps{display:grid;gap:var(--s-2)}
+.su-step{display:flex;align-items:center;gap:var(--s-3);width:100%;min-height:62px;padding:10px 12px;border-radius:var(--r-m);background:var(--fill);text-align:left;transition:transform var(--d-base) var(--spring),background-color var(--d-base) ease}
+.su-step:active{transform:scale(.98);transition-duration:90ms}
+.su-step:disabled{cursor:default}
+.su-n{width:30px;height:30px;border-radius:50%;background:#fff;color:var(--navy-ink);box-shadow:var(--sh-1);display:grid;place-items:center;font-size:var(--f-s);font-weight:800;flex:none;transition:background-color var(--d-base) ease,color var(--d-base) ease}
+.su-n svg{width:16px;height:16px}
+.su-t{flex:1;min-width:0}
+.su-t b{display:block;font-size:var(--f-m);font-weight:700}
+.su-t small{display:block;font-size:var(--f-xs);color:var(--ink-3)}
+.su-go{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:34px;padding:0 14px;border-radius:var(--r-pill);background:var(--navy-soft);color:var(--navy-ink);font-size:var(--f-s);font-weight:700}
+.su-go.on{background:var(--navy);color:#fff}
+.su-go:empty{display:none}
+.su-go .spin{width:16px;height:16px}
+.su-step.done{background:var(--green-soft)}
+.su-step.done .su-n{background:var(--green);color:#fff;box-shadow:none}
+.su-step.done .su-t b{color:#0F5E3E}
+.su-step.done .su-t small{color:var(--green)}
+.setup .done-ov b{font-size:var(--f-l)}
 
 /* 입금 대기 요약 */
 .wsum{position:relative;display:flex;align-items:center;gap:var(--s-3);width:100%;padding:var(--s-5);border-radius:var(--r-l);background:var(--navy);color:#fff;box-shadow:var(--sh-2);text-align:left;transition:transform var(--d-base) var(--spring)}
@@ -361,7 +378,7 @@ a{color:var(--navy-ink)}
 .zoom button{position:fixed;top:calc(env(safe-area-inset-top) + 12px);right:12px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);color:var(--ink);display:grid;place-items:center}
 .zoom button svg{width:20px;height:20px}
 
-/* 확인창 · 비밀번호 */
+/* 확인창 */
 .modal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;grid-template-columns:minmax(0,400px);justify-content:center;padding:16px}
 .modal .scrim{position:absolute;inset:0;background:rgba(18,24,40,.38);opacity:0;transition:opacity var(--d-base) ease}
 .dlg{position:relative;width:100%;background:#fff;border-radius:var(--r-l);box-shadow:var(--sh-3);padding:var(--s-6) var(--s-5) var(--s-5);opacity:0;transform:translateY(16px) scale(.95);transition:transform var(--d-fast) ease-in,opacity var(--d-fast) ease-in}
@@ -375,19 +392,12 @@ a{color:var(--navy-ink)}
 .dlg .row{display:grid;grid-template-columns:1fr 1.4fr;gap:var(--s-2);margin-top:var(--s-5)}
 .dlg .row .btn{height:52px}
 .btn.red{background:var(--red);color:#fff}
-.inp{height:56px;width:100%;border:0;border-radius:var(--r-m);background:var(--fill);padding:0 var(--s-4);font-size:24px;font-weight:700;text-align:center;letter-spacing:8px;color:var(--ink);outline:0;box-shadow:inset 0 0 0 0 var(--navy-ink);transition:background-color var(--d-fast) ease,box-shadow var(--d-fast) ease;margin-top:var(--s-2)}
-.inp::placeholder{letter-spacing:4px;color:var(--ink-4);font-size:20px;font-weight:400}
-.inp:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--navy-ink)}
-#pinIn2::placeholder{letter-spacing:0;font-size:var(--f-m)}
-.pin-err{color:var(--red);font-size:var(--f-s);font-weight:600;min-height:20px;margin-top:6px;text-align:center}
 .switch{display:inline-flex;align-items:center;gap:var(--s-2);font-size:var(--f-s);font-weight:600;color:var(--ink-2);cursor:pointer;user-select:none;margin-top:var(--s-2)}
 .switch i{position:relative;width:38px;height:22px;border-radius:11px;background:var(--ink-4);transition:background-color var(--d-base) ease;flex:none}
 .switch i::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:var(--sh-1);transition:transform var(--d-base) var(--spring)}
 .switch input{position:absolute;opacity:0;pointer-events:none}
 .switch input:checked + i{background:var(--navy)}
 .switch input:checked + i::after{transform:translateX(16px)}
-#pin .dlg{text-align:center}
-.pin-dots{font-size:26px;letter-spacing:10px;height:40px;color:var(--navy);margin-top:var(--s-3)}
 
 /* 알림 토스트 */
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);z-index:80;display:flex;align-items:center;gap:var(--s-3);min-height:52px;width:max-content;max-width:calc(100vw - 32px);padding:8px var(--s-4) 8px var(--s-4);border-radius:var(--r-m);background:#1A2030;color:#fff;font-weight:600;font-size:var(--f-m);box-shadow:var(--sh-3);transform:translate(-50%,24px) scale(.94);opacity:0;pointer-events:none;transition:transform var(--d-base) var(--ease),opacity var(--d-fast) ease}
@@ -587,7 +597,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
     <div class="top-acts"><button class="btn ibtn" id="rf" title="새로고침" aria-label="새로고침"></button><button class="btn ibtn" id="bell" title="알림 설정" aria-label="상단바 알림 설정"><i id="bellDot"></i></button><button class="btn ibtn" id="help" title="사용법" aria-label="사용법 보기">?</button></div>
   </header>
   <div class="nb kk" id="kk"><b>카톡 안에서는 설치·알림이 안 됩니다</b><span>아래 버튼으로 인터넷 앱에서 다시 열어 주세요</span><button class="btn primary" id="kkOpen">인터넷 앱으로 열기</button><span class="sm">버튼이 안 되면 오른쪽 아래 <b>⋮</b> → 「다른 브라우저로 열기」 · <a href="boss-install.html">그림 안내</a></span></div>
-  <div class="nb ib" id="inst"><span class="ic" id="instIc"></span><div><b>앱으로 설치하면 상단바 알림을 받습니다</b><span>처음 한 번만 하면 됩니다</span></div><button class="btn soft" id="instBtn">앱 설치</button></div>
+  <section class="setup" id="setup" hidden aria-label="시작 설정"></section>
 
   <!-- 첫 화면 -->
   <main id="home">
@@ -626,14 +636,6 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 
 <div class="sheet" id="sheet"><div class="scrim" id="sheetScrim"></div><div class="in" id="sheetIn"></div></div>
 
-<div class="modal" id="pin" hidden><div class="scrim"></div><div class="dlg" role="dialog" aria-modal="true">
-  <h3 id="pinTitle">대표님 비밀번호</h3><p id="pinSub">입금 완료 처리는 대표님만 할 수 있습니다</p>
-  <input class="inp" id="pinIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••">
-  <input class="inp" id="pinIn2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="한 번 더" style="display:none">
-  <div class="pin-err" id="pinErr"></div>
-  <label class="switch"><input type="checkbox" id="pinKeep" checked><i></i>이 폰에서는 다시 묻지 않기</label>
-  <div class="row"><button class="btn" id="pinNo">취소</button><button class="btn primary" id="pinOk">확인</button></div>
-</div></div>
 
 <div class="modal" id="modal" hidden><div class="scrim"></div><div class="dlg" role="dialog" aria-modal="true">
   <h3 id="mTitle"></h3><div class="big n" id="mBig"></div><p id="mText"></p><div class="note" id="mNote"></div>
@@ -1048,59 +1050,26 @@ $('zoomX').innerHTML=IC.x;
 $('zoomX').onclick=()=>$('zoom').classList.remove('show');
 function closeDetail(){ $('sheet').classList.remove('show'); document.body.style.overflow=''; }
 $('sheetScrim').addEventListener('click',closeDetail);
-document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if($('zoom').classList.contains('show')) $('zoom').classList.remove('show'); else if($('xp').classList.contains('show')&&$('modal').hidden) closeXp(); else if($('bi').classList.contains('show')) closeBI(); else if($('sheet').classList.contains('show')&&$('modal').hidden&&$('pin').hidden) closeDetail(); });
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return; if($('zoom').classList.contains('show')) $('zoom').classList.remove('show'); else if($('xp').classList.contains('show')&&$('modal').hidden) closeXp(); else if($('bi').classList.contains('show')) closeBI(); else if($('sheet').classList.contains('show')&&$('modal').hidden) closeDetail(); });
 
 /* ───────── 입금 완료 (PIN) ───────── */
-function savedPin(){ try{ return localStorage.getItem('bossPin')||''; }catch(e){ return ''; } }
-function askPin(setMode){
-  return new Promise(res=>{
-    $('pinTitle').textContent = setMode ? '대표님 비밀번호 만들기' : '대표님 비밀번호';
-    $('pinSub').textContent = setMode ? '입금 완료 처리에 쓸 숫자 4~8자리를 정해 주세요' : '입금 완료 처리는 대표님만 할 수 있습니다';
-    $('pinIn2').style.display = setMode ? '' : 'none';
-    $('pinIn').value=''; $('pinIn2').value=''; $('pinErr').textContent='';
-    const m=$('pin'); openModal(m); setTimeout(()=>$('pinIn').focus(),50);
-    const fin=v=>{ document.removeEventListener('keydown',key); closeModal(m); res(v); };
-    const bad=t=>{ $('pinErr').textContent=t; anim(qs('.dlg',m),[{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(7px)'},{transform:'translateX(-4px)'},{transform:'translateX(0)'}],{duration:320,easing:'ease-out'}); };
-    const key=e=>{ if(e.key==='Escape') $('pinNo').click(); else if(e.key==='Enter') $('pinOk').click(); };
-    document.addEventListener('keydown',key);
-    $('pinNo').onclick=()=>fin(null); qs('.scrim',m).onclick=()=>fin(null);
-    $('pinOk').onclick=()=>{
-      const v=$('pinIn').value.trim();
-      if(!/^\d{4,8}$/.test(v)){ bad('숫자 4~8자리로 입력해 주세요'); return; }
-      if(setMode && v!==$('pinIn2').value.trim()){ bad('두 번 입력한 숫자가 다릅니다'); return; }
-      fin(v);
-    };
-  });
-}
-/* 비밀번호 상태(pinstate)는 앱이 뜰 때 한 번 받아 두고 재사용 → 누를 때 서버 왕복 없음 */
-let PIN_SET=null;
-function prefetchPin(){ api({action:'pinstate'}).then(r=>{ if(r&&r.ok) PIN_SET=!!r.set; }).catch(()=>{}); }
-async function getPin(){
-  let pin=savedPin(); if(pin) return pin;
-  let st={set:true};
-  if(PIN_SET!==null) st={set:PIN_SET}; else { try{ st=await api({action:'pinstate'}); }catch(e){} }
-  if(!st.set){ const np=await askPin(true); if(!np) return null; const s=await api(null,{action:'setpin',pin:np});
-    if(!s.ok){ if(/이미/.test(s.error||'')){ PIN_SET=true; return await askPin(false); } toast(s.error||'설정 실패'); return null; }
-    PIN_SET=true; toast('비밀번호를 만들었습니다'); return np; }
-  return await askPin(false);
-}
-function keepPin(pin, ok){ try{ if(!ok) localStorage.removeItem('bossPin'); else if($('pinKeep').checked) localStorage.setItem('bossPin',pin); }catch(e){} }
+/* 비밀번호 없음 — 예전에 이 폰에 저장해 둔 비밀번호는 지움 */
+try{ localStorage.removeItem('bossPin'); }catch(e){}
 /* 서버 응답을 기다리지 않고 바로 반영 → 저장은 뒤에서. 실패하면 원래 자리로 되돌리고 알림 */
 const PEND=new Map();   // 처리 중인 건 (같은 건 중복 전송 방지)
 const rowOf=id=>B.rows.find(x=>String(x.id)===String(id));
-async function markPaid(r, paid, {card=null,pin=null}={}){
+async function markPaid(r, paid, {card=null}={}){
   const id=String(r.id);
   if(PEND.has(id)){ toast('저장 중입니다 — 잠시만 기다려 주세요',{type:'info'}); return false; }
-  if(!paid && !pin && !(await ask({title:'입금 대기로 되돌릴까요?',text:'입금 완료를 취소하고 「입금 대기」로 되돌립니다.',note:`${r.store} · ${kindOf(r)} ${won(amtOf(r))}`,yes:'되돌리기',danger:true}))) return false;
-  pin=pin||await getPin(); if(!pin) return false;
+  if(!paid && !(await ask({title:'입금 대기로 되돌릴까요?',text:'입금 완료를 취소하고 「입금 대기」로 되돌립니다.',note:`${r.store} · ${kindOf(r)} ${won(amtOf(r))}`,yes:'되돌리기',danger:true}))) return false;
   if(PEND.has(id)) return false;
   const cur=rowOf(id)||r; if(!!cur.paid===paid){ return false; }
-  const prev={paid:cur.paid,paidAt:cur.paidAt,ack:cur.ack}, keep=$('pinKeep').checked, job={paid,ok:null};
+  const prev={paid:cur.paid,paidAt:cur.paidAt,ack:cur.ack}, job={paid,ok:null};
   PEND.set(id,job); B.gen++;
-  const req=api(null,{action:'paid',id:r.id,pin,paid}).catch(e=>({ok:false,error:e.message}));
+  const req=api(null,{action:'paid',id:r.id,paid}).catch(e=>({ok:false,error:e.message}));
   const at=paid?nowStr():''; [r,cur].forEach(o=>{ o.paid=paid; o.paidAt=at; if(!paid) o.ack=''; });
   closeDetail();
-  req.then(res=>finishPaid(id,job,pin,keep,prev,res,r));
+  req.then(res=>finishPaid(id,job,prev,res,r));
   B.lock++;
   try{
     const c=card||qs(`main:not([hidden]) .pc[data-pc="${CSS.escape(id)}"]`);
@@ -1109,16 +1078,14 @@ async function markPaid(r, paid, {card=null,pin=null}={}){
   if(job.ok!==false) toast(paid?'입금 완료로 옮겼습니다':'입금 대기로 되돌렸습니다', paid?{action:'되돌리기',fn:()=>markPaid(rowOf(id)||r,false)}:{});
   return true;
 }
-async function finishPaid(id,job,pin,keep,prev,res,r){
+async function finishPaid(id,job,prev,res,r){
   PEND.delete(id); job.ok=!!res.ok; B.gen++;
-  if(res.ok){ try{ if(keep) localStorage.setItem('bossPin',pin); }catch(e){} if(!PEND.size) load(true); return; }
-  try{ localStorage.removeItem('bossPin'); }catch(e){}
+  if(res.ok){ if(!PEND.size) load(true); return; }
   [r,rowOf(id)].forEach(o=>{ if(o){ o.paid=prev.paid; o.paidAt=prev.paidAt; o.ack=prev.ack; } });
   B.shownPc.delete(id); renderView();
   const msg=/Error: /.test(res.error||'') ? res.error.replace(/^Error: /,'') : (res.error||'처리 실패');
   toast(`${msg} — ${job.paid?'입금 대기로':'입금 완료로'} 되돌렸습니다`,{type:'bad'});
   if(!PEND.size) load(true);
-  if(/비밀번호/.test(msg) && !/잠겼|설정되지/.test(msg)){ await wait(900); const p2=await askPin(false); if(p2) markPaid(rowOf(id)||r, job.paid, {pin:p2}); }
 }
 function renderViewNow(){ const l=B.lock; B.lock=0; renderView(); B.lock=l; }
 /* 입금 완료 순간: 체크가 그려지고 → 카드가 빠지고 → 다음 건이 올라오고 → 숫자가 줄어듦 */
@@ -1173,26 +1140,24 @@ async function fbToken(cfg){
 }
 function bellDot(){ const on = pushSupported() && PUSH.cfg && (!myToken() || (typeof Notification!=='undefined' && Notification.permission!=='granted') || (PUSH.state&&PUSH.state.last&&PUSH.state.last.failed>0&&!PUSH.state.last.sent)); $('bellDot').classList.toggle('on', !!on); }
 async function refreshPush(){ await pushCfg(); try{ const r=await api({action:'pushstate'}); if(r.ok) PUSH.state=r; }catch(e){} bellDot(); }
-async function enablePush(){
-  const cfg=PUSH.cfg; if(!cfg){ toast('알림 서버 설정이 아직 안 됐습니다'); return; }
-  if(!pushSupported()){ toast(isIOS&&!isStandalone()?'홈 화면에 추가한 앱으로 열어야 알림을 받을 수 있습니다':'이 브라우저는 알림을 지원하지 않습니다'); return; }
+async function enablePush({quiet=false}={}){
+  const cfg=PUSH.cfg; if(!cfg){ toast('알림 서버 설정이 아직 안 됐습니다'); return false; }
+  if(!pushSupported()){ toast(isIOS&&!isStandalone()?'홈 화면에 추가한 앱으로 열어야 알림을 받을 수 있습니다':'이 브라우저는 알림을 지원하지 않습니다'); return false; }
   const perm=await Notification.requestPermission();
-  if(perm!=='granted'){ toast('알림이 차단돼 있습니다. 폰 설정에서 이 앱 알림을 허용해 주세요'); openPush(); return; }
-  const pin=await getPin(); if(!pin) return;
-  const b=$('pwOn'); if(b){ b.disabled=true; b.innerHTML='<span class="spin"></span>등록 중'; }
+  if(perm!=='granted'){ toast('알림이 차단돼 있습니다. 폰 설정에서 이 앱 알림을 허용해 주세요'); await refreshPush(); openPush(); return false; }
+  const b=quiet?null:$('pwOn'); if(b){ b.disabled=true; b.innerHTML='<span class="spin"></span>등록 중'; }
   try{
     const token=await fbToken(cfg); if(!token) throw new Error('알림 등록에 실패했습니다');
-    const r=await api(null,{action:'regpush', pin, token, name:devName()});
-    keepPin(pin, r.ok); if(!r.ok) throw new Error(String(r.error||'').replace(/^Error: /,'')||'등록 실패');
+    const r=await api(null,{action:'regpush', token, name:devName()});
+    if(!r.ok) throw new Error(String(r.error||'').replace(/^Error: /,'')||'등록 실패');
     try{ localStorage.setItem('bossPushToken', token); }catch(e){}
-    toast('이 폰에서 알림을 받습니다'); await refreshPush(); openPush();
-  }catch(e){ toast(e.message||'알림 등록 실패'); if(b){ b.disabled=false; b.textContent='이 폰에서 알림 받기'; } }
+    toast('이 폰에서 알림을 받습니다'); await refreshPush(); if(!quiet) openPush(); if(!$('setup').hidden) suMark('push');
+    return true;
+  }catch(e){ toast(e.message||'알림 등록 실패'); if(b){ b.disabled=false; b.textContent='이 폰에서 알림 받기'; } return false; }
 }
 async function testPush(){
-  const pin=await getPin(); if(!pin) return;
   const b=$('pwTest'); if(b){ b.disabled=true; b.innerHTML='<span class="spin"></span>보내는 중'; }
-  const r=await api(null,{action:'pushtest', pin}).catch(e=>({ok:false,error:e.message}));
-  keepPin(pin, !(r.error&&/비밀번호/.test(r.error)));
+  const r=await api(null,{action:'pushtest'}).catch(e=>({ok:false,error:e.message}));
   toast(r.ok?'테스트 알림을 보냈습니다 — 상단바를 확인해 주세요':'보내기 실패: '+String(r.error||'').replace(/^Error: /,'').slice(0,60));
   await refreshPush(); openPush();
 }
@@ -1231,16 +1196,62 @@ const isAndroid=/Android/i.test(navigator.userAgent), isMobile=isAndroid||isIOS;
 $('kkOpen').onclick=()=>{ if(isAndroid) location.href='intent://'+location.host+location.pathname+'#Intent;scheme=https;package=com.android.chrome;end'; else toast('오른쪽 아래 ⋯ → 「다른 브라우저로 열기」를 눌러 주세요'); };
 /* 앱 설치 버튼 — 크롬·삼성 인터넷이 주는 설치 창(beforeinstallprompt)을 그대로 띄움. 아이폰은 그림 안내로 */
 let INST=null;
-function instBar(){ $('inst').classList.toggle('show', !inKakao && isMobile && !isStandalone()); $('instBtn').textContent = INST ? '앱 설치' : '설치 방법 보기'; }
-window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); INST=e; instBar(); });
-window.addEventListener('appinstalled', ()=>{ INST=null; $('inst').classList.remove('show'); toast('설치했습니다 — 앱스 화면의 W 결재함으로 여세요'); });
-$('instBtn').onclick=async()=>{
-  if(!INST){ location.href='boss-install.html#manual'; return; }
-  INST.prompt(); try{ const r=await INST.userChoice; if(r.outcome!=='accepted') toast('설치를 취소했습니다'); }catch(e){}
-  INST=null; instBar();
-};
-$('instIc').innerHTML=IC.phone;
-instBar();
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); INST=e; });
+window.addEventListener('appinstalled', ()=>{ INST=null; toast('설치했습니다 — 앱스 화면의 W 결재함으로 여세요'); suMark('inst'); });
+/* ---------- 시작 설정 2단계 (홈 화면에 추가 · 알림 받기) ---------- */
+const SU={inst:false,push:false,busy:false};
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function suInstalled(){ return isStandalone() || lsGet('bossInstalled')==='1'; }
+function suPushOn(){ return !!myToken() && typeof Notification!=='undefined' && Notification.permission==='granted'; }
+function setupHTML(st){
+  const step=(k,n,t,sub,go,done,next)=>`<button class="su-step${done?' done':''}" data-su="${k}" ${done?'disabled':''}><span class="su-n">${done?IC.check:n}</span><span class="su-t"><b>${t}</b><small>${done?'완료':sub}</small></span><span class="su-go${next?' on':''}">${done?'':go}</span></button>`;
+  return `<div class="su-head"><div><b>시작 설정 2단계</b><span>한 번만 하면 입금 요청이 상단바로 옵니다</span></div><button class="btn quiet sm" data-su="later">나중에</button></div>
+    <div class="su-steps">${step('inst',1,'홈 화면에 추가','앱처럼 바로 열립니다','추가',st.inst,!st.inst)}${step('push',2,'알림 받기','입금 요청이 오면 상단바로','켜기',st.push,st.inst&&!st.push)}</div>`;
+}
+function setupWanted(){ if(inKakao||!isMobile||lsGet('bossSetupDone')==='1') return false;
+  const later=+lsGet('bossSetupLater')||0; if(later && Date.now()-later<7*864e5) return false;
+  return !(suInstalled()&&suPushOn()); }
+function renderSetup(){ const el=$('setup'); SU.inst=suInstalled(); SU.push=suPushOn(); if(!setupWanted()){ el.hidden=true; return; } el.hidden=false; el.innerHTML=setupHTML(SU); }
+async function hideSetup(){ const el=$('setup'); if(el.hidden) return;
+  await anim(el,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-10px) scale(.97)'}],{duration:D.base,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{});
+  flip(()=>{ el.hidden=true; el.getAnimations().forEach(a=>a.cancel()); el.innerHTML=''; },()=>qsa('#home [data-flip], footer')); }
+function suMark(k){ const el=$('setup'); if(el.hidden||SU[k]) { SU[k]=true; if(k==='inst') lsSet('bossInstalled','1'); return; }
+  SU[k]=true; if(k==='inst') lsSet('bossInstalled','1');
+  el.innerHTML=setupHTML(SU); const n=qs(`[data-su="${k}"] .su-n`,el); if(n) anim(n,[{transform:'scale(.4)'},{transform:'scale(1.15)'},{transform:'none'}],{duration:D.slow,easing:SPRING});
+  if(SU.inst&&SU.push) completeSetup(); }
+async function completeSetup(){ lsSet('bossSetupDone','1'); const el=$('setup');
+  const ov=document.createElement('div'); ov.className='done-ov';
+  ov.innerHTML=`<svg class="ck" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>시작 설정 완료</b><span class="amt">이제 입금 요청이 상단바로 옵니다</span>`;
+  await wait(RM?0:500); el.appendChild(ov);
+  if(!RM){ anim(ov,[{opacity:0},{opacity:1}],{duration:D.fast}); const c=qs('circle',ov); c.style.transformOrigin='32px 32px'; anim(c,[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:D.slow,easing:SPRING});
+    anim(qs('path',ov),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:D.base+60,delay:180,easing:EIO}); stagger(qsa('b,.amt',ov),{y:10,base:200,dur:320}); await wait(1100); }
+  hideSetup(); }
+function openInstallHelp(){
+  $('sheetIn').innerHTML=`${sheetBar('홈 화면에 추가','앱처럼 바로 열리고 상단바 알림을 받을 수 있습니다')}
+   <div class="pw"><div class="st">${isIOS?`<b>아이폰 (사파리)</b><ol><li>아래 공유 버튼(□↑)</li><li>「홈 화면에 추가」</li><li>홈 화면의 「W 결재함」으로 열기</li></ol>`
+     :`<b>크롬</b><ol><li>오른쪽 위 ⋮ 메뉴</li><li>「홈 화면에 추가」 또는 「앱 설치」</li></ol><div style="height:var(--s-2)"></div><b>삼성 인터넷</b><ol><li>아래 ⋮ 메뉴 → 「현재 페이지 추가」</li><li>「웹앱으로 설치」 → 「추가」</li></ol>`}</div>
+   <button class="btn white lg" id="ihDone">이미 추가했어요</button>
+   <a class="guide" href="boss-install.html#manual">${IC.phone}그림으로 자세히 보기</a></div>`;
+  $('sx').onclick=closeDetail; $('ihDone').onclick=()=>{ closeDetail(); suMark('inst'); };
+  openSheet(); stagger(qsa('.pw > *',$('sheetIn')),{y:10,dur:300,base:80});
+}
+async function suInstall(){
+  if(INST){ const ev=INST; INST=null; let ok=false; try{ ev.prompt(); ok=(await ev.userChoice).outcome==='accepted'; }catch(e){}
+    if(ok) suMark('inst'); else toast('설치를 취소했습니다'); return; }
+  openInstallHelp();
+}
+async function suPush(btn){
+  await pushCfg();
+  if(!PUSH.cfg||!pushSupported()||(typeof Notification!=='undefined'&&Notification.permission==='denied')){ await refreshPush(); openPush(); return; }
+  btn.disabled=true; const go=qs('.su-go',btn); if(go) go.innerHTML='<span class="spin"></span>';
+  const ok=await enablePush({quiet:true});
+  if(!ok&&btn.isConnected){ btn.disabled=false; if(go) go.textContent='켜기'; }
+}
+$('setup').addEventListener('click',e=>{ const b=e.target.closest('[data-su]'); if(!b||b.disabled) return; const k=b.dataset.su;
+  if(k==='later'){ lsSet('bossSetupLater',String(Date.now())); hideSetup(); }
+  else if(k==='inst') suInstall(); else if(k==='push') suPush(b); });
+renderSetup();
 $('bell').onclick=async()=>{ await refreshPush(); openPush(); };
 refreshPush();
 
@@ -1416,16 +1427,16 @@ $('xpPng').onclick=async()=>{ const b=$('xpPng'); if(b.disabled) return; b.disab
   b.disabled=false; b.innerHTML=`${IC.image}그림으로 저장`; };
 
 /* ---------- 사용법 모션 (처음 한 번 자동 · 「?」로 다시) ---------- */
-const BI={ i:0, k:1, timers:[], DUR:[5600,6800,7800,10400,5400,6000,9000,8400,9200,5000,7600],
+const BI={ i:0, k:1, timers:[], DUR:[5600,6800,7400,10400,5400,6000,9000,7400,9200,5000,7600],
   T:['카톡에서 열기','앱 설치','상단바 알림 켜기','카톡 보고는 이제 그만','알림이 오면','지점 카드와 말풍선','계좌 복사 → 송금','입금 완료','지점 내역 보기','계좌가 바뀌면','월별 정산'],
   C:['카톡으로 받은 링크는 카톡 안에서 열립니다 — 주황 안내의 <b>[인터넷 앱으로 열기]</b>를 누르세요',
-     '<b>[앱 설치]</b> → <b>설치</b> 한 번이면 앱스 화면에 <b>W 결재함</b>이 생깁니다 (아이폰은 사파리 공유 → 홈 화면에 추가)',
-     '대표님 폰에서 <b>종 버튼</b> → <b>이 폰에서 알림 받기</b> → <b>허용</b> → 비밀번호. 처음 한 번만 하면 됩니다',
+     '첫 화면 <b>시작 설정</b>의 <b>[추가]</b> → <b>설치</b> 한 번이면 앱스 화면에 <b>W 결재함</b>이 생깁니다 (아이폰은 사파리 공유 → 홈 화면에 추가)',
+     '이어서 <b>[알림 받기]</b> → <b>허용</b>이면 끝. 두 단계가 끝나면 카드가 접히고, 알림은 오른쪽 위 <b>종 버튼</b>에서 다시 볼 수 있습니다',
      '<span id="biC4">기존엔 지점마다 대표님 <b>개인 카톡</b>으로 멘트를 보내고, 대표님이 카톡을 뒤져 계좌를 복사했습니다</span>',
      '지점이 입금 요청을 올리면 대표님 폰 <b>상단바에 바로</b> 뜹니다 — 눌러서 앱으로 들어가세요',
      '맨 위에 <b>입금 대기 합계</b>, 아래에 <b>9개 지점</b>. 지점 카드의 <b>빨간 말풍선</b>이 그 지점의 입금 대기 건수입니다',
      '<b>말풍선</b>을 누르면 그 지점 입금 대기로 바로 → <b>[계좌 복사]</b> → 은행 앱에서 붙여넣고 보내기',
-     '송금 후 <b>[입금 완료]</b> → 비밀번호(처음 한 번). 체크가 그려지고 <b>다음 건이 올라옵니다</b> — 실수했으면 <b>되돌리기</b>',
+     '송금 후 <b>[입금 완료]</b> → <b>확인</b>. 체크가 그려지고 <b>다음 건이 올라옵니다</b> — 실수했으면 <b>되돌리기</b>',
      '지점 화면 아래 <b>지난 청구이력 · 비품 · 택배비 · 관리비</b> — 관리비·택배비는 <b>사진</b>, 비품은 품목과 <b>엑셀</b>',
      '받는 계좌가 지난번과 다르면 <b>빨간 경고</b>가 뜹니다 — 지점에 확인 후 입금하세요',
      '첫 화면 아래 <b>월별 정산</b> — <b>◀ ▶</b>로 달을 넘기며 전체·종류별 합계와 입금 완료/대기 금액을 봅니다<br><b style="font-size:var(--f-l)">카톡 보고 없이, 이 앱 하나로</b>'] };
@@ -1475,23 +1486,24 @@ const BI_SCENES=[
     biAt(4000,()=>{ biSet(`<div class="bi-chrome dark"><span class="u">🔒 znsl132-lang.github.io/wevape-web/boss.html</span></div>${biHome({n:6})}`); anim(biQ('.bi-pad'),[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:D.slow}); });
   },
   /* ② 앱 설치 */
-  ()=>{ biSet(`<div class="bi-chrome dark"><span class="u">🔒 znsl132-lang.github.io/wevape-web/boss.html</span></div>${biHome({n:4,pre:`<div class="nb ib show" id="bIB"><span class="ic">${IC.phone}</span><div><b>앱으로 설치하면 상단바 알림을 받습니다</b><span>처음 한 번만 하면 됩니다</span></div><span class="btn soft" id="bI">앱 설치</span></div>`})}`);
+  ()=>{ biSet(`<div class="bi-chrome dark"><span class="u">🔒 znsl132-lang.github.io/wevape-web/boss.html</span></div>${biHome({n:4,pre:`<section class="setup" id="bIB">${setupHTML({inst:false,push:false})}</section>`})}`);
     anim(biQ('#bIB'),[{opacity:0,transform:'translateY(-10px)'},{opacity:1,transform:'none'}],{duration:D.slow,delay:200});
-    biCur(300,600); biAt(600,()=>biTo('#bI')); biAt(1400,()=>{ biClick('#bI'); const o=biAdd(`<div class="bi-native" style="align-items:end"><div class="box" id="bDlg" style="width:auto;margin:0 10px 14px;border-radius:24px;text-align:left"><div style="display:flex;gap:12px;align-items:center"><img src="boss/boss-192.png" alt="" style="width:48px;height:48px;border-radius:12px"><div><b style="font-size:17px">앱 설치</b><div style="color:var(--ink-3);font-size:12.5px">W 결재함 · znsl132-lang.github.io</div></div></div><div style="display:flex;justify-content:flex-end;gap:24px;margin-top:22px;font-weight:800;color:#1a73e8;font-size:15px"><span>취소</span><span id="bIn">설치</span></div></div></div>`);
+    biCur(300,600); biAt(600,()=>biTo('#bIB [data-su="inst"] .su-go')); biAt(1400,()=>{ biClick('#bIB [data-su="inst"]'); const o=biAdd(`<div class="bi-native" style="align-items:end"><div class="box" id="bDlg" style="width:auto;margin:0 10px 14px;border-radius:24px;text-align:left"><div style="display:flex;gap:12px;align-items:center"><img src="boss/boss-192.png" alt="" style="width:48px;height:48px;border-radius:12px"><div><b style="font-size:17px">앱 설치</b><div style="color:var(--ink-3);font-size:12.5px">W 결재함 · znsl132-lang.github.io</div></div></div><div style="display:flex;justify-content:flex-end;gap:24px;margin-top:22px;font-weight:800;color:#1a73e8;font-size:15px"><span>취소</span><span id="bIn">설치</span></div></div></div>`);
       anim(o,[{opacity:0},{opacity:1}],{duration:D.base}); anim(qs('#bDlg',o),[{transform:'translateY(60px)'},{transform:'none'}],{duration:D.slow,easing:EASE}); });
     biAt(2300,()=>biTo('#bIn')); biAt(3100,()=>biClick('#bIn'));
     biAt(3600,()=>{ biSet(`<div class="bi-home">${Array.from({length:7},()=>'<div><div class="ap"></div></div>').join('')}<div class="me" id="bApp"><img src="boss/boss-192.png" alt=""><span>W 결재함</span></div></div>`); biCur(250,160);
       anim(biQ('#bApp'),[{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'none'}],{duration:D.slow+200,easing:SPRING,delay:200}); biToast('W 결재함을 홈 화면에 추가했어요'); });
     biAt(5000,()=>biTo('#bApp'));
   },
-  /* ③ 상단바 알림 켜기 */
-  ()=>{ biSet(biHome({dot:true,n:6})); biCur(300,600); biAt(500,()=>biTo('#bBell')); biAt(1300,()=>{ biClick('#bBell');
-      const s=biAdd(biSheet(`${sheetBar('상단바 알림','지점이 입금 요청을 올리면 폰 상단바로 알려 드립니다').replace('id="sx"','')}<div class="pw"><div class="st" id="bSt2"><b>아직 이 폰은 알림을 받지 않습니다</b><div class="mut">아래 버튼을 누르고 「허용」을 눌러 주세요.</div></div><span class="btn primary lg" id="bOn">이 폰에서 알림 받기</span></div>`,250));
-      anim(qs('.scrim',s),[{opacity:0},{opacity:1}]); anim(qs('.in',s),[{transform:'translateY(100%)'},{transform:'none'}],{duration:D.slow}); });
-    biAt(2200,()=>biTo('#bOn')); biAt(3000,()=>{ biClick('#bOn'); const o=biAdd(`<div class="bi-native" id="bPm"><div class="box"><div style="color:var(--navy)">${IC.bell.replace('<svg','<svg style="width:26px;height:26px"')}</div><b style="font-size:15px;display:block;margin:8px 0 18px">W 결재함에서 알림을 보내도록 허용하시겠습니까?</b><div id="bAl" style="background:#e8f0fe;color:#1a73e8;border-radius:999px;padding:12px;font-weight:800;margin-bottom:6px">허용</div><div style="color:#1a73e8;padding:10px;font-weight:700">허용 안함</div></div></div>`); anim(o,[{opacity:0},{opacity:1}]); anim(qs('.box',o),[{transform:'scale(.9)',opacity:0},{transform:'none',opacity:1}],{duration:D.slow,easing:SPRING}); });
-    biAt(3800,()=>biTo('#bAl')); biAt(4600,()=>{ biClick('#bAl'); $('bPm')?.remove(); const m=biAdd(`<div class="modal on" id="bPin"><div class="scrim"></div><div class="dlg" style="text-align:center"><h3>비밀번호 만들기</h3><p>처음 한 번 숫자 4~8자리로 정합니다</p><div class="pin-dots" id="bDots"></div></div></div>`); anim(qs('.dlg',m),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
-    [1,2,3,4].forEach(n=>biAt(4800+n*220,()=>{ const d=biQ('#bDots'); if(d) d.textContent='●'.repeat(n); }));
-    biAt(6100,()=>{ biQ('#bPin')?.remove(); const st=biQ('#bSt2'); st.innerHTML='<b class="ok">✓ 이 폰에서 알림을 받고 있습니다</b><div class="mut">지점이 입금 요청을 올리면 상단바에 바로 뜹니다.</div>'; anim(st,[{transform:'scale(.95)'},{transform:'none'}],{duration:D.slow,easing:SPRING}); const o=biQ('#bOn'); o.textContent='테스트 알림 보내기'; o.className='btn white lg'; biQ('#bBell i').classList.remove('on'); biCur(300,560); biToast('이 폰에서 알림을 받습니다'); });
+  /* ③ 상단바 알림 켜기 — 시작 설정 카드의 [알림 받기] */
+  ()=>{ biSet(biHome({dot:true,n:4,pre:`<section class="setup" id="bSU">${setupHTML({inst:true,push:false})}</section>`})); biCur(300,600);
+    biAt(500,()=>biTo('#bSU [data-su="push"] .su-go')); biAt(1300,()=>{ biClick('#bSU [data-su="push"]'); const o=biAdd(`<div class="bi-native" id="bPm"><div class="box"><div style="color:var(--navy)">${IC.bell.replace('<svg','<svg style="width:26px;height:26px"')}</div><b style="font-size:15px;display:block;margin:8px 0 18px">W 결재함에서 알림을 보내도록 허용하시겠습니까?</b><div id="bAl" style="background:#e8f0fe;color:#1a73e8;border-radius:999px;padding:12px;font-weight:800;margin-bottom:6px">허용</div><div style="color:#1a73e8;padding:10px;font-weight:700">허용 안함</div></div></div>`); anim(o,[{opacity:0},{opacity:1}]); anim(qs('.box',o),[{transform:'scale(.9)',opacity:0},{transform:'none',opacity:1}],{duration:D.slow,easing:SPRING}); });
+    biAt(2100,()=>biTo('#bAl')); biAt(2900,()=>{ biClick('#bAl'); biQ('#bPm')?.remove(); const su=biQ('#bSU'); su.innerHTML=setupHTML({inst:true,push:true}); anim(qs('[data-su="push"] .su-n',su),[{transform:'scale(.4)'},{transform:'scale(1.15)'},{transform:'none'}],{duration:D.slow,easing:SPRING}); biQ('#bBell i')?.classList.remove('on'); biToast('이 폰에서 알림을 받습니다'); biCur(300,560); });
+    biAt(3500,()=>{ const su=biQ('#bSU'); const ov=document.createElement('div'); ov.className='done-ov'; ov.innerHTML=`<svg class="ck" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>시작 설정 완료</b><span class="amt">이제 입금 요청이 상단바로 옵니다</span>`; su.appendChild(ov);
+      anim(ov,[{opacity:0},{opacity:1}],{duration:D.fast}); const c=qs('circle',ov); c.style.transformOrigin='32px 32px'; anim(c,[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:D.slow,easing:SPRING}); anim(qs('path',ov),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:D.base+60,delay:180,easing:EIO}); stagger(qsa('b,.amt',ov),{y:10,base:200,dur:320}); });
+    biAt(4700,()=>{ const su=biQ('#bSU'); anim(su,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-10px) scale(.97)'}],{duration:D.base,easing:'ease-in',fill:'forwards'}); });
+    biAt(5000,()=>{ const su=biQ('#bSU'); const ws=biQ('.wsum'); const t0=ws.getBoundingClientRect().top; su.remove(); const dy=(t0-ws.getBoundingClientRect().top)/BI.k; [...$('biScene').querySelectorAll('.wsum,.sec-head,.store-grid')].forEach(el=>anim(el,[{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:D.slow-60})); });
+    biAt(5900,()=>biTo('#bBell'));
   },
   /* ④ 카톡 보고는 이제 그만 — 기존 방식 ✕ → 바로 이 앱으로 */
   ()=>{ const P=[['구월로데오점 김하늘 주임','[구월로데오점] 11월 비품 주문건 1) 일반 비품류 은행 : 우리은행','오후 2:14',3,'#7C8CC9'],['인천연수점 이도윤 매니저','[연수점] 11월 관리비 납부 은행 : 신한은행 계좌 : 100-…','오후 1:52',2,'#5FA79C'],['구월길병원점 박서준 점장','[길병원점] 11월 택배비 정산 (로젠택배) 은행 : 카카오뱅크','오전 11:30',4,'#C29468'],['부천중동점 최유나 주임','[중동점] 11월 비품 주문건 2) 사무용품 금액 : 47,800원','오전 10:05',1,'#B07CC9'],['인천논현점 정민재 매니저','[논현점] 10월 관리비 납부 납기일 : 11월 02일','어제',2,'#D07C7C'],['인천계산점 한지우 주임','[계산점] 11월 비품 주문건 은행 : 우리은행 계좌 : 1234…','어제',5,'#6C9BD2']];
@@ -1530,13 +1542,12 @@ const BI_SCENES=[
   /* ⑦ 입금 완료 — 다음 건이 올라옴 */
   ()=>{ biSet(biStore(BI_ROWS().slice(0,2))); biCur(300,620); biAt(400,()=>biTo('.pc [data-paid]')); biAt(1200,()=>{ biClick('.pc [data-paid]');
       const m=biAdd(`<div class="modal on" id="bAsk"><div class="scrim"></div><div class="dlg"><h3>입금 완료로 바꿀까요?</h3><div class="big n">497,890<small>원</small></div><p>구월길병원점 · 관리비 ${mNum(BI_M)}월분</p><div class="row"><span class="btn">취소</span><span class="btn primary" id="bY">입금 완료</span></div></div></div>`); anim(qs('.dlg',m),[{opacity:0,transform:'translateY(16px) scale(.95)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING}); });
-    biAt(2000,()=>biTo('#bY')); biAt(2700,()=>{ biClick('#bY'); biQ('#bAsk .dlg').innerHTML='<h3>비밀번호 만들기</h3><p>처음 한 번만 — 다음부터는 묻지 않습니다</p><div class="pin-dots" id="bDots"></div>'; });
-    [1,2,3,4].forEach(n=>biAt(2900+n*200,()=>{ const d=biQ('#bDots'); if(d) d.textContent='●'.repeat(n); }));
-    biAt(4000,()=>{ biQ('#bAsk')?.remove(); const card=biQ('.pc'); const ov=document.createElement('div'); ov.className='done-ov'; ov.innerHTML=`<svg class="ck" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>입금 완료</b><span class="amt n">구월길병원점 · 497,890원</span>`; card.appendChild(ov);
+    biAt(2000,()=>biTo('#bY')); biAt(2700,()=>biClick('#bY'));
+    biAt(2900,()=>{ biQ('#bAsk')?.remove(); const card=biQ('.pc'); const ov=document.createElement('div'); ov.className='done-ov'; ov.innerHTML=`<svg class="ck" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30"/><path d="M20.5 33l8 8L44 25.5"/></svg><b>입금 완료</b><span class="amt n">구월길병원점 · 497,890원</span>`; card.appendChild(ov);
       anim(ov,[{opacity:0},{opacity:1}],{duration:D.fast}); const c=qs('circle',ov); c.style.transformOrigin='32px 32px'; anim(c,[{transform:'scale(.3)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:D.slow,easing:SPRING}); anim(qs('path',ov),[{strokeDashoffset:40},{strokeDashoffset:0}],{duration:D.base+60,delay:180,easing:EIO}); stagger(qsa('b,.amt',ov),{y:10,base:200,dur:320}); biCur(300,600); });
-    biAt(5000,()=>{ const card=biQ('.pc'); anim(card,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px) scale(.95)'}],{duration:D.base,easing:'ease-in',fill:'forwards'}); });
-    biAt(5300,()=>{ const card=biQ('.pc'); const nx=qsa('.pc',$('biScene'))[1]; const b=nx.getBoundingClientRect().top; card.remove(); const a=nx.getBoundingClientRect().top; anim(nx,[{transform:`translateY(${(b-a)/BI.k}px)`},{transform:'none'}],{duration:D.slow-60}); const w=biQ('#bW'); w.textContent='1'; pop(w.parentElement); const wa=biQ('#bWA'); wa._v=723310; countUp(wa,225420,'원'); const h=biQ('.wbN'); h.textContent='1'; pop(h); biToast('입금 완료로 옮겼습니다','되돌리기'); });
-    biAt(6600,()=>biTo('.toast button')); },
+    biAt(3900,()=>{ const card=biQ('.pc'); anim(card,[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-12px) scale(.95)'}],{duration:D.base,easing:'ease-in',fill:'forwards'}); });
+    biAt(4200,()=>{ const card=biQ('.pc'); const nx=qsa('.pc',$('biScene'))[1]; const b=nx.getBoundingClientRect().top; card.remove(); const a=nx.getBoundingClientRect().top; anim(nx,[{transform:`translateY(${(b-a)/BI.k}px)`},{transform:'none'}],{duration:D.slow-60}); const w=biQ('#bW'); w.textContent='1'; pop(w.parentElement); const wa=biQ('#bWA'); wa._v=723310; countUp(wa,225420,'원'); const h=biQ('.wbN'); h.textContent='1'; pop(h); biToast('입금 완료로 옮겼습니다','되돌리기'); });
+    biAt(5500,()=>biTo('.toast button')); },
   /* ⑧ 지점 내역 탭 · 사진 · 엑셀 */
   ()=>{ biSet(`<div class="bi-pad"><div style="height:12px"></div><div class="hero">${heroHTML({title:'구월길병원점',sub:'비품 · 관리비 · 택배비 청구',stats:[['이번 달 청구',won(867310),'','','3건'],['입금 대기','3건','w','',won(867310)]],back:''})}</div>${biTabs(0)}<div id="bP">${biHist()}</div></div>`);
     biCur(300,620); biAt(500,()=>biTo('#bTabs [data-t="관리비"]')); biAt(1300,()=>{ biClick('#bTabs [data-t="관리비"]'); biQ('#bTabs').style.setProperty('--i',3); qsa('#bTabs .tab',$('biScene')).forEach((t,j)=>t.classList.toggle('on',j===3)); const p=biQ('#bP'); p.innerHTML=biHist('관리비'); anim(p,[{opacity:0,transform:'translateX(26px)'},{opacity:1,transform:'none'}],{duration:D.base+60}); });
@@ -1587,7 +1598,6 @@ $('rf').onclick=()=>load();
 try{ history.replaceState({v:'home'},''); }catch(e){}
 skeleton();
 load();
-prefetchPin();
 setInterval(()=>{ if(!document.hidden && !$('sheet').classList.contains('show')) load(true); }, 60000);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) load(true); });
 </script>
