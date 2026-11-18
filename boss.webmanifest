@@ -1,11 +1,11 @@
 {
- "name": "We Vape 입금 요청",
- "short_name": "입금요청",
+ "name": "위베이프 W 결재함",
+ "short_name": "W 결재함",
  "start_url": "boss.html",
  "scope": "./",
  "display": "standalone",
- "background_color": "#111111",
- "theme_color": "#111111",
+ "background_color": "#FBF6EC",
+ "theme_color": "#F3F5F8",
  "lang": "ko",
  "icons": [
   {
