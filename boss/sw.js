@@ -1,11 +1,11 @@
-/* We Vape — 입금 요청 앱 상단바 알림 (범위: boss/ — 다른 페이지에는 영향 없음)
+/* We Vape — W 결재함 상단바 알림 (범위: boss/ — 다른 페이지에는 영향 없음)
    Copyright © 2026 Dae Woon Jang. All Rights Reserved. 내부 운영 자료 · 외부 공유를 금합니다 */
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', e => {
   let j = {}; try { j = e.data ? e.data.json() : {}; } catch (err) { j = {}; }
   const d = j.data || {}, n = j.notification || {};
-  const title = d.title || n.title || '입금 요청';
+  const title = d.title || n.title || 'W 결재함';
   const opt = { body: d.body || n.body || '', icon: 'boss-192.png', badge: 'boss-192.png',
     tag: d.id || ('wv-' + Date.now()), renotify: true, data: { url: d.url || '../boss.html' } };
   e.waitUntil(self.registration.showNotification(title, opt));
