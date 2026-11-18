@@ -490,6 +490,76 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-vt) 
 </style>
 </head>
 <body>
+<div id="stampSplash" aria-hidden="true">
+<style>
+#stampSplash{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 90% at 50% 40%,#FBF6EC 0%,#EADFCB 100%);display:grid;place-items:center;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#stampSplash .ss-stage{position:relative;width:min(74vw,300px);aspect-ratio:511/720}
+#stampSplash .ss-paper{position:absolute;inset:0;width:100%;height:100%;opacity:0;filter:drop-shadow(0 2px 3px rgba(70,45,15,.10)) drop-shadow(0 18px 30px rgba(70,45,15,.16))}
+#stampSplash .ss-ink,#stampSplash .ss-stamp,#stampSplash .ss-shadow{position:absolute;left:50%;top:76%;transform-origin:50% 50%;will-change:transform,opacity}
+#stampSplash .ss-ink{width:44%;margin:-22% 0 0 -22%;opacity:0}
+#stampSplash .ss-stamp{width:52%;margin:-26% 0 0 -26%;opacity:0}
+#stampSplash .ss-shadow{width:50%;aspect-ratio:1;margin:-25% 0 0 -25%;border-radius:22%;background:rgba(50,25,8,.55);filter:blur(10px);opacity:0}
+#stampSplash .ss-icon{position:absolute;left:50%;top:50%;width:min(42vw,170px);aspect-ratio:1;transform:translate(-50%,-50%) scale(.6);opacity:0;will-change:transform,opacity}
+#stampSplash .ss-name{position:absolute;left:0;right:0;top:calc(50% + min(25vw,100px));text-align:center;font:800 22px/1.2 Pretendard,system-ui,sans-serif;color:#2A1A12;letter-spacing:-.02em;opacity:0}
+#stampSplash .ss-name small{display:block;font-weight:600;font-size:12px;color:#8A7A66;margin-top:6px;letter-spacing:0}
+</style>
+<div class="ss-stage">
+ <img class="ss-paper" src="boss/ss-paper.webp" alt="">
+ <img class="ss-ink" src="boss/ss-ink.webp" alt="">
+ <div class="ss-shadow"></div>
+ <img class="ss-stamp" src="boss/ss-stamp.webp" alt="">
+</div>
+<img class="ss-icon" src="boss/boss-512.png" alt="">
+<div class="ss-name">W 결재함<small>We Vape · 입금 결재</small></div>
+<script>
+(function(){
+  var el=document.getElementById('stampSplash'); if(!el) return;
+  var seen=false; try{ seen=sessionStorage.getItem('stampSplashSeen')==='1'; sessionStorage.setItem('stampSplashSeen','1'); }catch(e){}
+  if(seen||!el.animate){ el.remove(); return; }
+  var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var q=function(s){return el.querySelector(s)}, E='cubic-bezier(.22,1,.36,1)', done=false, T=[], started=false;
+  var paper=q('.ss-paper'), stamp=q('.ss-stamp'), shadow=q('.ss-shadow'), ink=q('.ss-ink'), icon=q('.ss-icon'), name=q('.ss-name'), stage=q('.ss-stage');
+  function at(ms,f){ T.push(setTimeout(f,ms)); }
+  function a(n,k,o){ return n.animate(k,Object.assign({fill:'forwards'},o)); }
+  function finish(){ if(done) return; done=true; T.forEach(clearTimeout); a(el,[{opacity:1},{opacity:0}],{duration:260,easing:'ease'}).onfinish=function(){ el.remove(); }; }
+  el.addEventListener('click',finish);
+  window.SPLASH_MS = rm ? 900 : 2500;
+  function run(){
+    if(started||done) return; started=true;
+    if(rm){ a(icon,[{opacity:0},{opacity:1}],{duration:300}); a(name,[{opacity:0},{opacity:1}],{duration:300}); at(650,finish); return; }
+    var R='rotate(-8deg)';
+    a(paper,[{opacity:0,transform:'translateY(16px) scale(.98)'},{opacity:1,transform:'none'}],{duration:420,easing:E});
+    /* 도장이 위(카메라 쪽)에서 내려옴: 크게 → 제자리 */
+    a(stamp,[{opacity:0,transform:R+' translate(14%,-18%) scale(2.6)'},{opacity:1,transform:R+' translate(10%,-12%) scale(2.2)',offset:.3},{opacity:1,transform:R+' scale(1)'}],{duration:560,delay:220,easing:'cubic-bezier(.6,0,.95,.55)'});
+    a(shadow,[{opacity:0,transform:R+' translate(22%,26%) scale(1.7)'},{opacity:.35,transform:R+' translate(10%,12%) scale(1.25)',offset:.4},{opacity:.6,transform:R+' translate(3%,4%) scale(1.02)'}],{duration:560,delay:220,easing:'cubic-bezier(.6,0,.95,.55)'});
+    at(780,function(){ /* 쾅 */
+      a(stamp,[{transform:R+' scale(1)'},{transform:R+' scale(.955)'},{transform:R+' scale(1)'}],{duration:170,easing:'ease-out'});
+      a(stage,[{transform:'none'},{transform:'translate(2px,3px)'},{transform:'translate(-2px,-1px)'},{transform:'translate(1px,0)'},{transform:'none'}],{duration:220,easing:'ease-out',fill:'none'});
+      ink.style.opacity='1';
+      try{ navigator.vibrate&&navigator.vibrate(20); }catch(e){}
+    });
+    at(1080,function(){ /* 도장 들어 올림 → 자국 드러남 */
+      a(stamp,[{opacity:1,transform:R+' scale(1)'},{opacity:0,transform:R+' translate(-8%,-14%) scale(2.3)'}],{duration:420,easing:'cubic-bezier(.3,0,.3,1)'});
+      a(shadow,[{opacity:.6,transform:R+' translate(3%,4%) scale(1.02)'},{opacity:0,transform:R+' translate(20%,24%) scale(1.6)'}],{duration:380,easing:'ease-out'});
+      a(ink,[{opacity:.75,transform:'scale(1.02)'},{opacity:1,transform:'scale(1)'}],{duration:260,easing:'ease-out'});
+    });
+    at(1500,function(){ /* 자국이 커지며 아이콘으로 */
+      var r=ink.getBoundingClientRect(), dx=innerWidth/2-(r.left+r.width/2), dy=innerHeight/2-(r.top+r.height/2);
+      a(paper,[{opacity:1},{opacity:0}],{duration:320,easing:'ease'});
+      a(ink,[{opacity:1,transform:'none'},{opacity:0,transform:'translate('+dx+'px,'+dy+'px) scale(1.9)'}],{duration:500,easing:E});
+      a(icon,[{opacity:0,transform:'translate(-50%,-50%) scale(.55) rotate(-8deg)'},{opacity:1,transform:'translate(-50%,-50%) scale(1) rotate(0deg)'}],{duration:580,delay:120,easing:'cubic-bezier(.34,1.4,.64,1)'});
+      a(name,[{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:360,delay:400,easing:E});
+    });
+    at(2500,finish);
+  }
+  /* 그림이 준비되면 시작 (최대 0.8초 기다림) */
+  var imgs=[paper,stamp,ink], left=imgs.length;
+  imgs.forEach(function(im){ if(im.complete) { if(--left===0) run(); } else { im.onload=im.onerror=function(){ if(--left===0) run(); }; } });
+  setTimeout(run,800);
+  setTimeout(finish,4000);
+})();
+</script>
+</div>
 <div class="app">
   <header class="top">
     <div class="brand"><img class="logo" src="boss/boss-192.png" alt=""><div><p class="eyebrow" id="today">We Vape · 대표님</p><h1>W 결재함</h1></div></div>
@@ -1366,7 +1436,7 @@ function closeBI(){ BI.timers.forEach(clearTimeout); BI.timers=[]; $('bi').class
   $('biBar').querySelectorAll('i').forEach(el=>el.onclick=()=>biShow(+el.dataset.j));
   $('biPrev').onclick=()=>{ if(BI.i>0) biShow(BI.i-1); }; $('biNext').onclick=()=>{ if(BI.i<BI_SCENES.length-1) biShow(BI.i+1); else closeBI(); };
   $('biSkip').onclick=closeBI; $('help').onclick=openBI; window.addEventListener('resize',()=>{ if($('bi').classList.contains('show')) biFit(); });
-  try{ if(/[?&]intro=1/.test(location.search) || !localStorage.getItem('bossIntroSeen4')) setTimeout(openBI,300); }catch(e){}
+  try{ if(/[?&]intro=1/.test(location.search) || !localStorage.getItem('bossIntroSeen4')) setTimeout(openBI,window.SPLASH_MS||300); }catch(e){}
 })();
 
 /* ───────── 시작 ───────── */
