@@ -1240,7 +1240,8 @@ function parseCart(text){
       continue;
     }
     if(!cur) continue;
-    const q = ln.match(/^수량\s*[:：]?\s*(\d+)$/) || ln.match(/^(\d+)\s*개$/) || ln.match(/^수량\s*(\d+)\s*개/); if(q){ cur.qty = Number(q[1]); continue; }
+    const qIn = ln.match(/^수량\s*[:：]?\s*(\d+)$/);   // 장바구니 수량칸(입력칸)에서 온 수량
+    const q = qIn || ln.match(/^(\d+)\s*개$/) || ln.match(/^수량\s*(\d+)\s*개/); if(q){ cur.qty = Number(q[1]); if(qIn) cur.qtyIn = true; continue; }
     if(/쿠폰할인 적용됨|배송비|적립/.test(ln)) continue;
     const clean = ln.replace(/\([^)]*당[^)]*\)/g,'');   // (100ml당 302원) 같은 단위가격 제거
     const hadPrice = [...clean.matchAll(PRICE_RE)].length>0;
@@ -1259,6 +1260,16 @@ function parseCart(text){
       for(let j=i;j<Math.min(lines.length,i+4);j++){ const all=[...lines[j].matchAll(PRICE_RE)]; if(all.length){ expected = num(all[all.length-1][1]); break; } }
     }
   }
+  // 쿠팡 장바구니는 수량이 2개 이상이면 「수량 × 단가」 합산 금액을 보여줌 → 단가로 되돌림
+  // 판단: 예상 금액이 있으면 그 금액에 더 가까운 쪽(합산 표시 / 단가 표시)을 따르고, 없으면 장바구니 수량칸에서 읽은 품목만 합산으로 봄
+  const multi = items.filter(it => it.qty > 1 && it.price > 0);
+  if(multi.length){
+    const sumLine = items.reduce((a,i)=>a+i.price,0), sumUnit = items.reduce((a,i)=>a+i.price*i.qty,0);
+    let lineMode = null;
+    if(expected!=null) lineMode = Math.abs(sumLine-expected) < Math.abs(sumUnit-expected);
+    for(const it of multi) if(lineMode===true || (lineMode===null && it.qtyIn)) it.price = Math.round(it.price / it.qty * 100) / 100;
+  }
+  for(const it of items) delete it.qtyIn;
   return { items, expected };
 }
 function cleanName(n){ return n.replace(/\s+/g,' ').replace(/유한공사/,'').trim(); }
