@@ -177,6 +177,12 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .hero-mini{display:none;font-size:var(--f-s);color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero-mini b{color:var(--ink);font-weight:700}
 .hero-mini b.w{color:var(--orange)}
+.evb{display:flex;width:max-content;max-width:100%;align-items:center;gap:8px;margin-top:8px;height:30px;padding:0 4px 0 12px;border-radius:var(--r-pill);background:var(--navy-soft);color:var(--navy-ink);font-size:var(--f-xs);font-weight:600;white-space:nowrap}
+.evb[hidden]{display:none}
+.evb b{font-weight:800;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.evb button{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 9px;border:0;border-radius:var(--r-pill);background:var(--card);color:var(--navy-ink);font:inherit;font-weight:700;cursor:pointer;transition:transform var(--d-fast) ease}
+.evb button:active{transform:scale(.94)}
+.evb svg{width:12px;height:12px;flex:none}
 .hero-stats{margin-left:auto;display:flex;gap:var(--hero-stat-gap);flex:none}
 .hero-stats div{text-align:right}
 .hero-stats span{display:block;font-size:var(--f-xs);font-weight:600;color:var(--ink-3);white-space:nowrap}
@@ -965,6 +971,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
         <h1 class="hero-title" id="storeTitle"></h1>
         <p class="hero-sub">비품 주문 · 관리비 · 택배비 청구</p>
         <p class="hero-mini n" id="heroMini"></p>
+        <div class="evb" id="evBiz" hidden>지출증빙 <b class="n" id="evBizNo"></b><button type="button" id="evBizCopy" aria-label="사업자번호 복사"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>복사</button></div>
       </div>
       <div class="hero-stats">
         <div><span>이번 달 청구</span><b class="n" id="hsAmt">–</b></div>
@@ -1122,6 +1129,8 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
 /* ---------- 상태 ---------- */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwmRvA_JapXa3XGdUw8XoUtrH5qhYuwgcPE7dxOW0Nm9AdP9PJ9IAV81ya5kU7077jj/exec'; // Apps Script 웹앱 URL
 const S = { items: [], pays: [], cartExpected: null, appendMode: false, orderId: null, saveState: '', tab:'이력', filter:'전체', openFold:{}, rows:null, rowsErr:'', badge:0, newId:null };
+// 지점별 지출증빙 사업자번호 (2026-11-20 지정)
+const EV_BIZ = {'구월로데오점':'5673800433','구월길병원점':'1313721800','인천연수점':'1313632256','인천논현점':'1313649515','부천상동점':'2332001169','부천중동점':'5113400543','인천공항점':'6123207976','인천검단점':'1941502608','인천계산점':'1223135365'};
 const STORES = ['구월로데오점','구월길병원점','인천연수점','인천논현점','부천상동점','부천중동점','인천공항점','인천검단점','인천계산점'];
 const REASONS = ['매장 비품 보충','고객 서비스 제공용','매장 정비 비품','프린터 잉크 보충'];
 function reasonStats(){ try{ return JSON.parse(localStorage.getItem('supplyReasons')||'{}'); }catch(e){ return {}; } }
@@ -1610,6 +1619,11 @@ function buildWb({items, store, date, evName, evNo}){
 }
 
 /* ---------- 사업자 지출증빙 ---------- */
+function setEvBiz(st){
+  const no=EV_BIZ[st]; $('evBiz').hidden=!no; if(!no) return;
+  $('evBizNo').textContent=bizNo(no); $('evName').value=shortName(st); $('evNo').value=no;
+}
+$('evBizCopy').addEventListener('click',e=>{ const no=EV_BIZ[$('store').value]; if(no) copyText(no,'사업자번호를 복사했습니다',e.currentTarget); });
 function bizNo(n){ n=String(n??'').trim(); return /^\d{10}$/.test(n) ? `${n.slice(0,3)}-${n.slice(3,5)}-${n.slice(5)}` : n; }
 function evText(name,no){ name=String(name??'').trim(); no=String(no??'').trim();
   return (!name&&!no) ? {text:'사업자 지출증빙 : 미입력',missing:true} : {text:`사업자 지출증빙 : ${name} (${bizNo(no)})`,missing:false}; }
@@ -1763,6 +1777,7 @@ window.addEventListener('hashchange', ()=>route(false));
 function enterStore(st){
   if($('store').value!==st) leaveStore();
   $('store').value=st; $('storeTitle').textContent=st;
+  setEvBiz(st);
   try{ localStorage.setItem('supplyLastStore', st); }catch(e){}
   Object.assign(S,{items:[],pays:[],cartExpected:null,orderId:null,done:false,evCk:false,saveState:'',appendMode:false,_saving:false,_again:false,_completing:false,rows:null,rowsErr:'',badge:0,newId:null,filter:'전체',openFold:{}});
   $('cartAppend').checked=false;
