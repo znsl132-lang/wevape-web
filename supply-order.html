@@ -2076,9 +2076,9 @@ function billKey(){ return 'supplyBill:'+$('store').value+':'+BL.kind; }
 (function initBillUI(){
   const sel=$('bMonth'); const d=new Date(); d.setDate(1);
   for(let i=0;i<8;i++){ const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); const o=document.createElement('option'); o.value=k; o.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월분`; sel.appendChild(o); d.setMonth(d.getMonth()-1); }
-  ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>$(id).addEventListener('input',()=>{ if(id==='bAmt'){ const el=$('bAmt'), pos=el.value.length-(el.selectionStart??el.value.length), n=num(el.value); el.value = n ? n.toLocaleString('ko-KR') : ''; const np=Math.max(0,el.value.length-pos); try{ el.setSelectionRange(np,np); }catch(e){} } saveBillDraft(); renderBill(); }));
-  $('bFile').addEventListener('change', async e=>{ const n0=BL.photos.length; for(const f of [...e.target.files].slice(0,4)){ try{ BL.photos.push({data:await shrinkImage(f)}); }catch(x){ toast('사진을 읽지 못했습니다','bad'); } } e.target.value=''; renderPhotos(n0); renderBill(); });
-  $('bPhotos').addEventListener('click', async e=>{ const x=e.target.closest('[data-pi]'); if(!x) return; const ph=x.closest('.ph'); await anim(ph,[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.7)'}],{duration:D.fast,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{}); BL.photos.splice(+x.dataset.pi,1); renderPhotos(); renderBill(); });
+  ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>$(id).addEventListener('input',()=>{ reopenBill(); if(id==='bAmt'){ const el=$('bAmt'), pos=el.value.length-(el.selectionStart??el.value.length), n=num(el.value); el.value = n ? n.toLocaleString('ko-KR') : ''; const np=Math.max(0,el.value.length-pos); try{ el.setSelectionRange(np,np); }catch(e){} } saveBillDraft(); renderBill(); }));
+  $('bFile').addEventListener('change', async e=>{ reopenBill(); const n0=BL.photos.length; for(const f of [...e.target.files].slice(0,4)){ try{ BL.photos.push({data:await shrinkImage(f)}); }catch(x){ toast('사진을 읽지 못했습니다','bad'); } } e.target.value=''; renderPhotos(n0); renderBill(); });
+  $('bPhotos').addEventListener('click', async e=>{ const x=e.target.closest('[data-pi]'); if(!x) return; const ph=x.closest('.ph'); await anim(ph,[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.7)'}],{duration:D.fast,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{}); BL.photos.splice(+x.dataset.pi,1); reopenBill(); renderPhotos(); renderBill(); });
   $('bDone').onclick=completeBill;
   $('bClear').onclick=async()=>{ if(!(await ask({title:'입력한 내용을 지울까요?',text:BL.done?'화면만 비웁니다. 완료한 청구는 「지난 청구이력」에 그대로 남습니다.':'입력한 내용을 지웁니다.',yes:'전체 삭제',danger:true}))) return; try{ localStorage.removeItem(billKey()); }catch(e){} openBill(true); toast('비웠습니다'); };
   $('bCopyMsg').onclick=e=>copyText(billData().msgs[0], '멘트를 복사했습니다', e.currentTarget);
@@ -2106,13 +2106,14 @@ async function openBill(reset){
   $('bPhotoHint').textContent = k==='관리비' ? '관리비 고지서 사진' : '택배 정산현황 사진';
   $('bResLabel').textContent = k==='관리비' ? '납부 금액' : '정산 금액';
   $('bBank').placeholder = k==='관리비' ? '신한은행' : '카카오뱅크';
-  Object.assign(BL,{orderId:null, done:false, photos: reset ? [] : (BL.mem[st+'|'+k]||loadPh(st,k))});
+  Object.assign(BL,{orderId:null, done:false, lost:false, baseMonth:'', photos: reset ? [] : (BL.mem[st+'|'+k]||loadPh(st,k))});
   ['bAmt','bDue','bCnt'].forEach(id=>$(id).value=''); $('bMonth').value=prevMonth(); $('bCar').value='로젠';
   $('bShort').value=shortName(st); $('bBank').value=''; $('bAcc').value=''; $('bHolder').value='';
-  if(!reset){ try{ const d=JSON.parse(localStorage.getItem(billKey())||'null'); if(d){ ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>{ if(d[id]!=null) $(id).value=d[id]; }); BL.orderId=d.orderId||null; BL.done=!!d.done; } }catch(e){} }
+  if(!reset){ try{ const d=JSON.parse(localStorage.getItem(billKey())||'null'); if(d){ ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>{ if(d[id]!=null) $(id).value=d[id]; }); BL.orderId=d.orderId||null; BL.done=!!d.done; BL.baseMonth=d.baseMonth||(d.done?d.bMonth:''); } }catch(e){} }
   if(!$('bMonth').value) $('bMonth').value=prevMonth();
   setNum($('bResAmt'), num($('bAmt').value));
   renderPhotos(); renderBill();
+  if(BL.done && BL.orderId){ const oid=BL.orderId; api({action:'get',id:oid}).then(r=>{ if(r && r.ok && !r.order && BL.orderId===oid && $('store').value===st && BL.kind===k){ BL.done=false; BL.lost=true; BL.orderId=null; saveBillDraft(); renderBill(); toast('이 청구는 서버에 저장되지 않았습니다 — 「청구 완료 처리」를 다시 눌러 주세요','bad'); } }).catch(()=>{}); }
   BL.photos.forEach(async p=>{ if(p.id && !p.data){ try{ const r=await api({action:'photo',id:p.id}); if(r.ok && BL.photos.includes(p)){ p.data=r.data; renderPhotos(); } }catch(e){} } }); if(S.tab===k) renderFold(k);
   try{ // 지점별 받는 계좌 — 비어 있는 칸만 채움
     const res=await api({action:'config',store:st}); if(!res.ok || $('store').value!==st || BL.kind!==k) return;
@@ -2120,7 +2121,11 @@ async function openBill(reset){
       filled.forEach((id,i)=>{ if($(id).value) anim($(id),[{backgroundColor:'#E6F5EE'},{backgroundColor:'#E6F5EE',offset:.6},{backgroundColor:'#F4F6F9'}],{duration:1400,delay:i*D.gap,fill:'none'}); }); }
   }catch(e){}
 }
-function saveBillDraft(){ const d={orderId:BL.orderId, done:BL.done}; ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>d[id]=$(id).value); try{ localStorage.setItem(billKey(), JSON.stringify(d)); }catch(e){} }
+function reopenBill(){ // 완료(또는 불러온) 청구를 고치기 시작하면 다시 「완료 전」 — 「청구 완료 처리」를 눌러야 서버에 반영
+  if(!BL.done) return; BL.done=false; BL.lost=false;
+  toast('고친 내용은 「청구 완료 처리」를 다시 눌러야 반영됩니다');
+}
+function saveBillDraft(){ const d={orderId:BL.orderId, done:BL.done, baseMonth:BL.baseMonth||''}; ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>d[id]=$(id).value); try{ localStorage.setItem(billKey(), JSON.stringify(d)); }catch(e){} }
 function billData(){
   const k=BL.kind, amt=num($('bAmt').value), [y,m]=$('bMonth').value.split('-'), sh=$('bShort').value.trim()||shortName($('store').value);
   const bank=$('bBank').value.trim(), acc=$('bAcc').value.trim(), holder=$('bHolder').value.trim(), due=$('bDue').value, cnt=$('bCnt').value, car=$('bCar').value.trim()||'로젠';
@@ -2147,6 +2152,7 @@ function renderBill(){
   $('bCheck').innerHTML = BL.done ? `<span class="chip ok">${IC.check}청구 완료</span>` : miss.length ? `<span class="chip wait">${miss.join(' · ')} 입력 필요</span>` : `<span class="chip ok">${IC.check}멘트 준비 완료</span>`;
   if(!BL._completing){ const d=$('bDone'); d.hidden=!!BL.done; d.disabled = !!miss.length || BL.done || BL.saving; if(BL.saving) d.innerHTML='<span class="spin"></span>저장하는 중'; else d.textContent='청구 완료 처리'; }
   $('bState').innerHTML = BL._completing ? '' : BL.done ? `<div class="res-state">${IC.check}청구 완료 · 사장님 앱 「입금 대기」에 올라갔습니다</div><button class="btn soft" id="newBill" style="margin-top:8px;width:100%">${IC.plus}새 청구 작성</button>`
+    : BL.lost ? `<div class="res-note"><span class="chip bad">서버에 저장되지 않은 청구입니다 — 「청구 완료 처리」를 눌러야 대표님께 전달됩니다</span></div>`
     : (b.amt ? `<div class="res-note"><span class="chip wait">아직 청구 완료 전 — 카톡 전송 후 「청구 완료 처리」를 눌러야 사장님 앱과 이달 내역에 들어갑니다</span></div>` : '');
 }
 async function completeBill(){
@@ -2158,11 +2164,11 @@ async function completeBill(){
   try{
     const ids=[];
     for(const p of BL.photos){ if(p.id){ ids.push(p.id); continue; } const r=await api(null,{action:'photo', data:p.data, name:`${st}_${b.k}_${b.month}`}); if(!r.ok) throw new Error(r.error||'사진 저장 실패'); p.id=r.id; ids.push(r.id); }
-    const order={ id:BL.orderId, kind:b.k, store:st, month:b.month, date:new Date().toISOString().slice(0,10), amount:b.amt,
+    const order={ id:(BL.orderId && b.month===BL.baseMonth) ? BL.orderId : null, kind:b.k, store:st, month:b.month, date:new Date().toISOString().slice(0,10), amount:b.amt,
       dueDate:b.due, count:b.cnt, carrier:b.k==='택배비'?b.car:'', short:b.sh, photos:ids, items:[],
       pays:[{label:`${b.k} ${Number(b.month.slice(5))}월분`, bank:b.bank, acc:b.acc, holder:b.holder, amount:b.amt, line:b.line}], msg:b.msgs.join('\n\n') };
     const res=await api(null,{action:'save',order}); if(!res.ok) throw new Error(res.error||'저장 실패');
-    BL.orderId=res.id; BL.done=true; saveBillDraft(); ok=true;
+    BL.orderId=res.id; BL.done=true; BL.lost=false; BL.baseMonth=b.month; saveBillDraft(); ok=true;
     api(null,{action:'setconfig', store:st, kind:b.k, bank:b.bank, acc:b.acc, holder:b.holder, short:b.sh, carrier:b.k==='택배비'?b.car:''}).catch(()=>{});
   }catch(e){ toast('청구 저장 실패: '+e.message,'bad'); }
   BL.saving=false;
@@ -2174,7 +2180,7 @@ async function loadBill(o){
   BL.kind=o.kind;
   $('bMonth').value=o.month; $('bAmt').value=(Number(o.amount)||0).toLocaleString('ko-KR'); $('bDue').value=o.dueDate||''; $('bCnt').value=o.count||''; $('bCar').value=o.carrier||'로젠'; $('bShort').value=o.short||shortName(o.store);
   const p=(o.pays||[])[0]||{}; $('bBank').value=p.bank||''; $('bAcc').value=p.acc||''; $('bHolder').value=p.holder||'';
-  BL.orderId=o.id; BL.done=true; BL.photos=(o.photos||[]).map(id=>({id})); saveBillDraft(); renderPhotos(); renderBill(); renderFold(o.kind);
+  BL.orderId=o.id; BL.done=true; BL.lost=false; BL.baseMonth=o.month; BL.photos=(o.photos||[]).map(id=>({id})); saveBillDraft(); renderPhotos(); renderBill(); renderFold(o.kind);
   (o.photos||[]).forEach(async (id,i)=>{ try{ const r=await api({action:'photo',id}); if(r.ok && BL.photos[i] && BL.photos[i].id===id){ BL.photos[i].data=r.data; renderPhotos(); } }catch(e){} });
 }
 
