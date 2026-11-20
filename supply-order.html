@@ -489,6 +489,16 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .btn.red{background:var(--red);color:#fff}
 .btn.red:hover{background:#C03A3A}
 
+.ob-bar{position:sticky;top:8px;z-index:60;display:flex;align-items:center;gap:var(--s-3);margin:0 0 var(--s-3);padding:10px 10px 10px 14px;border-radius:var(--r-m);background:var(--red-soft);color:var(--red);font-size:var(--f-s);box-shadow:0 6px 20px rgba(20,25,38,.08)}
+.ob-bar[hidden],.ver-bar[hidden]{display:none}
+.ob-bar .ob-t{flex:1;min-width:0;line-height:1.45}.ob-bar b{font-weight:800}
+.ob-bar .ob-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none;animation:obp 1.4s ease-in-out infinite}
+@keyframes obp{50%{opacity:.25}}
+.ob-bar .btn{background:var(--card);color:var(--red);flex:none}.ob-bar .btn .spin{border-color:rgba(214,58,58,.25);border-top-color:currentColor;width:14px;height:14px}
+.ver-bar{display:flex;align-items:center;justify-content:center;gap:var(--s-3);flex-wrap:wrap;margin:0 0 var(--s-3);padding:8px 12px;border-radius:var(--r-m);background:var(--navy-soft);color:var(--navy-ink);font-size:var(--f-s);font-weight:600}
+.ver-bar .btn{background:var(--card);color:var(--navy-ink)}
+.app-ver{text-align:center;font-size:11px;color:var(--ink-4);margin-top:6px;letter-spacing:.02em}
+@media (prefers-reduced-motion:reduce){.ob-bar .ob-dot{animation:none}}
 footer{margin-top:var(--s-10);text-align:center;font-size:var(--f-xs);line-height:1.8;color:var(--ink-4)}
 
 /* ───────── 좁은 폭 (본문) ───────── */
@@ -934,6 +944,8 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
 </head>
 <body>
 <div class="page">
+  <div class="ob-bar" id="obBar" role="alert" hidden></div>
+  <div class="ver-bar" id="verBar" role="status" hidden></div>
 
   <!-- 첫 화면: 지점 선택 -->
   <main id="view-home" hidden>
@@ -1094,6 +1106,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
     Copyright © 2026 Dae Woon Jang. All Rights Reserved.<br>
     내부 운영 자료 · 외부 공유를 금합니다
   </footer>
+  <div class="app-ver n" id="appVer"></div>
 </div>
 
 <div class="toast" id="toast" role="status"><span class="ic"></span><span id="toastText"></span></div>
@@ -1128,6 +1141,7 @@ html[data-dir=back]::view-transition-new(root){animation:vt-in-back var(--d-slow
 <script>
 /* ---------- 상태 ---------- */
 const API_URL = 'https://script.google.com/macros/s/AKfycbwmRvA_JapXa3XGdUw8XoUtrH5qhYuwgcPE7dxOW0Nm9AdP9PJ9IAV81ya5kU7077jj/exec'; // Apps Script 웹앱 URL
+const APP_VER = '2026.11.20-4'; // 화면 판 — 바꿀 때마다 올림 (열어 둔 창 자동 새로고침 기준)
 const S = { items: [], pays: [], cartExpected: null, appendMode: false, orderId: null, saveState: '', tab:'이력', filter:'전체', openFold:{}, rows:null, rowsErr:'', badge:0, newId:null };
 // 지점별 지출증빙 사업자번호 (2026-11-20 지정)
 const EV_BIZ = {'구월로데오점':'5673800433','구월길병원점':'1313721800','인천연수점':'1313632256','인천논현점':'1313649515','부천상동점':'2332001169','부천중동점':'5113400543','인천공항점':'6123207976','인천검단점':'1941502608','인천계산점':'1223135365'};
@@ -1540,7 +1554,7 @@ function renderOut(){
   const ls=S.pays.map((p,i)=>({p,i})).filter(x=>x.p.acc||x.p.amount);
   $('oneliners').innerHTML = ls.length ? ls.map(x=>`<div class="oneline"><code class="n" title="${esc(payLine(x.p))}">${esc(payLine(x.p))}</code><button class="btn sm" data-ol="${x.i}">복사</button></div>`).join('')
     : '<div class="oneline blank"><code>입금 정보를 넣으면 여기에 한 줄로 나옵니다</code></div>';
-  if(!S._completing){ const b=$('doneBtn'); b.hidden=!!S.done; b.disabled=!n; b.textContent='주문 완료 처리'; }
+  if(!S._completing){ const b=$('doneBtn'); const q=!!(S.orderId && obAll()['order:'+S.orderId]); b.hidden=!!S.done; b.disabled=!n||q; b.textContent=q?'서버로 보내는 중…':'주문 완료 처리'; }
   renderEv();
   renderSaveState();
 }
@@ -1647,14 +1661,15 @@ async function api(params, body){
   const u=new URL(API_URL); Object.entries(params).forEach(([k,v])=>v!=null&&v!==''&&u.searchParams.set(k,v));
   const r=await fetch(u); return r.json();
 }
+function makeOrder(){ return { id:S.orderId, store:$('store').value, month:monthKey(), date:$('date').value, evName:$('evName').value, evNo:$('evNo').value,
+  items:activeItems(), pays:S.pays, cartExpected:S.cartExpected, msg:buildMsg() }; }
 async function saveOrder(silent){
   if(!API_URL){ S.saveState='noapi'; renderOut(); return; }
   if(S._saving){ S._again=true; return; } S._saving=true;
   S.saveState='saving'; renderOut();
   const gen=S.gen, key=draftKey();
   try{
-    const order={ id:S.orderId, store:$('store').value, month:monthKey(), date:$('date').value, evName:$('evName').value, evNo:$('evNo').value,
-      items:activeItems(), pays:S.pays, cartExpected:S.cartExpected, msg:buildMsg() };
+    const order=makeOrder();
     const res=await api(null,{action:'save',order});
     if(!res.ok) throw new Error(res.error||'저장 실패');
     delete ORDER_CACHE[res.id];
@@ -1675,9 +1690,13 @@ async function completeOrder(){
   if(!(await ask({title:`${Number(mm())}월 주문으로 완료 처리할까요?`,big:`${fmt(it)}<small>원</small>`,text:`${$('store').value} · 품목 ${n}개`,
     note:(S.pays.length?'':'입금 정보가 아직 없습니다. 이대로 완료 처리할 수 있습니다.\n')+'완료한 주문만 「지난 청구이력」과 월 합계에 들어갑니다.',yes:'완료 처리'}))) return;
   const btn=$('doneBtn'); S._completing=true; btn.disabled=true; btn.innerHTML='<span class="spin"></span>저장하는 중';
+  if(!S.orderId) S.orderId=newId();
   S.done=true; saveDraft();
-  await saveOrder();
-  if(S.saveState!=='ok'){ S.done=false; saveDraft(); S._completing=false; render(); toast('완료 저장 실패 — 다시 시도해 주세요','bad'); return; }
+  const ob={ key:'order:'+S.orderId, kind:'order', order:makeOrder(), photos:[], at:Date.now() };
+  obPut(ob); // 먼저 기기에 보관
+  let ok=false; try{ await obSend(ob); obDel(ob.key); ok=true; S.saveState='ok'; }catch(e){ ob.err=String(e.message||e); obPut(ob); }
+  if(!ok){ S.done=false; S.queued=true; saveDraft(); S._completing=false; render(); toast('서버로 아직 못 보냈습니다 — 이 기기에 보관하고 자동으로 다시 보냅니다','bad'); return; }
+  delete ORDER_CACHE[S.orderId]; saveDraft();
   await playDone({card:$('sResult'), id:S.orderId, kind:'비품', month:monthKey(), total:it, label:'주문 완료', toastText:'주문 완료 — 사장님 앱 「입금 대기」에 올라갔습니다', after:()=>{ S._completing=false; render(); }});
 }
 $('doneBtn').onclick=completeOrder;
@@ -1747,6 +1766,68 @@ function showPane(tab){
 }
 $('tabs').onclick=e=>{ const t=e.target.closest('.tab'); if(t) setTab(t.dataset.tab); };
 $('hReload').onclick=()=>{ S.rows=null; renderList(false); loadRows(); };
+/* ---------- 보내기 대기함 — 서버에 확인될 때까지 이 기기에 보관하고 자동 재전송 (2026-11-20 · 누락 0) ---------- */
+function newId(){ const k=new Date(Date.now()+9*3600e3).toISOString(); return k.slice(0,10).replace(/-/g,'')+'-'+k.slice(11,19).replace(/:/g,'')+'-'+Math.random().toString(36).slice(2,6); }
+const OB_KEY='supplyOutbox';
+const OB_MEM={}; // 저장 공간이 꽉 차도 이 창이 열려 있는 동안은 보관
+function obAll(){ let a={}; try{ a=JSON.parse(localStorage.getItem(OB_KEY)||'{}')||{}; }catch(e){} return Object.assign({},OB_MEM,a); }
+function obPut(it){ OB_MEM[it.key]=it; try{ const a=JSON.parse(localStorage.getItem(OB_KEY)||'{}')||{}; a[it.key]=it; localStorage.setItem(OB_KEY, JSON.stringify(a)); delete OB_MEM[it.key]; }catch(e){} renderOb(); }
+function obDel(key){ delete OB_MEM[key]; try{ const a=JSON.parse(localStorage.getItem(OB_KEY)||'{}')||{}; delete a[key]; localStorage.setItem(OB_KEY, JSON.stringify(a)); }catch(e){} renderOb(); }
+function obCount(){ return Object.keys(obAll()).length; }
+/* 한 건 보내기: 사진 → 저장 → 다시 읽어 확인. 확인돼야만 true */
+async function obSend(it){
+  const o=it.order;
+  if(it.photos && it.photos.length){ const ids=[]; for(const p of it.photos){ if(!p.id){ const r=await api(null,{action:'photo', data:p.data, name:`${o.store}_${o.kind}_${o.month}`}); if(!r || !r.ok) throw new Error((r&&r.error)||'사진 저장 실패'); p.id=r.id; p.data=null; obPut(it); } ids.push(p.id); } o.photos=ids; }
+  const res=await api(null,{action:'save',order:o}); if(!res || !res.ok) throw new Error((res&&res.error)||'저장 실패');
+  const chk=await api({action:'get',id:o.id}); if(!chk || !chk.ok || !chk.order) throw new Error('저장 확인 실패');
+  return true;
+}
+let _obBusy=false;
+async function obFlush(manual){
+  if(_obBusy) return; const all=Object.values(obAll()); if(!all.length){ renderOb(); return; }
+  _obBusy=true; renderOb(); let sent=0;
+  for(const it of all){
+    try{ await obSend(it); obDel(it.key); sent++; obDone(it); }
+    catch(e){ it.tries=(it.tries||0)+1; it.err=String(e.message||e); it.last=Date.now(); obPut(it); }
+  }
+  _obBusy=false; renderOb();
+  if(sent) toast(`못 보냈던 청구 ${sent}건을 보냈습니다`); else if(manual && obCount()) toast('아직 보내지 못했습니다 — 인터넷을 확인해 주세요','bad');
+}
+function obDone(it){ // 보내기 성공 → 그 청구 화면을 「완료」로
+  const o=it.order;
+  if(it.kind==='bill'){
+    const key='supplyBill:'+o.store+':'+o.kind;
+    try{ const d=JSON.parse(localStorage.getItem(key)||'null'); if(d){ d.done=true; d.orderId=o.id; d.baseMonth=o.month; localStorage.setItem(key, JSON.stringify(d)); } }catch(e){}
+    if($('store').value===o.store && BL.kind===o.kind && (BL.orderId===o.id||BL.queued)){ BL.orderId=o.id; BL.done=true; BL.queued=false; BL.lost=false; BL.baseMonth=o.month; BL.photos=(o.photos||[]).map((id,i)=>({id,data:(BL.photos[i]||{}).data})); renderPhotos(); renderBill(); }
+  } else {
+    const key=draftKey(o.store);
+    try{ const d=JSON.parse(localStorage.getItem(key)||'null'); if(d){ d.done=true; d.orderId=o.id; localStorage.setItem(key, JSON.stringify(d)); } }catch(e){}
+    if($('store').value===o.store && S.orderId===o.id){ S.done=true; S.queued=false; S.saveState='ok'; saveDraft(); render(); }
+  }
+  delete ORDER_CACHE[o.id]; if(!$('view-store').hidden) loadRows(); else renderGrid(false);
+}
+function renderOb(){
+  const n=obCount(), bar=$('obBar'); if(!bar) return;
+  bar.hidden=!n; if(!n) return;
+  bar.innerHTML=`<span class="ob-dot"></span><span class="ob-t"><b>서버로 못 보낸 청구 ${n}건</b> — 이 기기에 보관 중이며 자동으로 다시 보냅니다. 창을 닫지 마세요.</span><button class="btn sm" id="obNow"${_obBusy?' disabled':''}>${_obBusy?'<span class="spin"></span>보내는 중':'지금 보내기'}</button>`;
+  $('obNow').onclick=()=>obFlush(true);
+}
+setInterval(()=>{ if(obCount()) obFlush(); }, 30000);
+window.addEventListener('online', ()=>obFlush());
+setTimeout(()=>{ renderOb(); obFlush(); }, 1500);
+
+/* ---------- 열어 둔 옛 화면 자동 새로고침 ---------- */
+let _verNew='';
+async function checkVer(){
+  try{ const t=await (await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'})).text(); const m=t.match(/const APP_VER = '([^']+)'/); if(!m || m[1]===APP_VER) return; _verNew=m[1]; }catch(e){ return; }
+  const busy = obCount() || (!$('view-store').hidden && pendingOf($('store').value).length) || !$('modal').hidden || BL.saving || S._completing || /INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'');
+  if(!busy){ location.reload(); return; }
+  const v=$('verBar'); if(v){ v.hidden=false; v.innerHTML=`새 버전(${esc(_verNew)})이 있습니다 — 작성 중인 청구를 마친 뒤 <button class="btn sm" id="verGo">새로고침</button>`; $('verGo').onclick=()=>location.reload(); }
+}
+setInterval(checkVer, 5*60*1000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkVer(); });
+setTimeout(()=>{ const f=$('appVer'); if(f) f.textContent='판 '+APP_VER; }, 0);
+
 /* ---------- 완료 전 청구 누락 막기 (2026-11-20) ---------- */
 function pendingOf(st){ // 그 지점에서 작성만 하고 「완료 처리」 안 한 청구
   const out=[];
@@ -1762,7 +1843,7 @@ async function confirmLeave(st){
   if(!go){ const k=list[0].k; if(S.tab!==k) setTab(k); }
   return go;
 }
-window.addEventListener('beforeunload', e=>{ const st=$('store').value; if(st && !$('view-store').hidden && pendingOf(st).length){ e.preventDefault(); e.returnValue=''; } });
+window.addEventListener('beforeunload', e=>{ const st=$('store').value; if(obCount() || (st && !$('view-store').hidden && pendingOf(st).length)){ e.preventDefault(); e.returnValue=''; } });
 $('backHome').onclick=async()=>{ const st=$('store').value; if(!(await confirmLeave(st))) return; _leaveOk=true; location.hash=''; };
 $('hSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.dataset.f===S.filter) return; S.filter=b.dataset.f; syncSeg(); renderList(true); };
 function syncSeg(){ const fi=['전체','비품','관리비','택배비']; $('hSeg').style.setProperty('--i',fi.indexOf(S.filter)); qsa('#hSeg button').forEach(x=>x.classList.toggle('on',x.dataset.f===S.filter)); }
@@ -2113,7 +2194,7 @@ async function openBill(reset){
   if(!$('bMonth').value) $('bMonth').value=prevMonth();
   setNum($('bResAmt'), num($('bAmt').value));
   renderPhotos(); renderBill();
-  if(BL.done && BL.orderId){ const oid=BL.orderId; api({action:'get',id:oid}).then(r=>{ if(r && r.ok && !r.order && BL.orderId===oid && $('store').value===st && BL.kind===k){ BL.done=false; BL.lost=true; BL.orderId=null; saveBillDraft(); renderBill(); toast('이 청구는 서버에 저장되지 않았습니다 — 「청구 완료 처리」를 다시 눌러 주세요','bad'); } }).catch(()=>{}); }
+  if(BL.done && BL.orderId && !obAll()['bill:'+BL.orderId]){ const oid=BL.orderId; api({action:'get',id:oid}).then(r=>{ if(r && r.ok && !r.order && BL.orderId===oid && $('store').value===st && BL.kind===k){ BL.done=false; BL.lost=true; BL.orderId=null; saveBillDraft(); renderBill(); toast('이 청구는 서버에 저장되지 않았습니다 — 「청구 완료 처리」를 다시 눌러 주세요','bad'); } }).catch(()=>{}); }
   BL.photos.forEach(async p=>{ if(p.id && !p.data){ try{ const r=await api({action:'photo',id:p.id}); if(r.ok && BL.photos.includes(p)){ p.data=r.data; renderPhotos(); } }catch(e){} } }); if(S.tab===k) renderFold(k);
   try{ // 지점별 받는 계좌 — 비어 있는 칸만 채움
     const res=await api({action:'config',store:st}); if(!res.ok || $('store').value!==st || BL.kind!==k) return;
@@ -2150,8 +2231,9 @@ function renderBill(){
   const lineOk=!!(b.bank||b.acc||b.amt); $('bLineBox').classList.toggle('blank',!lineOk); $('bCopyLine').disabled=!lineOk;
   const miss=[]; if(!b.amt) miss.push('금액'); if(!b.bank||!b.acc) miss.push('받는 계좌'); if(b.k==='관리비'&&!b.due) miss.push('납기일'); if(b.k==='택배비'&&!b.cnt) miss.push('건수');
   $('bCheck').innerHTML = BL.done ? `<span class="chip ok">${IC.check}청구 완료</span>` : miss.length ? `<span class="chip wait">${miss.join(' · ')} 입력 필요</span>` : `<span class="chip ok">${IC.check}멘트 준비 완료</span>`;
-  if(!BL._completing){ const d=$('bDone'); d.hidden=!!BL.done; d.disabled = !!miss.length || BL.done || BL.saving; if(BL.saving) d.innerHTML='<span class="spin"></span>저장하는 중'; else d.textContent='청구 완료 처리'; }
+  if(!BL._completing){ const d=$('bDone'); d.hidden=!!BL.done; d.disabled = !!miss.length || BL.done || BL.saving || !!(BL.orderId && obAll()['bill:'+BL.orderId]); if(BL.saving) d.innerHTML='<span class="spin"></span>저장하는 중'; else d.textContent='청구 완료 처리'; }
   $('bState').innerHTML = BL._completing ? '' : BL.done ? `<div class="res-state">${IC.check}청구 완료 · 사장님 앱 「입금 대기」에 올라갔습니다</div><button class="btn soft" id="newBill" style="margin-top:8px;width:100%">${IC.plus}새 청구 작성</button>`
+    : (BL.queued || obAll()['bill:'+BL.orderId]) ? `<div class="res-note"><span class="chip bad">서버로 보내는 중 — 이 기기에 보관됨 · 자동으로 다시 보냅니다</span></div>`
     : BL.lost ? `<div class="res-note"><span class="chip bad">서버에 저장되지 않은 청구입니다 — 「청구 완료 처리」를 눌러야 대표님께 전달됩니다</span></div>`
     : (b.amt ? `<div class="res-note"><span class="chip wait">아직 청구 완료 전 — 카톡 전송 후 「청구 완료 처리」를 눌러야 사장님 앱과 이달 내역에 들어갑니다</span></div>` : '');
 }
@@ -2160,17 +2242,18 @@ async function completeBill(){
   if(BL.saving||BL.done) return;
   if(!(await ask({title:`${Number(b.month.slice(5))}월분 ${b.k} 청구 완료 처리할까요?`,big:`${fmt(b.amt)}<small>원</small>`,text:`${st} · ${b.line}`,note:'청구 완료 처리하면 사장님 앱 「입금 대기」에 올라갑니다.',yes:'청구 완료 처리'}))) return;
   BL.saving=true; renderBill();
+  const id=(BL.orderId && b.month===BL.baseMonth) ? BL.orderId : newId();
+  const order={ id, kind:b.k, store:st, month:b.month, date:new Date().toISOString().slice(0,10), amount:b.amt,
+    dueDate:b.due, count:b.cnt, carrier:b.k==='택배비'?b.car:'', short:b.sh, photos:[], items:[],
+    pays:[{label:`${b.k} ${Number(b.month.slice(5))}월분`, bank:b.bank, acc:b.acc, holder:b.holder, amount:b.amt, line:b.line}], msg:b.msgs.join('\n\n') };
+  const it={ key:'bill:'+id, kind:'bill', order, photos:BL.photos.map(p=>({id:p.id||null, data:p.id?null:p.data})), at:Date.now() };
+  BL.orderId=id; BL.baseMonth=b.month; saveBillDraft();
+  obPut(it); // 보내기 전에 먼저 기기에 보관 — 어떤 경우에도 안 사라짐
   let ok=false;
-  try{
-    const ids=[];
-    for(const p of BL.photos){ if(p.id){ ids.push(p.id); continue; } const r=await api(null,{action:'photo', data:p.data, name:`${st}_${b.k}_${b.month}`}); if(!r.ok) throw new Error(r.error||'사진 저장 실패'); p.id=r.id; ids.push(r.id); }
-    const order={ id:(BL.orderId && b.month===BL.baseMonth) ? BL.orderId : null, kind:b.k, store:st, month:b.month, date:new Date().toISOString().slice(0,10), amount:b.amt,
-      dueDate:b.due, count:b.cnt, carrier:b.k==='택배비'?b.car:'', short:b.sh, photos:ids, items:[],
-      pays:[{label:`${b.k} ${Number(b.month.slice(5))}월분`, bank:b.bank, acc:b.acc, holder:b.holder, amount:b.amt, line:b.line}], msg:b.msgs.join('\n\n') };
-    const res=await api(null,{action:'save',order}); if(!res.ok) throw new Error(res.error||'저장 실패');
-    BL.orderId=res.id; BL.done=true; BL.lost=false; BL.baseMonth=b.month; saveBillDraft(); ok=true;
+  try{ await obSend(it); obDel(it.key); ok=true;
+    BL.done=true; BL.lost=false; BL.queued=false; BL.photos=order.photos.map((pid,i)=>({id:pid, data:(BL.photos[i]||{}).data})); saveBillDraft();
     api(null,{action:'setconfig', store:st, kind:b.k, bank:b.bank, acc:b.acc, holder:b.holder, short:b.sh, carrier:b.k==='택배비'?b.car:''}).catch(()=>{});
-  }catch(e){ toast('청구 저장 실패: '+e.message,'bad'); }
+  }catch(e){ it.err=String(e.message||e); obPut(it); BL.queued=true; saveBillDraft(); toast('서버로 아직 못 보냈습니다 — 이 기기에 보관하고 자동으로 다시 보냅니다','bad'); }
   BL.saving=false;
   if(!ok){ renderBill(); return; }
   BL._completing=true; renderPhotos();
