@@ -1180,10 +1180,10 @@ function setNum(el,to,suffix=''){ if(!el) return; cancelAnimationFrame(el._raf);
 function pulse(boxId){ anim(qs('.pulse',$(boxId)),[{opacity:0},{opacity:1},{opacity:0}],{duration:D.slow,fill:'none'}); }
 let toastT;
 function toast(text,type=''){ const t=$('toast'); $('toastText').textContent=text; t.className='toast '+type; qs('.ic',t).innerHTML=type==='bad'?IC.x:type==='info'?IC.info:IC.check; void t.offsetWidth; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200); }
-function ask({title,big='',text='',note='',yes='확인',danger=false}){
+function ask({title,big='',text='',note='',yes='확인',no='취소',danger=false}){
   return new Promise(res=>{
     const m=$('modal'); $('mTitle').textContent=title; $('mBig').innerHTML=big; $('mBig').hidden=!big; $('mText').textContent=text; $('mText').hidden=!text; $('mNote').textContent=note; $('mNote').hidden=!note;
-    const y=$('mYes'); y.textContent=yes; y.className='btn '+(danger?'red':'primary');
+    $('mNo').textContent=no; const y=$('mYes'); y.textContent=yes; y.className='btn '+(danger?'red':'primary');
     m.hidden=false; void m.offsetWidth; m.classList.add('on'); y.focus();
     const done=v=>{ m.classList.remove('on'); y.onclick=$('mNo').onclick=qs('.scrim',m).onclick=null; document.removeEventListener('keydown',key); setTimeout(()=>{m.hidden=true;res(v)},RM?0:D.fast); };
     const key=e=>{ if(e.key==='Escape') done(false); };
@@ -1747,7 +1747,23 @@ function showPane(tab){
 }
 $('tabs').onclick=e=>{ const t=e.target.closest('.tab'); if(t) setTab(t.dataset.tab); };
 $('hReload').onclick=()=>{ S.rows=null; renderList(false); loadRows(); };
-$('backHome').onclick=()=>{ location.hash=''; };
+/* ---------- 완료 전 청구 누락 막기 (2026-11-20) ---------- */
+function pendingOf(st){ // 그 지점에서 작성만 하고 「완료 처리」 안 한 청구
+  const out=[];
+  try{ const d=JSON.parse(localStorage.getItem(draftKey(st))||'null'); if(d && d.items && d.items.length && !d.done) out.push({k:'비품', amt:(d.items||[]).filter(i=>i.on!==false).reduce((a,i)=>a+(Number(i.qty)||0)*(Number(i.price)||0),0)}); }catch(e){}
+  for(const k of ['관리비','택배비']){ try{ const d=JSON.parse(localStorage.getItem('supplyBill:'+st+':'+k)||'null'); if(d && !d.done && num(d.bAmt)) out.push({k, amt:num(d.bAmt)}); }catch(e){} }
+  return out;
+}
+function pendingText(list){ return list.map(p=>`${p.k} ${fmt(p.amt)}원`).join(' · '); }
+let _leaveOk=false;
+async function confirmLeave(st){
+  const list=pendingOf(st); if(!list.length) return true;
+  const go=await ask({title:'아직 청구 완료 전입니다', big:esc(pendingText(list)), text:`${st} — 「${list[0].k==='비품'?'주문 완료 처리':'청구 완료 처리'}」를 눌러야 대표님께 전달되고 기록에 남습니다.`, note:'나가도 작성한 내용은 이 기기에 남아 있습니다.', yes:'그래도 나가기', no:'계속 작성', danger:true});
+  if(!go){ const k=list[0].k; if(S.tab!==k) setTab(k); }
+  return go;
+}
+window.addEventListener('beforeunload', e=>{ const st=$('store').value; if(st && !$('view-store').hidden && pendingOf(st).length){ e.preventDefault(); e.returnValue=''; } });
+$('backHome').onclick=async()=>{ const st=$('store').value; if(!(await confirmLeave(st))) return; _leaveOk=true; location.hash=''; };
 $('hSeg').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.dataset.f===S.filter) return; S.filter=b.dataset.f; syncSeg(); renderList(true); };
 function syncSeg(){ const fi=['전체','비품','관리비','택배비']; $('hSeg').style.setProperty('--i',fi.indexOf(S.filter)); qsa('#hSeg button').forEach(x=>x.classList.toggle('on',x.dataset.f===S.filter)); }
 
@@ -1771,7 +1787,8 @@ function leaveStore(){ // 대기 중인 자동 저장은 지금 바로 보냄
 function route(first){
   const st=decodeURIComponent(location.hash.replace(/^#/,''));
   if(STORES.includes(st)){ if(!first && $('store').value===st && !$('view-store').hidden) return; if(first) enterStore(st); else swapView('fwd',()=>enterStore(st)); }
-  else { if(first) showHome(); else { const prev=$('store').value; swapView('back',()=>{ showHome(); const c=qs(`.store-card[data-st="${CSS.escape(prev)}"]`); if(c) c.classList.add('is-hero'); }); } }
+  else { if(!first && !_leaveOk && !$('view-store').hidden && pendingOf($('store').value).length){ const cur=$('store').value; history.pushState(null,'','#'+encodeURIComponent(cur)); confirmLeave(cur).then(go=>{ if(go){ _leaveOk=true; location.hash=''; } }); return; }
+    _leaveOk=false; if(first) showHome(); else { const prev=$('store').value; swapView('back',()=>{ showHome(); const c=qs(`.store-card[data-st="${CSS.escape(prev)}"]`); if(c) c.classList.add('is-hero'); }); } }
 }
 window.addEventListener('hashchange', ()=>route(false));
 function enterStore(st){
@@ -1789,7 +1806,7 @@ function enterStore(st){
   document.title = st+' · 비품 주문 보고';
   $('paidBanner').innerHTML=''; BANNERS.clear(); checkPaid();
   BL.kind=''; BL.orderId=null; BL.done=false;
-  S.tab = hasDraft(st) ? '비품' : '이력'; syncSeg(); setTabUI(); showPane(S.tab); renderHeroStats(); loadRows();
+  { const pd=pendingOf(st); S.tab = pd.length ? pd[0].k : '이력'; } syncSeg(); setTabUI(); showPane(S.tab); renderHeroStats(); loadRows();
   window.scrollTo(0,0);
 }
 /* ---------- 사장님 입금 완료 알림 ---------- */
@@ -1837,7 +1854,7 @@ function renderGrid(animate){
   (HOME.all||[]).forEach(r=>{ any[r.store]=1; if(!r.paid) waits[r.store]=(waits[r.store]||0)+1; });
   g.innerHTML = STORES.map(st=>{
     const r=by[st];
-    const tags=(hasDraft(st)?'<span class="chip wait">작성 중</span>':'')+(st===last?'<span class="chip navy">최근 사용</span>':'');
+    const pn=pendingOf(st).length; const tags=(pn?`<span class="chip wait">완료 전 ${pn}건</span>`:'')+(st===last?'<span class="chip navy">최근 사용</span>':'');
     const amt = HOME.sum ? (r ? `<span class="sc-amt n"><span data-amt="${r.itemTotal}">${animate?'0':fmt(r.itemTotal)}</span><small>원</small></span>` : '<span class="sc-amt none">이번 달 청구 없음</span>') : '<span class="sc-amt none">–</span>';
     const wchip = HOME.all ? (waits[st] ? `<span class="chip wait">입금 대기 ${waits[st]}건</span>` : (any[st] ? `<span class="chip ok">${IC.check}입금 완료</span>` : '')) : '';
     return `<button class="store-card" data-st="${esc(st)}"><span class="sc-bg"></span><span class="sc-body">
@@ -2073,8 +2090,11 @@ function shrinkImage(file){
     const max=1600, k=Math.min(1, max/Math.max(im.width,im.height)); const c=document.createElement('canvas'); c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
     c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',0.8)); }; im.src=fr.result; }; fr.readAsDataURL(file); });
 }
+function loadPh(st,k){ try{ return (JSON.parse(localStorage.getItem('supplyBillPh:'+st+':'+k)||'[]')||[]).map(p=>p.id?{id:p.id}:{data:p.data}); }catch(e){ return []; } }
+function phKey(){ return 'supplyBillPh:'+$('store').value+':'+BL.kind; }
 function renderPhotos(animFrom){
   BL.mem[$('store').value+'|'+BL.kind]=BL.photos;
+  try{ if(BL.photos.length) localStorage.setItem(phKey(), JSON.stringify(BL.photos.filter(p=>p.data||p.id).map(p=>({id:p.id||null,data:p.id?null:p.data})))); else localStorage.removeItem(phKey()); }catch(e){}
   $('bPhotos').innerHTML = BL.photos.map((p,i)=>`<div class="ph">${p.data?`<img src="${p.data}" alt="첨부 사진 ${i+1}">`:'<div class="sk" style="width:100%;height:100%;border-radius:0"></div>'}${p.id&&!p.data?'<span class="sv">저장됨</span>':''}<button class="x" data-pi="${i}" title="빼기" aria-label="사진 빼기">${IC.x}</button></div>`).join('')
     + `<label class="ph-add" for="bFile">${IC.photo}사진 추가</label>`;
   if(animFrom!=null){ const all=qsa('.ph',$('bPhotos')).slice(animFrom); all.forEach((el,i)=>anim(el,[{opacity:0,transform:'scale(.7)'},{opacity:1,transform:'none'}],{duration:D.slow,easing:SPRING,delay:i*D.gap})); const add=qs('.ph-add',$('bPhotos')); if(add&&all.length) anim(add,[{transform:`translateX(${-116*all.length}px)`},{transform:'none'}],{duration:D.slow-60}); }
@@ -2086,13 +2106,14 @@ async function openBill(reset){
   $('bPhotoHint').textContent = k==='관리비' ? '관리비 고지서 사진' : '택배 정산현황 사진';
   $('bResLabel').textContent = k==='관리비' ? '납부 금액' : '정산 금액';
   $('bBank').placeholder = k==='관리비' ? '신한은행' : '카카오뱅크';
-  Object.assign(BL,{orderId:null, done:false, photos: reset ? [] : (BL.mem[st+'|'+k]||[])});
+  Object.assign(BL,{orderId:null, done:false, photos: reset ? [] : (BL.mem[st+'|'+k]||loadPh(st,k))});
   ['bAmt','bDue','bCnt'].forEach(id=>$(id).value=''); $('bMonth').value=prevMonth(); $('bCar').value='로젠';
   $('bShort').value=shortName(st); $('bBank').value=''; $('bAcc').value=''; $('bHolder').value='';
   if(!reset){ try{ const d=JSON.parse(localStorage.getItem(billKey())||'null'); if(d){ ['bMonth','bAmt','bDue','bCnt','bCar','bShort','bBank','bAcc','bHolder'].forEach(id=>{ if(d[id]!=null) $(id).value=d[id]; }); BL.orderId=d.orderId||null; BL.done=!!d.done; } }catch(e){} }
   if(!$('bMonth').value) $('bMonth').value=prevMonth();
   setNum($('bResAmt'), num($('bAmt').value));
-  renderPhotos(); renderBill(); if(S.tab===k) renderFold(k);
+  renderPhotos(); renderBill();
+  BL.photos.forEach(async p=>{ if(p.id && !p.data){ try{ const r=await api({action:'photo',id:p.id}); if(r.ok && BL.photos.includes(p)){ p.data=r.data; renderPhotos(); } }catch(e){} } }); if(S.tab===k) renderFold(k);
   try{ // 지점별 받는 계좌 — 비어 있는 칸만 채움
     const res=await api({action:'config',store:st}); if(!res.ok || $('store').value!==st || BL.kind!==k) return;
     BL.conf=res.config||{}; const c=BL.conf[k]; if(c){ const filled=[]; if(!$('bBank').value){ $('bBank').value=c.bank||''; filled.push('bBank'); } if(!$('bAcc').value){ $('bAcc').value=c.acc||''; filled.push('bAcc'); } if(!$('bHolder').value){ $('bHolder').value=c.holder||''; filled.push('bHolder'); } if(c.short && $('bShort').value===shortName(st)) $('bShort').value=c.short; if(c.carrier && k==='택배비') $('bCar').value=c.carrier; renderBill();
